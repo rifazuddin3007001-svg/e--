@@ -21,7 +21,8 @@
         .modal-content { background: white; width: 85%; max-width: 400px; padding: 25px; border-radius: 20px; position: relative; }
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
         .sub-menu-list { list-style: none; padding: 0; margin-top: 20px; }
-        .sub-menu-list li { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .sub-menu-list li { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 500; color: #444; }
+        .sub-menu-list li:hover { background: #f0f7ff; color: var(--primary); }
     </style>
 </head>
 <body>
@@ -50,17 +51,34 @@
 <div id="infoModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">&times;</span>
-        <h2 id="modalTitle" style="color: var(--primary);">টাইটেল</h2>
+        <h2 id="modalTitle" style="color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 5px;">টাইটেল</h2>
         <ul id="modalList" class="sub-menu-list"></ul>
     </div>
 </div>
 
 <script>
     const data = {
-        transport: { title: "যাতায়াত ও টিকিট", items: ["🚆 দেবীপুর রেলওয়ে টিকিট", "🚌 বাস রুট ও লোকেশন", "🚇 মেট্রো কার্ড রিচার্জ"] },
-        market: { title: "রেডিকা বাজার", items: ["🍯 মেধাভূমির মাখা সন্দেশ", "📦 পোস্ট অফিস ট্র্যাক", "🛍️ আপনার অর্ডার"] },
-        education: { title: "শিক্ষা (বিদ্যা-ট্যাব)", items: ["📺 এডুভিড ভিডিও", "📚 ডিজিটাল লাইব্রেরি", "💬 স্কুল চ্যাট রুম"] },
-        jobs: { title: "কর্ম-নিয়োগ কেন্দ্র", items: ["🔍 নতুন কাজের সন্ধান", "📄 বায়োডাটা আপলোড", "🏢 প্রাইভেট জব পোর্টাল"] }
+        transport: { title: "যাতায়াত ও টিকিট", items: [
+            { name: "🚆 দেবীপুর রেলওয়ে টিকিট", link: "#" },
+            { name: "🚌 বাস রুট ও লোকেশন", link: "#" },
+            { name: "🚇 মেট্রো কার্ড রিচার্জ", link: "#" }
+        ]},
+        market: { title: "রেডিকা বাজার", items: [
+            { name: "🍯 মেধাভূমির মাখা সন্দেশ", link: "#" },
+            { name: "📦 পোস্ট অফিস ট্র্যাক", link: "#" },
+            { name: "🛍️ আপনার অর্ডার", link: "#" }
+        ]},
+        education: { title: "শিক্ষা (বিদ্যা-ট্যাব)", items: [
+            { name: "📺 এডুভিড: বিজ্ঞান ও শিক্ষা", link: "https://www.youtube.com/results?search_query=educational+videos+for+students" },
+            { name: "📚 ব্রিটিশ ডিজিটাল লাইব্রেরি", link: "https://www.wdl.org/en/" },
+            { name: "📖 ওপেন লাইব্রেরি (বই পড়ুন)", link: "https://openlibrary.org/" },
+            { name: "🆘 স্টুডেন্ট হেল্পলাইন", link: "https://wa.me/918597290189" }
+        ]},
+        jobs: { title: "কর্ম-নিয়োগ কেন্দ্র", items: [
+            { name: "🔍 নতুন কাজের সন্ধান", link: "#" },
+            { name: "📄 বায়োডাটা আপলোড", link: "#" },
+            { name: "🏢 প্রাইভেট জব পোর্টাল", link: "#" }
+        ]}
     };
 
     function openModal(category) {
@@ -69,7 +87,11 @@
         list.innerHTML = "";
         data[category].items.forEach(item => {
             const li = document.createElement('li');
-            li.innerHTML = `<span>${item}</span> <span>></span>`;
+            li.innerHTML = `<span>${item.name}</span> <span>➔</span>`;
+            li.onclick = () => {
+                if(item.link !== "#") { window.open(item.link, '_blank'); }
+                else { alert(item.name + " সার্ভিসটি শীঘ্রই সরাসরি যুক্ত করা হবে!"); }
+            };
             list.appendChild(li);
         });
         document.getElementById('infoModal').style.display = "flex";
