@@ -8,10 +8,11 @@
         :root { --primary: #004a99; --accent: #ffb400; --bg: #f0f2f5; --white: #ffffff; }
         body { font-family: 'Hind Siliguri', sans-serif; background-color: var(--bg); margin: 0; padding: 0; }
         header { background: var(--white); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 26px; font-weight: 800; color: var(--primary); }
+        .logo { font-size: 26px; font-weight: 800; color: var(--primary); cursor: pointer; }
         .logo span { color: var(--accent); }
         .container { max-width: 500px; margin: 20px auto; padding: 0 15px; }
-        .welcome-banner { background: linear-gradient(135deg, var(--primary), #003366); color: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; }
+        .welcome-banner { background: linear-gradient(135deg, var(--primary), #003366); color: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; position: relative; }
+        .change-name { position: absolute; top: 10px; right: 15px; font-size: 11px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; cursor: pointer; }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .menu-item { background: var(--white); padding: 20px; border-radius: 18px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid transparent; }
         .menu-item:hover { border-color: var(--accent); }
@@ -21,20 +22,20 @@
         .modal-content { background: white; width: 85%; max-width: 400px; padding: 25px; border-radius: 20px; position: relative; }
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
         .sub-menu-list { list-style: none; padding: 0; margin-top: 20px; }
-        .sub-menu-list li { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 500; color: #444; }
-        .sub-menu-list li:hover { background: #f0f7ff; color: var(--primary); }
+        .sub-menu-list li { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 500; }
     </style>
 </head>
-<body>
+<body onload="checkUser()">
 
 <header>
-    <div class="logo">e-<span>র</span> (ERA)</div>
-    <div style="font-size: 14px;">ID: <b>RIFAZ #01</b></div>
+    <div class="logo" onclick="location.reload()">e-<span>র</span> (ERA)</div>
+    <div id="userIdDisplay" style="font-size: 13px; background: #eee; padding: 4px 10px; border-radius: 15px;">রেডিকা ইউজার</div>
 </header>
 
 <div class="container">
     <div class="welcome-banner">
-        <h2>নমস্কার, রিফাজ!</h2>
+        <span class="change-name" onclick="resetName()">নাম পরিবর্তন</span>
+        <h2 id="greetingText">নমস্কার!</h2>
         <p>আপনার কোয়ান্ট (Quant) ব্যালেন্স: <b>৫,৪৫০ Q</b></p>
     </div>
 
@@ -50,34 +51,47 @@
 
 <div id="infoModal" class="modal">
     <div class="modal-content">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        <h2 id="modalTitle" style="color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 5px;">টাইটেল</h2>
+        <span class="close-btn" onclick="closeModal()">×</span>
+        <h2 id="modalTitle" style="color: var(--primary);">টাইটেল</h2>
         <ul id="modalList" class="sub-menu-list"></ul>
     </div>
 </div>
 
 <script>
+    // ইউজার চেক ফাংশন
+    function checkUser() {
+        let name = localStorage.getItem("userName");
+        if (!name) {
+            name = prompt("রেডিকা প্রজাতন্ত্রে আপনাকে স্বাগতম! আপনার নাম লিখুন:");
+            if (name == null || name == "") name = "রেডিকাবাসী";
+            localStorage.setItem("userName", name);
+        }
+        document.getElementById("greetingText").innerText = "নমস্কার, " + name + "!";
+        document.getElementById("userIdDisplay").innerText = "ইউজার: " + name;
+    }
+
+    // নাম রিসেট করার ফাংশন
+    function resetName() {
+        localStorage.removeItem("userName");
+        location.reload();
+    }
+
     const data = {
         transport: { title: "যাতায়াত ও টিকিট", items: [
-            { name: "🚆 দেবীপুর রেলওয়ে টিকিট", link: "#" },
-            { name: "🚌 বাস রুট ও লোকেশন", link: "#" },
-            { name: "🚇 মেট্রো কার্ড রিচার্জ", link: "#" }
+            { name: "🚆 রেলওয়ান (RailYatri) টিকিট", link: "intent://#Intent;scheme=https;package=com.railyatri.rider;end" },
+            { name: "🚇 কলকাতা মেট্রো অ্যাপ", link: "intent://#Intent;scheme=https;package=com.mcl.infotransit;end" }
         ]},
         market: { title: "রেডিকা বাজার", items: [
-            { name: "🍯 মেধাভূমির মাখা সন্দেশ", link: "#" },
-            { name: "📦 পোস্ট অফিস ট্র্যাক", link: "#" },
-            { name: "🛍️ আপনার অর্ডার", link: "#" }
+            { name: "🛍️ ফ্লিপকার্ট (Flipkart)", link: "intent://#Intent;scheme=https;package=com.flipkart.android;end" },
+            { name: "🍯 মেধাভূমির মাখা সন্দেশ", link: "#" }
         ]},
         education: { title: "শিক্ষা (বিদ্যা-ট্যাব)", items: [
-            { name: "📺 এডুভিড: বিজ্ঞান ও শিক্ষা", link: "https://www.youtube.com/results?search_query=educational+videos+for+students" },
-            { name: "📚 ব্রিটিশ ডিজিটাল লাইব্রেরি", link: "https://www.wdl.org/en/" },
-            { name: "📖 ওপেন লাইব্রেরি (বই পড়ুন)", link: "https://openlibrary.org/" },
-            { name: "🆘 স্টুডেন্ট হেল্পলাইন", link: "https://wa.me/918597290189" }
+            { name: "📺 এডুভিড: বিজ্ঞান ও শিক্ষা", link: "http://googleusercontent.com/youtube.com/2" },
+            { name: "📚 ওপেন লাইব্রেরি", link: "https://openlibrary.org/" }
         ]},
         jobs: { title: "কর্ম-নিয়োগ কেন্দ্র", items: [
-            { name: "🔍 নতুন কাজের সন্ধান", link: "#" },
-            { name: "📄 বায়োডাটা আপলোড", link: "#" },
-            { name: "🏢 প্রাইভেট জব পোর্টাল", link: "#" }
+            { name: "🔍 National Job Portal", link: "https://www.ncs.gov.in/" },
+            { name: "💼 কর্মসংস্থান ব্যাংক (WB)", link: "https://employmentbankwb.gov.in/" }
         ]}
     };
 
@@ -89,8 +103,8 @@
             const li = document.createElement('li');
             li.innerHTML = `<span>${item.name}</span> <span>➔</span>`;
             li.onclick = () => {
-                if(item.link !== "#") { window.open(item.link, '_blank'); }
-                else { alert(item.name + " সার্ভিসটি শীঘ্রই সরাসরি যুক্ত করা হবে!"); }
+                if(item.link !== "#") { window.location.href = item.link; }
+                else { alert(item.name + " সার্ভিসটি শীঘ্রই আসছে!"); }
             };
             list.appendChild(li);
         });
