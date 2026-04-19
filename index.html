@@ -13,10 +13,10 @@
         .container { max-width: 500px; margin: 20px auto; padding: 0 15px; }
         .welcome-banner { background: linear-gradient(135deg, var(--primary), #003366); color: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .menu-item { background: var(--white); padding: 20px; border-radius: 18px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .menu-item:hover { transform: translateY(-5px); border: 1px solid var(--accent); }
+        .menu-item { background: var(--white); padding: 20px; border-radius: 18px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid transparent; }
+        .menu-item:hover { border-color: var(--accent); }
         .icon { font-size: 30px; margin-bottom: 10px; display: block; }
-        .sos-btn { background: #ff4d4d; color: white; text-align: center; padding: 15px; border-radius: 15px; margin-top: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(255,77,77,0.3); }
+        .sos-btn { background: #ff4d4d; color: white; text-align: center; padding: 15px; border-radius: 15px; margin-top: 25px; font-weight: bold; cursor: pointer; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 85%; max-width: 400px; padding: 25px; border-radius: 20px; position: relative; }
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
@@ -59,7 +59,7 @@
     const data = {
         transport: { title: "যাতায়াত ও টিকিট", items: ["🚆 দেবীপুর রেলওয়ে টিকিট", "🚌 বাস রুট ও লোকেশন", "🚇 মেট্রো কার্ড রিচার্জ"] },
         market: { title: "রেডিকা বাজার", items: ["🍯 মেধাভূমির মাখা সন্দেশ", "📦 পোস্ট অফিস ট্র্যাক", "🛍️ আপনার অর্ডার"] },
-        education: { title: "শিক্ষা (বিদ্যা-ট্যাব)", items: ["📺 এডুভিড ভিডিও", "📚 ডিজিটাল লাইব্রেরি", "🆘 স্টুডেন্ট হেল্পলাইন"] },
+        education: { title: "শিক্ষা (বিদ্যা-ট্যাব)", items: ["📺 এডুভিড ভিডিও", "📚 ডিজিটাল লাইব্রেরি", "💬 স্কুল চ্যাট রুম"] },
         jobs: { title: "কর্ম-নিয়োগ কেন্দ্র", items: ["🔍 নতুন কাজের সন্ধান", "📄 বায়োডাটা আপলোড", "🏢 প্রাইভেট জব পোর্টাল"] }
     };
 
@@ -74,7 +74,6 @@
         });
         document.getElementById('infoModal').style.display = "flex";
     }
-
     function closeModal() { document.getElementById('infoModal').style.display = "none"; }
 </script>
 
