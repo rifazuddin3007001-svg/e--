@@ -25,7 +25,6 @@
         .sub-menu-list li { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 500; color: #444; }
         .sub-menu-list li:hover { background: #f0f7ff; color: var(--primary); }
         .const-text { font-size: 14px; line-height: 1.6; color: #444; text-align: justify; padding-top: 15px;}
-        /* ম্যাপের ছবির জন্য বিশেষ স্টাইল */
         .map-image { width: 100%; height: auto; border-radius: 10px; margin-top: 20px; border: 1px solid #eee; }
     </style>
 </head>
@@ -49,7 +48,7 @@
         <div class="menu-item" onclick="openModal('transport')"><span class="icon">🚆</span><h3>যাতায়াত</h3></div>
         <div class="menu-item" onclick="openModal('education')"><span class="icon">🎓</span><h3>শিক্ষা</h3></div>
         <div class="menu-item" onclick="openModal('market')"><span class="icon">🛒</span><h3>রেডিকা বাজার</h3></div>
-        <div class="menu-item" onclick="openModal('jobs')"><span class="icon">💼</span><h3>कर्म-নিয়োগ</h3></div>
+        <div class="menu-item" onclick="openModal('jobs')"><span class="icon">💼</span><h3>কর্ম-নিয়োগ</h3></div>
     </div>
 
     <div class="sos-btn" onclick="window.location.href='https://wa.me/918597290189?text=জরুরি%20সাহায্য%20প্রয়োজন!'">জরুরি সাহায্য (SOS)</div>
@@ -82,13 +81,13 @@
 
     const data = {
         map: { title: "প্রশাসনিক মানচিত্র", content: `
-            <img src="./map.png" alt="রেডিকা প্রজাতন্ত্রের প্রশাসনিক মানচিত্র" class="map-image">
+            <img src="./map.png.jpg" alt="রেডিকা প্রজাতন্ত্রের প্রশাসনিক মানচিত্র" class="map-image">
             <ul class="sub-menu-list" style="margin-top: 15px;">
                 <li><b>🏛️ প্রজ্ঞাকেন্দ্র (রাজধানী)</b></li>
-                <li><b>📚 মেধাভূমি</b> - শিক্ষা जिला</li>
+                <li><b>📚 মেধাভূমি</b> - শিক্ষা জেলা</li>
                 <li><b>⚔️ শৌর্যপুর</b> - প্রতিরক্ষা জেলা</li>
                 <li><b>🏥 আরোগ্যনগর</b> - চিকিৎসা জেলা</li>
-                <li><b>🎨 সৃষ্টিশিলা</b> - শিল্প जिला</li>
+                <li><b>🎨 সৃষ্টিশিলা</b> - শিল্প জেলা</li>
                 <li><b>🌳 সবুজায়ন</b> - পরিবেশ জেলা</li>
             </ul>
         `},
