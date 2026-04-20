@@ -47,14 +47,23 @@
         .menu-item:hover { border-color: var(--accent); transform: translateY(-5px); background: #fff; }
         .icon { font-size: 30px; margin-bottom: 10px; display: block; }
         .sos-btn { background: #ff4d4d; color: white; text-align: center; padding: 15px; border-radius: 15px; margin-top: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(255,77,77,0.4); }
+        
+        /* Modal Styles */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
         .modal-content { background: white; width: 95%; max-width: 480px; max-height: 85vh; overflow-y: auto; padding: 25px; border-radius: 20px; position: relative; animation: slideIn 0.3s ease; }
         @keyframes slideIn { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; z-index: 10; background: rgba(255,255,255,0.8); border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; }
-        .sub-menu-list { list-style: none; padding: 0; margin-top: 20px; }
-        .sub-menu-list li { padding: 15px; border-bottom: 1px solid #eee; display: block; text-align: left; }
-        .dist-detail { font-size: 13px; color: #555; margin-top: 5px; line-height: 1.4; }
-        .map-image { width: 100%; height: auto; border-radius: 10px; margin-top: 10px; border: 1px solid #ddd; }
+        
+        /* Game Styles */
+        .game-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; perspective: 1000px; }
+        .card { width: 100%; aspect-ratio: 1; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.5s; }
+        .card.flipped { transform: rotateY(180deg); }
+        .card .front, .card .back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 5px; box-sizing: border-box; text-align: center; }
+        .card .back { background: linear-gradient(135deg, var(--primary), #002244); color: var(--accent); font-size: 30px; transform: rotateY(0deg); border: 2px solid var(--accent); }
+        .card .front { background: white; color: var(--primary); transform: rotateY(180deg); border: 2px solid var(--primary); font-size: 13px; font-weight: bold; }
+        .card .front span { font-size: 28px; margin-bottom: 5px; display: block; }
+        .game-stats { display: flex; justify-content: space-between; margin-top: 15px; font-weight: bold; color: var(--primary); }
+        .play-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
     </style>
 </head>
 <body onload="checkUser()">
@@ -68,16 +77,16 @@
     <div class="welcome-banner">
         <span class="change-name" onclick="resetName()">নাম পরিবর্তন</span>
         <h2 id="greetingText">নমস্কার!</h2>
-        <p>ব্যালেন্স: <b style="color:var(--accent)">৫,৪৫০ 𝐐 (কোয়ান্ট)</b></p>
+        <p>ব্যালেন্স: <b style="color:var(--accent)"><span id="quantBalance">৫,৪৫০</span> 𝐐 (কোয়ান্ট)</b></p>
     </div>
 
     <div class="menu-grid">
-        <div class="menu-item" onclick="openModal('map')"><span class="icon">🗺️</span><h3>মানচিত্র ও জেলা</h3></div>
+        <div class="menu-item" onclick="openModal('map')"><span class="icon">🗺️</span><h3>মানচিত্র</h3></div>
         <div class="menu-item" onclick="openModal('const')"><span class="icon">📜</span><h3>সংবিধান</h3></div>
+        <div class="menu-item" onclick="openModal('game')"><span class="icon">🎮</span><h3>রেডিকা গেম</h3></div>
         <div class="menu-item" onclick="openModal('transport')"><span class="icon">🚆</span><h3>যাতায়াত</h3></div>
         <div class="menu-item" onclick="openModal('education')"><span class="icon">🎓</span><h3>শিক্ষা</h3></div>
-        <div class="menu-item" onclick="openModal('market')"><span class="icon">🛒</span><h3>রেডিকা বাজার</h3></div>
-        <div class="menu-item" onclick="openModal('jobs')"><span class="icon">💼</span><h3>কর্ম-নিয়োগ</h3></div>
+        <div class="menu-item" onclick="openModal('market')"><span class="icon">🛒</span><h3>বাজার</h3></div>
     </div>
 
     <div class="sos-btn" onclick="window.location.href='https://wa.me/918597290189?text=জরুরি%20সাহায্য%20প্রয়োজন!'">জরুরি সাহায্য (SOS)</div>
@@ -92,6 +101,9 @@
 </div>
 
 <script>
+    // User Balance Logic
+    let balance = localStorage.getItem("quantBalance") ? parseInt(localStorage.getItem("quantBalance")) : 5450;
+    
     function checkUser() {
         let name = localStorage.getItem("userName");
         if (!name) {
@@ -101,43 +113,122 @@
         }
         document.getElementById("greetingText").innerText = "নমস্কার, " + name + "!";
         document.getElementById("userIdDisplay").innerText = "ID: RD-" + Math.floor(1000 + Math.random() * 9000);
+        document.getElementById("quantBalance").innerText = balance.toLocaleString('bn-IN');
     }
 
     function resetName() { localStorage.removeItem("userName"); location.reload(); }
+    
+    function updateBalance(amount) {
+        balance += amount;
+        localStorage.setItem("quantBalance", balance);
+        document.getElementById("quantBalance").innerText = balance.toLocaleString('bn-IN');
+    }
 
+    // App Data
     const data = {
-        map: { title: "প্রশাসনিক মানচিত্র", content: `
-            <img src="./map.png.jpg" alt="মানচিত্র" class="map-image">
-            <ul class="sub-menu-list">
-                <li><b>🏛️ প্রজ্ঞাকেন্দ্র (বর্ধমান)</b><div class="dist-detail">রাজধানী ও হেরিটেজ জোন।</div></li>
-                <li><b>📚 মেধাভূমি (দেবীপুর)</b><div class="dist-detail">শিক্ষা ও গবেষণা কেন্দ্র।</div></li>
-                <li><b>🏥 आरোগ্যনগর (মগরা)</b><div class="dist-detail">চিকিৎসা ও স্বাস্থ্য কেন্দ্র।</div></li>
-                <li><b>⚔️ শৌর্যপুর (পাণ্ডুয়া)</b><div class="dist-detail">নিরাপত্তা ও প্রতিরক্ষা জোন।</div></li>
-                <li><b>🎨 সৃষ্টিশিলা (মেমারি)</b><div class="dist-detail">শিল্প, বাজার ও বিনোদন।</div></li>
-                <li><b>🌳 সবুজায়ন (দেবীপুর)</b><div class="dist-detail">পরিবেশ ও কৃষি জোন।</div></li>
-            </ul>
-        `},
-        const: { title: "রেডিকা পূর্ণাঙ্গ সংবিধান", content: `
-            <img src="./poster.png" alt="রেডিকা সংবিধান পোস্টার" class="map-image">
-            <div style="font-size:14px; line-height:1.6; text-align:justify; margin-top:15px; border-top:1px dashed #ccc; padding-top:10px;">
-                <b>১:</b> রেডিকা একটি সমবাহু পঞ্চভুজ রাষ্ট্র।<br>
-                <b>৫:</b> মুদ্রা - কোয়ান্ট (Q)।<br>
-                <b>৬:</b> ট্রানজিট মুনাফার ৫৩% জনকল্যাণে ব্যয় হইবে।<br>
-                <b>৭:</b> ১০০ বছরের প্রাচীন গাছ 'পরম বৃক্ষ' মর্যাদা পাইবে।
-            </div>
-        `},
-        transport: { title: "যাতায়াত সেবা", content: `<ul class="sub-menu-list"><li onclick="window.open('https://www.railyatri.in/')">🚆 RailYatri</li><li onclick="window.open('https://www.irctc.co.in/')">🎫 IRCTC</li><li onclick="window.open('https://www.kmrc.in/')">🚇 কলকাতা মেট্রো</li></ul>`},
-        education: { title: "শিক্ষা ও জ্ঞান", content: `<ul class="sub-menu-list"><li onclick="window.open('https://openlibrary.org/')">📚 ওপেন লাইব্রেরি</li><li onclick="window.open('https://www.khanacademy.org/')">🎓 খান একাডেমি</li></ul>`},
-        market: { title: "রেডিকা বাজার", content: `<ul class="sub-menu-list"><li onclick="window.open('https://www.flipkart.com/')">🛍️ ফ্লিপকার্ট</li><li onclick="window.open('https://www.amazon.in/')">📦 অ্যামাজন</li></ul>`},
-        jobs: { title: "কর্ম-নিয়োগ", content: `<ul class="sub-menu-list"><li onclick="window.open('https://www.ncs.gov.in/')">🔍 National Job Portal</li></ul>`}
+        map: { title: "প্রশাসনিক মানচিত্র", content: `<p>রেডিকার জেলাসমূহ:</p><ul><li>🏛️ প্রজ্ঞাকেন্দ্র (বর্ধমান)</li><li>📚 মেধাভূমি (দেবীপুর)</li><li>🏥 আরোগ্যনগর (মগরা)</li><li>⚔️ শৌর্যপুর (পাণ্ডুয়া)</li><li>🎨 সৃষ্টিশিলা (মেমারি)</li><li>🌳 সবুজায়ন (দেবীপুর গ্রিন জোন)</li></ul>` },
+        const: { title: "সংবিধান", content: `<p>১০০ বছরের প্রাচীন গাছ 'পরম বৃক্ষ' মর্যাদা পাইবে। ৫৩% মুনাফা জনকল্যাণে ব্যয় হইবে।</p>` },
+        transport: { title: "যাতায়াত সেবা", content: `<ul style="list-style:none; padding:0;"><li>🚆 RailYatri</li></ul>` },
+        education: { title: "শিক্ষা ও জ্ঞান", content: `<ul style="list-style:none; padding:0;"><li>📚 ওপেন লাইব্রেরি</li></ul>` },
+        market: { title: "রেডিকা বাজার", content: `<ul style="list-style:none; padding:0;"><li>🛍️ ফ্লিপকার্ট</li></ul>` },
+        game: { title: "রেডিকা মেমরি চ্যালেঞ্জ 🎮", content: `
+            <p style="font-size:14px; text-align:center;">দুটি একই জেলার কার্ড মিলিয়ে ১০০ কোয়ান্ট (Q) জিতে নিন!</p>
+            <div class="game-stats"><span>চাল: <span id="moves">0</span></span><span>জোড়া মিলেছে: <span id="matches">0</span>/6</span></div>
+            <div id="gameBoard" class="game-board"></div>
+            <button class="play-btn" onclick="initGame()">নতুন গেম শুরু করুন</button>
+        `}
     };
 
     function openModal(category) {
         document.getElementById('modalTitle').innerText = data[category].title;
         document.getElementById('modalBody').innerHTML = data[category].content;
         document.getElementById('infoModal').style.display = "flex";
+        if (category === 'game') setTimeout(initGame, 100);
     }
     function closeModal() { document.getElementById('infoModal').style.display = "none"; }
+
+    // Game Logic
+    const districts = [
+        { name: "প্রজ্ঞাকেন্দ্র", icon: "🏛️" }, { name: "মেধাভূমি", icon: "📚" },
+        { name: "আরোগ্যনগর", icon: "🏥" }, { name: "শৌর্যপুর", icon: "⚔️" },
+        { name: "সৃষ্টিশিলা", icon: "⚙️" }, { name: "সবুজায়ন", icon: "🌳" }
+    ];
+    let cards = [], hasFlippedCard = false, lockBoard = false, firstCard, secondCard;
+    let matches = 0, moves = 0;
+
+    function initGame() {
+        matches = 0; moves = 0;
+        document.getElementById('moves').innerText = moves;
+        document.getElementById('matches').innerText = matches;
+        const gameBoard = document.getElementById('gameBoard');
+        gameBoard.innerHTML = '';
+        cards = [...districts, ...districts];
+        cards.sort(() => Math.random() - 0.5); // Shuffle
+
+        cards.forEach((dist, index) => {
+            const cardElement = document.createElement('div');
+            cardElement.classList.add('card');
+            cardElement.dataset.name = dist.name;
+            cardElement.innerHTML = `
+                <div class="back">R</div>
+                <div class="front"><span>${dist.icon}</span>${dist.name}</div>
+            `;
+            cardElement.addEventListener('click', flipCard);
+            gameBoard.appendChild(cardElement);
+        });
+    }
+
+    function flipCard() {
+        if (lockBoard) return;
+        if (this === firstCard) return;
+
+        this.classList.add('flipped');
+
+        if (!hasFlippedCard) {
+            hasFlippedCard = true;
+            firstCard = this;
+            return;
+        }
+
+        secondCard = this;
+        moves++;
+        document.getElementById('moves').innerText = moves;
+        checkForMatch();
+    }
+
+    function checkForMatch() {
+        let isMatch = firstCard.dataset.name === secondCard.dataset.name;
+        isMatch ? disableCards() : unflipCards();
+    }
+
+    function disableCards() {
+        firstCard.removeEventListener('click', flipCard);
+        secondCard.removeEventListener('click', flipCard);
+        matches++;
+        document.getElementById('matches').innerText = matches;
+        resetBoard();
+
+        if (matches === 6) {
+            setTimeout(() => {
+                alert("🎉 অভিনন্দন! আপনি সবকটি জেলা মিলিয়েছেন! পুরস্কার হিসেবে ১০০ কোয়ান্ট (Q) যোগ করা হলো।");
+                updateBalance(100);
+            }, 500);
+        }
+    }
+
+    function unflipCards() {
+        lockBoard = true;
+        setTimeout(() => {
+            firstCard.classList.remove('flipped');
+            secondCard.classList.remove('flipped');
+            resetBoard();
+        }, 1000);
+    }
+
+    function resetBoard() {
+        [hasFlippedCard, lockBoard] = [false, false];
+        [firstCard, secondCard] = [null, null];
+    }
 </script>
 
 </body>
