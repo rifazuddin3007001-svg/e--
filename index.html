@@ -5,41 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>e-র (ইরা) | রেডিকা প্রজাতন্ত্র</title>
     <style>
-        :root { --primary: #004a99; --accent: #ffb400; --bg: #f0f2f5; --white: #ffffff; }
-        body { font-family: 'Hind Siliguri', sans-serif; background-color: var(--bg); margin: 0; padding: 0; }
-        header { background: var(--white); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        :root { --primary: #004a99; --accent: #ffb400; --bg-dark: #001f3f; --white: #ffffff; }
+        
+        /* ব্যাকগ্রাউন্ড গ্রাফিক্স ও এনিমেশন */
+        body { 
+            font-family: 'Hind Siliguri', sans-serif; 
+            margin: 0; padding: 0; 
+            background: radial-gradient(circle at center, #003366 0%, #001122 100%);
+            background-attachment: fixed;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* ডিজিটাল গ্রিড প্যাটার্ন */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 74, 153, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 74, 153, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+        }
+
+        header { background: rgba(255, 255, 255, 0.95); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 15px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(5px); }
         .logo { font-size: 26px; font-weight: 800; color: var(--primary); cursor: pointer; }
         .logo span { color: var(--accent); }
-        .container { max-width: 500px; margin: 20px auto; padding: 0 15px; }
-        .welcome-banner { background: linear-gradient(135deg, var(--primary), #003366); color: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; position: relative; }
+        
+        .container { max-width: 500px; margin: 20px auto; padding: 0 15px; position: relative; z-index: 1; }
+        
+        .welcome-banner { 
+            background: linear-gradient(135deg, rgba(0, 74, 153, 0.9), rgba(0, 51, 102, 0.9)); 
+            color: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; position: relative; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
         .change-name { position: absolute; top: 10px; right: 15px; font-size: 11px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; cursor: pointer; }
+        
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .menu-item { background: var(--white); padding: 20px; border-radius: 18px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid transparent; }
-        .menu-item:hover { border-color: var(--accent); }
+        
+        .menu-item { 
+            background: rgba(255, 255, 255, 0.9); 
+            padding: 20px; border-radius: 18px; text-align: center; cursor: pointer; 
+            transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            border: 1px solid transparent; 
+            backdrop-filter: blur(10px);
+        }
+        .menu-item:hover { border-color: var(--accent); transform: translateY(-5px); background: #fff; }
+        
         .icon { font-size: 30px; margin-bottom: 10px; display: block; }
-        .sos-btn { background: #ff4d4d; color: white; text-align: center; padding: 15px; border-radius: 15px; margin-top: 25px; font-weight: bold; cursor: pointer; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 90%; max-width: 450px; max-height: 85vh; overflow-y: auto; padding: 25px; border-radius: 20px; position: relative; }
+        
+        .sos-btn { background: #ff4d4d; color: white; text-align: center; padding: 15px; border-radius: 15px; margin-top: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(255,77,77,0.4); }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        .modal-content { background: white; width: 90%; max-width: 450px; max-height: 85vh; overflow-y: auto; padding: 25px; border-radius: 20px; position: relative; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
         .sub-menu-list { list-style: none; padding: 0; margin-top: 20px; }
         .sub-menu-list li { padding: 15px; border-bottom: 1px solid #eee; display: block; text-align: left; }
-        .dist-detail { font-size: 13px; color: #666; margin-top: 5px; line-height: 1.4; }
-        .const-text { font-size: 14px; line-height: 1.6; color: #444; text-align: justify; padding-top: 15px;}
-        .map-image { width: 100%; height: auto; border-radius: 10px; margin-top: 10px; border: 1px solid #eee; }
+        .sub-menu-list li b { color: var(--primary); }
+        .dist-detail { font-size: 13px; color: #555; margin-top: 5px; line-height: 1.4; }
+        .map-image { width: 100%; height: auto; border-radius: 10px; margin-top: 10px; border: 1px solid #ddd; }
     </style>
 </head>
 <body onload="checkUser()">
 
 <header>
     <div class="logo" onclick="location.reload()">e-<span>র</span> (ERA)</div>
-    <div id="userIdDisplay" style="font-size: 12px; background: #eee; padding: 4px 10px; border-radius: 15px;">রেডিকা ইউজার</div>
+    <div id="userIdDisplay" style="font-size: 11px; background: #eee; padding: 4px 10px; border-radius: 15px; border: 1px solid #ccc;">ইউজার আইডি...</div>
 </header>
 
 <div class="container">
     <div class="welcome-banner">
         <span class="change-name" onclick="resetName()">নাম পরিবর্তন</span>
         <h2 id="greetingText">নমস্কার!</h2>
-        <p>আপনার কোয়ান্ট (Quant) ব্যালেন্স: <b>৫,৪৫০ 𝐐</b></p>
+        <p>ব্যালেন্স: <b style="color:var(--accent)">৫,৪৫০ 𝐐 (কোয়ান্ট)</b></p>
     </div>
 
     <div class="menu-grid">
@@ -71,7 +115,7 @@
             localStorage.setItem("userName", name);
         }
         document.getElementById("greetingText").innerText = "নমস্কার, " + name + "!";
-        document.getElementById("userIdDisplay").innerText = "ইউজার: " + name;
+        document.getElementById("userIdDisplay").innerText = "রেডিকা আইডি: " + name.substring(0,3).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
     }
 
     function resetName() {
@@ -80,46 +124,28 @@
     }
 
     const data = {
-        map: { title: "প্রশাসনিক মানচিত্র ও জেলা", content: `
+        map: { title: "প্রশাসনিক মানচিত্র ও এলাকা", content: `
             <img src="./map.png.jpg" alt="মানচিত্র" class="map-image">
             <ul class="sub-menu-list">
-                <li>
-                    <b>🏛️ প্রজ্ঞাকেন্দ্র (বর্ধমান) - রাজধানী</b>
-                    <div class="dist-detail">রাষ্ট্রপতি ভবন, কেন্দ্রীয় ব্যাংক, উচ্চ আদালত ও হেরিটেজ জোন।</div>
-                </li>
-                <li>
-                    <b>📚 মেধাভূমি (দেবীপুর)</b>
-                    <div class="dist-detail">রেডিকা কেন্দ্রীয় রেল স্টেশন, বিদ্যা-ট্যাব সেন্টার ও শিক্ষা সমন্বয় দপ্তর।</div>
-                </li>
-                <li>
-                    <b>🏥 আরোগ্যনগর (মগরা জোন)</b>
-                    <div class="dist-detail">মগরা উপ-স্বাস্থ্যকেন্দ্র, সুপার স্পেশালিটি হাসপাতাল ও মেডিকেল কলেজ।</div>
-                </li>
-                <li>
-                    <b>⚔️ শৌর্যপুর (পাণ্ডুয়া)</b>
-                    <div class="dist-detail">পাণ্ডুয়া দুর্গ সুরক্ষা জোন, RPF সদর দপ্তর ও কেন্দ্রীয় ফায়ার স্টেশন।</div>
-                </li>
-                <li>
-                    <b>🎨 সৃষ্টিশিলা (মেমারি)</b>
-                    <div class="dist-detail">রেডিকা কেন্দ্রীয় বাজার, লজিস্টিক হাব ও সিনে-সৃষ্টি মাল্টিপ্লেক্স।</div>
-                </li>
-                <li>
-                    <b>🌳 সবুজায়ন (দেবীপুর গ্রিন জোন)</b>
-                    <div class="dist-detail">কেন্দ্রীয় নার্সারি (অ্যাডেনিয়াম ও বোগেনভিলিয়ার বাগান) ও সৌর গ্রিড।</div>
-                </li>
+                <li><b>🏛️ প্রজ্ঞাকেন্দ্র (বর্ধমান)</b><div class="dist-detail">রাজধানী, কেন্দ্রীয় ব্যাংক, উচ্চ আদালত ও সচিবালয়।</div></li>
+                <li><b>📚 মেধাভূমি (দেবীপুর)</b><div class="dist-detail">রেডিকা কেন্দ্রীয় স্টেশন, বিদ্যা-ট্যাব রিসার্চ সেন্টার।</div></li>
+                <li><b>🏥 আরোগ্যনগর (মগরা জোন)</b><div class="dist-detail">মগরা উপ-স্বাস্থ্যকেন্দ্র, সুপার স্পেশালিটি হাসপাতাল।</div></li>
+                <li><b>⚔️ শৌর্যপুর (পাণ্ডুয়া)</b><div class="dist-detail">পাণ্ডুয়া সুরক্ষা জোন ও RPF সদর দপ্তর।</div></li>
+                <li><b>🎨 সৃষ্টিশিলা (মেমারি)</b><div class="dist-detail">রেডিকা কেন্দ্রীয় বাজার ও মাল্টিপ্লেক্স।</div></li>
+                <li><b>🌳 সবুজায়ন (দেবীপুর গ্রিন জোন)</b><div class="dist-detail">কেন্দ্রীয় নার্সারি ও সৌর বিদ্যুৎ গ্রিড।</div></li>
             </ul>
         `},
-        const: { title: "রেডিকা সংবিধান", content: `
-            <div class="const-text">
-                <b>অধ্যায় ১:</b> রিপাবলিক অফ রেডিকা একটি সমবাহু পঞ্চভুজ আকৃতির রাষ্ট্র।<br>
-                <b>অধ্যায় ৫:</b> মুদ্রা - কোয়ান্ট (Q)।<br>
-                <b>অধ্যায় ৬:</b> ট্রানজিট মুনাফার ৫৩% জনকল্যাণে ব্যয় হইবে। প্রাচীন নামসমূহ অপরিবর্তিত থাকিবে।<br>
-                <b>অধ্যায় ৭:</b> ১০০ বছরের প্রাচীন গাছ 'পরম বৃক্ষ' মর্যাদা পাইবে।
-            </div>
+        transport: { title: "যাতায়াত (সরাসরি লিঙ্ক)", content: `
+            <ul class="sub-menu-list">
+                <li onclick="window.open('https://www.railyatri.in/')">🚆 RailYatri (ট্রেন ও টিকিট) ➔</li>
+                <li onclick="window.open('https://www.irctc.co.in/')">🎫 IRCTC অফিসিয়াল সাইট ➔</li>
+                <li onclick="window.open('https://play.google.com/store/apps/details?id=com.railyatri.rider')">📲 RailYatri অ্যাপ ডাউনলোড ➔</li>
+                <li onclick="window.open('https://www.kmrc.in/')">🚇 কলকাতা মেট্রো তথ্য ➔</li>
+            </ul>
         `},
-        transport: { title: "যাতায়াত", content: `<ul class="sub-menu-list"><li onclick="window.location.href='intent://#Intent;scheme=https;package=com.railyatri.rider;end'">🚆 রেলওয়ান টিকিট</li><li onclick="window.location.href='intent://#Intent;scheme=https;package=com.mcl.infotransit;end'">🚇 কলকাতা মেট্রো অ্যাপ</li></ul>`},
-        education: { title: "শিক্ষা", content: `<ul class="sub-menu-list"><li onclick="window.open('https://openlibrary.org/')">📚 ওপেন লাইব্রেরি</li></ul>`},
-        market: { title: "বাজার", content: `<ul class="sub-menu-list"><li onclick="window.location.href='intent://#Intent;scheme=https;package=com.flipkart.android;end'">🛍️ ফ্লিপকার্ট</li></ul>`},
+        const: { title: "রেডিকা সংবিধান", content: `<div style="font-size:14px; line-height:1.6; text-align:justify;"><b>১:</b> সমবাহু পঞ্চভুজ রাষ্ট্র।<br><b>৫:</b> মুদ্রা - কোয়ান্ট (Q)।<br><b>৬:</b> ট্রানজিট মুনাফার ৫৩% জনকল্যাণে এবং প্রাচীন নাম অপরিবর্তিত।<br><b>৭:</b> ১০০ বছরের গাছ 'পরম বৃক্ষ'।</div>`},
+        education: { title: "শিক্ষা", content: `<ul class="sub-menu-list"><li onclick="window.open('https://openlibrary.org/')">📚 ওপেন লাইব্রেরি</li><li onclick="window.open('https://www.khanacademy.org/')">🎓 খান একাডেমি</li></ul>`},
+        market: { title: "বাজার", content: `<ul class="sub-menu-list"><li onclick="window.open('https://www.flipkart.com/')">🛍️ ফ্লিপকার্ট</li><li onclick="window.open('https://www.amazon.in/')">📦 অ্যামাজন</li></ul>`},
         jobs: { title: "কর্ম-নিয়োগ", content: `<ul class="sub-menu-list"><li onclick="window.open('https://www.ncs.gov.in/')">🔍 National Job Portal</li></ul>`}
     };
 
