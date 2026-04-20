@@ -22,10 +22,10 @@
         .modal-content { background: white; width: 90%; max-width: 450px; max-height: 85vh; overflow-y: auto; padding: 25px; border-radius: 20px; position: relative; }
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
         .sub-menu-list { list-style: none; padding: 0; margin-top: 20px; }
-        .sub-menu-list li { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 500; color: #444; }
-        .sub-menu-list li:hover { background: #f0f7ff; color: var(--primary); }
+        .sub-menu-list li { padding: 15px; border-bottom: 1px solid #eee; display: block; text-align: left; }
+        .dist-detail { font-size: 13px; color: #666; margin-top: 5px; line-height: 1.4; }
         .const-text { font-size: 14px; line-height: 1.6; color: #444; text-align: justify; padding-top: 15px;}
-        .map-image { width: 100%; height: auto; border-radius: 10px; margin-top: 20px; border: 1px solid #eee; }
+        .map-image { width: 100%; height: auto; border-radius: 10px; margin-top: 10px; border: 1px solid #eee; }
     </style>
 </head>
 <body onload="checkUser()">
@@ -80,23 +80,40 @@
     }
 
     const data = {
-        map: { title: "প্রশাসনিক মানচিত্র", content: `
-            <img src="./map.png.jpg" alt="রেডিকা প্রজাতন্ত্রের প্রশাসনিক মানচিত্র" class="map-image">
-            <ul class="sub-menu-list" style="margin-top: 15px;">
-                <li><b>🏛️ প্রজ্ঞাকেন্দ্র (রাজধানী)</b></li>
-                <li><b>📚 মেধাভূমি</b> - শিক্ষা জেলা</li>
-                <li><b>⚔️ শৌর্যপুর</b> - প্রতিরক্ষা জেলা</li>
-                <li><b>🏥 আরোগ্যনগর</b> - চিকিৎসা জেলা</li>
-                <li><b>🎨 সৃষ্টিশিলা</b> - শিল্প জেলা</li>
-                <li><b>🌳 সবুজায়ন</b> - পরিবেশ জেলা</li>
+        map: { title: "প্রশাসনিক মানচিত্র ও জেলা", content: `
+            <img src="./map.png.jpg" alt="মানচিত্র" class="map-image">
+            <ul class="sub-menu-list">
+                <li>
+                    <b>🏛️ প্রজ্ঞাকেন্দ্র (বর্ধমান) - রাজধানী</b>
+                    <div class="dist-detail">রাষ্ট্রপতি ভবন, কেন্দ্রীয় ব্যাংক, উচ্চ আদালত, সাইবার সেল ও হেরিটেজ জোন।</div>
+                </li>
+                <li>
+                    <b>📚 মেধাভূমি (দেবীপুর)</b>
+                    <div class="dist-detail">কেন্দ্রীয় রেল স্টেশন, বিদ্যা-ট্যাব রিসার্চ সেন্টার, STEP ও কুমার টিউটোরিয়াল সদর দপ্তর।</div>
+                </li>
+                <li>
+                    <b>🎨 সৃষ্টিশিলা (মেমারি)</b>
+                    <div class="dist-detail">রেডিকা কেন্দ্রীয় বাজার, লজিস্টিক হাব, সিনে-সৃষ্টি মাল্টিপ্লেক্স ও প্রোডাকশন স্টুডিও।</div>
+                </li>
+                <li>
+                    <b>🌳 সবুজায়ন (দেবীপুর গ্রিন জোন)</b>
+                    <div class="dist-detail">কেন্দ্রীয় নার্সারি (অ্যাডেনিয়াম ও বোগেনভিলিয়ার বাগান), সৌর বিদ্যুৎ কেন্দ্র।</div>
+                </li>
+                <li>
+                    <b>🏥 আরোগ্যনগর</b>
+                    <div class="dist-detail">সুপার স্পেশালিটি হাসপাতাল, মেডিকেল কলেজ ও কেন্দ্রীয় ব্লাড ব্যাঙ্ক।</div>
+                </li>
+                <li>
+                    <b>⚔️ শৌর্যপুর</b>
+                    <div class="dist-detail">রেডিকা সুরক্ষা বাহিনী (RPF) সদর দপ্তর ও ফায়ার স্টেশন।</div>
+                </li>
             </ul>
         `},
         const: { title: "রেডিকা সংবিধান", content: `
             <div class="const-text">
-                <b>অধ্যায় ১.১ (নাম):</b> রিপাবলিক অফ রেডিকা।<br>
-                <b>অধ্যায় ১.২ (আকৃতি):</b> নিখুঁত সমবাহু পঞ্চভুজ।<br>
-                <b>অধ্যায় ৫:</b> মুদ্রা - কোয়ান্ট (Q)।<br>
-                <b>অধ্যায় ৬:</b> ট্রানজিট মুনাফার ৫৩% জনকল্যাণে ব্যয় হইবে।<br>
+                <b>অধ্যায় ১:</b> রিপাবলিক অফ রেডিকা একটি সমবাহু পঞ্চভুজ আকৃতির রাষ্ট্র।<br>
+                <b>অধ্যায় ৫:</b> মুদ্রা - কোয়ান্ট (Q)। (1 USD = 100 Q)<br>
+                <b>অধ্যায় ৬:</b> ট্রানজিট মুনাফার ৫৩% জনকল্যাণে ব্যয় হইবে। প্রাচীন নাম অপরিবর্তিত থাকিবে।<br>
                 <b>অধ্যায় ৭:</b> ১০০ বছরের প্রাচীন গাছ 'পরম বৃক্ষ' মর্যাদা পাইবে।
             </div>
         `},
