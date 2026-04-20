@@ -19,31 +19,37 @@
         .icon { font-size: 30px; margin-bottom: 10px; display: block; }
         .sos-btn { background: #ff4d4d; color: white; text-align: center; padding: 15px; border-radius: 15px; margin-top: 25px; font-weight: bold; cursor: pointer; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 85%; max-width: 400px; padding: 25px; border-radius: 20px; position: relative; }
+        .modal-content { background: white; width: 90%; max-width: 450px; max-height: 85vh; overflow-y: auto; padding: 25px; border-radius: 20px; position: relative; }
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
         .sub-menu-list { list-style: none; padding: 0; margin-top: 20px; }
-        .sub-menu-list li { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 500; }
+        .sub-menu-list li { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 500; color: #444; }
+        .sub-menu-list li:hover { background: #f0f7ff; color: var(--primary); }
+        .const-text { font-size: 14px; line-height: 1.6; color: #444; text-align: justify; padding-top: 15px;}
+        /* ম্যাপের ছবির জন্য বিশেষ স্টাইল */
+        .map-image { width: 100%; height: auto; border-radius: 10px; margin-top: 20px; border: 1px solid #eee; }
     </style>
 </head>
 <body onload="checkUser()">
 
 <header>
     <div class="logo" onclick="location.reload()">e-<span>র</span> (ERA)</div>
-    <div id="userIdDisplay" style="font-size: 13px; background: #eee; padding: 4px 10px; border-radius: 15px;">রেডিকা ইউজার</div>
+    <div id="userIdDisplay" style="font-size: 12px; background: #eee; padding: 4px 10px; border-radius: 15px;">রেডিকা ইউজার</div>
 </header>
 
 <div class="container">
     <div class="welcome-banner">
         <span class="change-name" onclick="resetName()">নাম পরিবর্তন</span>
         <h2 id="greetingText">নমস্কার!</h2>
-        <p>আপনার কোয়ান্ট (Quant) ব্যালেন্স: <b>৫,৪৫০ Q</b></p>
+        <p>আপনার কোয়ান্ট (Quant) ব্যালেন্স: <b>৫,৪৫০ 𝐐</b></p>
     </div>
 
     <div class="menu-grid">
+        <div class="menu-item" onclick="openModal('map')"><span class="icon">🗺️</span><h3>মানচিত্র ও জেলা</h3></div>
+        <div class="menu-item" onclick="openModal('const')"><span class="icon">📜</span><h3>সংবিধান</h3></div>
         <div class="menu-item" onclick="openModal('transport')"><span class="icon">🚆</span><h3>যাতায়াত</h3></div>
-        <div class="menu-item" onclick="openModal('market')"><span class="icon">🛒</span><h3>রেডিকা বাজার</h3></div>
         <div class="menu-item" onclick="openModal('education')"><span class="icon">🎓</span><h3>শিক্ষা</h3></div>
-        <div class="menu-item" onclick="openModal('jobs')"><span class="icon">💼</span><h3>কর্ম-নিয়োগ</h3></div>
+        <div class="menu-item" onclick="openModal('market')"><span class="icon">🛒</span><h3>রেডিকা বাজার</h3></div>
+        <div class="menu-item" onclick="openModal('jobs')"><span class="icon">💼</span><h3>कर्म-নিয়োগ</h3></div>
     </div>
 
     <div class="sos-btn" onclick="window.location.href='https://wa.me/918597290189?text=জরুরি%20সাহায্য%20প্রয়োজন!'">জরুরি সাহায্য (SOS)</div>
@@ -53,61 +59,57 @@
     <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">×</span>
         <h2 id="modalTitle" style="color: var(--primary);">টাইটেল</h2>
-        <ul id="modalList" class="sub-menu-list"></ul>
+        <div id="modalBody"></div>
     </div>
 </div>
 
 <script>
-    // ইউজার চেক ফাংশন
     function checkUser() {
         let name = localStorage.getItem("userName");
         if (!name) {
             name = prompt("রেডিকা প্রজাতন্ত্রে আপনাকে স্বাগতম! আপনার নাম লিখুন:");
-            if (name == null || name == "") name = "রেডিকাবাসী";
+            if (!name) name = "রেডিকাবাসী";
             localStorage.setItem("userName", name);
         }
         document.getElementById("greetingText").innerText = "নমস্কার, " + name + "!";
         document.getElementById("userIdDisplay").innerText = "ইউজার: " + name;
     }
 
-    // নাম রিসেট করার ফাংশন
     function resetName() {
         localStorage.removeItem("userName");
         location.reload();
     }
 
     const data = {
-        transport: { title: "যাতায়াত ও টিকিট", items: [
-            { name: "🚆 রেলওয়ান (RailYatri) টিকিট", link: "intent://#Intent;scheme=https;package=com.railyatri.rider;end" },
-            { name: "🚇 কলকাতা মেট্রো অ্যাপ", link: "intent://#Intent;scheme=https;package=com.mcl.infotransit;end" }
-        ]},
-        market: { title: "রেডিকা বাজার", items: [
-            { name: "🛍️ ফ্লিপকার্ট (Flipkart)", link: "intent://#Intent;scheme=https;package=com.flipkart.android;end" },
-            { name: "🍯 মেধাভূমির মাখা সন্দেশ", link: "#" }
-        ]},
-        education: { title: "শিক্ষা (বিদ্যা-ট্যাব)", items: [
-            { name: "📺 এডুভিড: বিজ্ঞান ও শিক্ষা", link: "http://googleusercontent.com/youtube.com/2" },
-            { name: "📚 ওপেন লাইব্রেরি", link: "https://openlibrary.org/" }
-        ]},
-        jobs: { title: "কর্ম-নিয়োগ কেন্দ্র", items: [
-            { name: "🔍 National Job Portal", link: "https://www.ncs.gov.in/" },
-            { name: "💼 কর্মসংস্থান ব্যাংক (WB)", link: "https://employmentbankwb.gov.in/" }
-        ]}
+        map: { title: "প্রশাসনিক মানচিত্র", content: `
+            <img src="./map.png" alt="রেডিকা প্রজাতন্ত্রের প্রশাসনিক মানচিত্র" class="map-image">
+            <ul class="sub-menu-list" style="margin-top: 15px;">
+                <li><b>🏛️ প্রজ্ঞাকেন্দ্র (রাজধানী)</b></li>
+                <li><b>📚 মেধাভূমি</b> - শিক্ষা जिला</li>
+                <li><b>⚔️ শৌর্যপুর</b> - প্রতিরক্ষা জেলা</li>
+                <li><b>🏥 আরোগ্যনগর</b> - চিকিৎসা জেলা</li>
+                <li><b>🎨 সৃষ্টিশিলা</b> - শিল্প जिला</li>
+                <li><b>🌳 সবুজায়ন</b> - পরিবেশ জেলা</li>
+            </ul>
+        `},
+        const: { title: "রেডিকা সংবিধান", content: `
+            <div class="const-text">
+                <b>অধ্যায় ১.১ (নাম):</b> রিপাবলিক অফ রেডিকা।<br>
+                <b>অধ্যায় ১.২ (আকৃতি):</b> নিখুঁত সমবাহু পঞ্চভুজ।<br>
+                <b>অধ্যায় ৫:</b> মুদ্রা - কোয়ান্ট (Q)।<br>
+                <b>অধ্যায় ৬:</b> ট্রানজিট মুনাফার ৫৩% জনকল্যাণে ব্যয় হইবে।<br>
+                <b>অধ্যায় ৭:</b> ১০০ বছরের প্রাচীন গাছ 'পরম বৃক্ষ' মর্যাদা পাইবে।
+            </div>
+        `},
+        transport: { title: "যাতায়াত", content: `<ul class="sub-menu-list"><li onclick="window.location.href='intent://#Intent;scheme=https;package=com.railyatri.rider;end'">🚆 রেলওয়ান টিকিট</li><li onclick="window.location.href='intent://#Intent;scheme=https;package=com.mcl.infotransit;end'">🚇 কলকাতা মেট্রো অ্যাপ</li></ul>`},
+        education: { title: "শিক্ষা", content: `<ul class="sub-menu-list"><li onclick="window.open('https://openlibrary.org/')">📚 ওপেন লাইব্রেরি</li><li onclick="window.open('http://googleusercontent.com/youtube.com/2')">📺 এডুভিড ভিডিও</li></ul>`},
+        market: { title: "বাজার", content: `<ul class="sub-menu-list"><li onclick="window.location.href='intent://#Intent;scheme=https;package=com.flipkart.android;end'">🛍️ ফ্লিপকার্ট</li></ul>`},
+        jobs: { title: "কর্ম-নিয়োগ", content: `<ul class="sub-menu-list"><li onclick="window.open('https://www.ncs.gov.in/')">🔍 National Job Portal</li></ul>`}
     };
 
     function openModal(category) {
         document.getElementById('modalTitle').innerText = data[category].title;
-        const list = document.getElementById('modalList');
-        list.innerHTML = "";
-        data[category].items.forEach(item => {
-            const li = document.createElement('li');
-            li.innerHTML = `<span>${item.name}</span> <span>➔</span>`;
-            li.onclick = () => {
-                if(item.link !== "#") { window.location.href = item.link; }
-                else { alert(item.name + " সার্ভিসটি শীঘ্রই আসছে!"); }
-            };
-            list.appendChild(li);
-        });
+        document.getElementById('modalBody').innerHTML = data[category].content;
         document.getElementById('infoModal').style.display = "flex";
     }
     function closeModal() { document.getElementById('infoModal').style.display = "none"; }
