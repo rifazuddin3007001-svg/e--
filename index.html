@@ -1,302 +1,504 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="bn" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>e-র (ইরা) | রেডিকা প্রজাতন্ত্র</title>
+    <title>e-র (ইরা) | আলটিমেট রেডিকা সুপার অ্যাপ</title>
     <style>
-        :root { --primary: #004a99; --accent: #ffb400; --bg-dark: #001f3f; --white: #ffffff; }
-        body { font-family: 'Hind Siliguri', sans-serif; margin: 0; padding: 0; background: radial-gradient(circle at center, #003366 0%, #001122 100%); background-attachment: fixed; color: #333; overflow-x: hidden; }
-        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0, 74, 153, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 74, 153, 0.1) 1px, transparent 1px); background-size: 30px 30px; z-index: -1; }
+        /* --- CORE VARIABLES & THEMES --- */
+        :root {
+            --primary: #004a99; --accent: #ffb400; --bg-main: #f4f7f6; --text-main: #333;
+            --card-bg: #ffffff; --modal-bg: rgba(255,255,255,0.95); --border-col: #eee;
+            --success: #28a745; --danger: #dc3545; --grad-bg: linear-gradient(135deg, #004a99, #001f3f);
+        }
+        [data-theme="dark"] {
+            --primary: #66a3ff; --accent: #ffcc00; --bg-main: #121212; --text-main: #f1f1f1;
+            --card-bg: #1e1e1e; --modal-bg: rgba(30,30,30,0.95); --border-col: #333;
+            --grad-bg: linear-gradient(135deg, #111, #222);
+        }
+
+        /* --- GLOBAL STYLES --- */
+        body { font-family: 'Hind Siliguri', sans-serif; margin: 0; padding: 0; background: var(--bg-main); color: var(--text-main); transition: background 0.3s, color 0.3s; overflow-x: hidden; }
+        * { box-sizing: border-box; }
         
-        /* Header & Ticker */
-        header { background: rgba(255, 255, 255, 0.95); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(5px); }
-        .logo { font-size: 24px; font-weight: 800; color: var(--primary); }
+        /* --- HEADER & TICKER --- */
+        header { background: var(--card-bg); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; transition: background 0.3s; }
+        .logo { font-size: 24px; font-weight: 900; color: var(--primary); }
         .logo span { color: var(--accent); }
-        .news-ticker { background: var(--accent); color: #000; padding: 5px; font-size: 13px; font-weight: bold; overflow: hidden; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .news-ticker span { display: inline-block; animation: scroll 15s linear infinite; }
-        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-
-        /* Main Container */
-        .container { max-width: 500px; margin: 15px auto; padding: 0 15px; position: relative; z-index: 1; }
-        .welcome-banner { background: linear-gradient(135deg, rgba(0, 74, 153, 0.9), rgba(0, 51, 102, 0.9)); color: white; padding: 20px; border-radius: 20px; margin-bottom: 20px; position: relative; border: 1px solid rgba(255,255,255,0.1); }
+        .theme-btn { background: var(--border-col); border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 14px; color: var(--text-main); font-weight: bold; }
         
-        /* Grid Menu */
-        .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .menu-item { background: rgba(255, 255, 255, 0.95); padding: 15px 5px; border-radius: 15px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid transparent; }
-        .menu-item:hover { border-color: var(--accent); transform: translateY(-3px); }
-        .icon { font-size: 26px; margin-bottom: 5px; display: block; }
-        .menu-item h3 { font-size: 12px; margin: 0; color: var(--primary); }
+        .news-ticker { background: var(--accent); color: #000; padding: 8px; font-size: 14px; font-weight: bold; overflow: hidden; white-space: nowrap; }
+        .news-ticker span { display: inline-block; animation: scroll 25s linear infinite; }
+        @keyframes scroll { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
 
-        /* Modals */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { background: white; width: 95%; max-width: 480px; max-height: 85vh; overflow-y: auto; padding: 20px; border-radius: 20px; position: relative; }
-        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 26px; cursor: pointer; color: #555; }
+        /* --- MAIN LAYOUT --- */
+        .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
         
-        /* Onboarding Full Screen */
-        #onboarding { display: flex; flex-direction: column; justify-content: center; background: white; z-index: 9999; }
-        .form-group { margin-bottom: 15px; text-align: left; }
+        /* --- DASHBOARD CARD --- */
+        .dash-card { background: var(--grad-bg); color: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
+        .dash-card::after { content: 'RADICA'; position: absolute; font-size: 80px; opacity: 0.05; transform: rotate(-10deg); top: 10px; right: -10px; }
+        .dash-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px dashed rgba(255,255,255,0.3); padding-bottom: 15px; margin-bottom: 15px; }
+        .dash-title h2 { margin: 0; font-size: 22px; }
+        .dash-title small { font-size: 13px; opacity: 0.8; }
+        .bal-section { text-align: right; }
+        .bal-display { font-size: 32px; font-weight: bold; color: var(--accent); line-height: 1; margin-top: 5px; }
+        
+        /* XP System */
+        .xp-container { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
+        .xp-bar-bg { background: rgba(255,255,255,0.2); height: 10px; border-radius: 10px; overflow: hidden; }
+        .xp-bar-fill { background: var(--accent); height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* --- MEGA GRID MENU --- */
+        .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .menu-item { background: var(--card-bg); padding: 20px 10px; border-radius: 18px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid var(--border-col); }
+        .menu-item:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .menu-item .icon { font-size: 32px; margin-bottom: 10px; display: block; }
+        .menu-item h3 { font-size: 13px; margin: 0; color: var(--text-main); font-weight: bold; }
+
+        /* --- MODALS --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        .modal-content { background: var(--card-bg); color: var(--text-main); width: 95%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: 25px; border-radius: 24px; position: relative; animation: slideUp 0.4s ease; border: 1px solid var(--border-col); }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 30px; cursor: pointer; color: var(--danger); transition: 0.2s; background: none; border: none; }
+        .modal-header-title { color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--border-col); padding-bottom: 10px; font-size: 20px; }
+
+        /* --- FORMS & BUTTONS --- */
+        .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 5px; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; box-sizing: border-box; }
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .form-control { width: 100%; padding: 12px; border: 2px solid var(--border-col); border-radius: 10px; font-size: 16px; background: var(--bg-main); color: var(--text-main); transition: 0.3s; }
+        .form-control:focus { border-color: var(--primary); outline: none; }
+        .btn { width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; margin-top: 10px; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(0, 74, 153, 0.3); }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; margin-top: 25px; }
 
-        /* ID Card (E-Citizenship) */
-        .id-card { background: linear-gradient(135deg, #001f3f, #004a99); color: white; border-radius: 15px; padding: 20px; border: 2px solid var(--accent); position: relative; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .id-card::after { content: 'RADICA'; position: absolute; font-size: 60px; opacity: 0.05; transform: rotate(-30deg); top: 20px; left: 10px; }
-        .id-header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 15px; }
-        .id-details p { margin: 5px 0; font-size: 14px; }
-        .id-details span { color: var(--accent); font-weight: bold; }
-        .badge-item { display: inline-block; background: white; color: var(--primary); padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin: 3px 2px; border: 1px solid var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        /* --- ID CARD & BADGES --- */
+        .id-pass { background: linear-gradient(135deg, #002244, #0055a4); color: white; border-radius: 18px; padding: 20px; border: 2px solid var(--accent); position: relative; }
+        .id-row { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.2); padding: 8px 0; font-size: 15px; }
+        .badge-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .badge { background: white; color: #002244; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid var(--accent); }
 
-        /* Quant Store & Gallery */
-        .store-item { display: flex; justify-content: space-between; align-items: center; background: #f0f4f8; padding: 10px 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #ddd; }
-        .buy-btn { background: var(--accent); border: none; padding: 5px 10px; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        .gallery-img { width: 100%; border-radius: 10px; margin-bottom: 10px; border: 2px solid #eee; }
-        
-        /* Utility */
-        img.map-image { width: 100%; border-radius: 10px; }
-        .play-btn { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-weight: bold; }
+        /* --- BANK & STORE --- */
+        .list-card { background: var(--bg-main); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border-col); display: flex; justify-content: space-between; align-items: center; }
+        .tx-history { max-height: 200px; overflow-y: auto; background: var(--bg-main); padding: 10px; border-radius: 10px; border: 1px solid var(--border-col); font-size: 13px; }
+        .tx-item { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-col); padding: 8px 0; }
+        .tx-plus { color: var(--success); font-weight: bold; }
+        .tx-minus { color: var(--danger); font-weight: bold; }
+
+        /* --- TOAST NOTIFICATION --- */
+        #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #toast.show { visibility: visible; animation: fadein 0.4s, fadeout 0.4s 2.6s; }
+        @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+        @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+
+        /* Helpers */
+        .text-center { text-align: center; }
+        .mt-3 { margin-top: 15px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     </style>
 </head>
-<body onload="initApp()">
+<body onload="initSuperApp()">
 
-<div id="onboarding" class="modal" style="display: none;">
-    <div class="modal-content" style="text-align: center;">
-        <h1 style="color: var(--primary); margin-bottom: 5px;">রেডিকাতে স্বাগতম</h1>
-        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">প্রবেশের আগে আপনার নাগরিক তথ্য পূরণ করুন</p>
-        
-        <div class="form-group">
-            <label>আপনার সম্পূর্ণ নাম:</label>
-            <input type="text" id="regName" placeholder="যেমন: স্ক. রিয়াজ">
-        </div>
-        <div class="form-group">
-            <label>আপনার জেলা নির্বাচন করুন:</label>
-            <select id="regDistrict">
-                <option value="প্রজ্ঞাকেন্দ্র (বর্ধমান)">প্রজ্ঞাকেন্দ্র (বর্ধমান)</option>
-                <option value="মেধাভূমি (দেবীপুর)">মেধাভূমি (দেবীপুর)</option>
-                <option value="সৃষ্টিশিলা (মেমারি)">সৃষ্টিশিলা (মেমারি)</option>
-                <option value="সবুজায়ন (গ্রিন জোন)">সবুজায়ন (গ্রিন জোন)</option>
-                <option value="আরোগ্যনগর (মগরা)">আরোগ্যনগর (মগরা)</option>
-                <option value="শৌর্যপুর (পাণ্ডুয়া)">শৌর্যপুর (পাণ্ডুয়া)</option>
+<div id="toast">Message</div>
+
+<div id="onboarding" class="modal">
+    <div class="modal-content text-center">
+        <h1 style="color: var(--primary); margin-bottom: 5px; font-size: 28px;">রেডিকাতে স্বাগতম</h1>
+        <p style="font-size: 14px; color: #777; margin-bottom: 25px;">বিশ্বের সবচেয়ে উন্নত ডিজিটাল রাষ্ট্রে যোগ দিন</p>
+        <div class="form-group text-left"><label>সম্পূর্ণ নাম:</label><input type="text" id="regName" class="form-control" placeholder="আপনার নাম লিখুন"></div>
+        <div class="form-group text-left">
+            <label>জেলা নির্বাচন করুন:</label>
+            <select id="regDistrict" class="form-control">
+                <option value="প্রজ্ঞাকেন্দ্র (বর্ধমান)">🏛️ প্রজ্ঞাকেন্দ্র (রাজধানী)</option>
+                <option value="মেধাভূমি (দেবীপুর)">📚 মেধাভূমি (শিক্ষা)</option>
+                <option value="সৃষ্টিশিলা (মেমারি)">🎨 সৃষ্টিশিলা (শিল্প)</option>
+                <option value="সবুজায়ন (গ্রিন জোন)">🌳 সবুজায়ন (পরিবেশ)</option>
+                <option value="আরোগ্যনগর (মগরা)">🏥 আরোগ্যনগর (স্বাস্থ্য)</option>
+                <option value="শৌর্যপুর (পাণ্ডুয়া)">⚔️ শৌর্যপুর (প্রতিরক্ষা)</option>
             </select>
         </div>
-        <div class="form-group">
-            <label>আপনার পেশা/শখ:</label>
-            <input type="text" id="regProf" placeholder="যেমন: ছাত্র, শিক্ষক, গার্ডেনার">
-        </div>
-        <button class="btn-primary" onclick="registerUser()">নাগরিকত্ব গ্রহণ করুন</button>
+        <div class="form-group text-left"><label>পেশা/শখ:</label><input type="text" id="regProf" class="form-control" placeholder="যেমন: ছাত্র, ব্যবসায়ী"></div>
+        <button class="btn btn-primary" onclick="register()">নাগরিকত্ব গ্রহণ করুন</button>
     </div>
 </div>
 
-<div class="news-ticker">
-    <span>📢 ব্রেকিং নিউজ: ই-পাসপোর্টে যুক্ত হলো 'আমার সংগ্রহ' ব্যাজ সিস্টেম! স্টোর থেকে আপনার পছন্দের জিনিস কিনে প্রোফাইল সাজান!</span>
-</div>
+<div class="news-ticker"><span>📢 ব্রেকিং নিউজ: রেডিকার আলটিমেট অ্যাপ লাইভ! নতুন হেলথ হাব, পরিবেশ ড্যাশবোর্ড এবং ব্যাংকিং হিস্ট্রি যুক্ত হয়েছে! গেম খেলুন, লেভেল আপ করুন!</span></div>
 <header>
-    <div class="logo" onclick="location.reload()">e-<span>র</span> (ERA)</div>
-    <div id="topBal" style="font-size: 13px; font-weight:bold; color:var(--primary);">Q: 0</div>
+    <div class="logo">e-<span>র</span> (ERA)</div>
+    <div style="display:flex; gap:10px; align-items:center;">
+        <div style="font-size:14px; font-weight:bold; background:var(--border-col); padding:6px 12px; border-radius:20px; color:var(--primary);">⭐ <span id="hdrLevel">1</span></div>
+        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+    </div>
 </header>
 
 <div class="container">
-    <div class="welcome-banner">
-        <h2 id="greetingText" style="margin-top:0;">নমস্কার!</h2>
-        <p style="margin-bottom:0;">আপনার কোয়ান্ট (Q) ব্যালেন্স: <b style="color:var(--accent); font-size:20px;" id="mainBal">০</b></p>
+    <div class="dash-card">
+        <div class="dash-header">
+            <div class="dash-title">
+                <h2>নমস্কার, <span id="dashName">User</span>!</h2>
+                <small id="dashID">ID: RD-000000</small>
+            </div>
+            <div class="bal-section">
+                <small>মোট ব্যালেন্স</small>
+                <div class="bal-display"><span id="mainBal">0</span> 𝐐</div>
+            </div>
+        </div>
+        <div class="xp-container"><span>অভিজ্ঞতা (XP): <span id="xpText">0/100</span></span><span>পরবর্তী লেভেল</span></div>
+        <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBar"></div></div>
     </div>
 
     <div class="menu-grid">
-        <div class="menu-item" onclick="showIDCard()"><span class="icon">🪪</span><h3>ই-পাসপোর্ট</h3></div>
-        <div class="menu-item" onclick="openModal('map')"><span class="icon">🗺️</span><h3>মানচিত্র</h3></div>
-        <div class="menu-item" onclick="openModal('const')"><span class="icon">📜</span><h3>সংবিধান</h3></div>
+        <div class="menu-item" onclick="modals.id.open()"><span class="icon">🪪</span><h3>ই-পাসপোর্ট</h3></div>
+        <div class="menu-item" onclick="modals.bank.open()"><span class="icon">🏦</span><h3>সেন্ট্রাল ব্যাংক</h3></div>
+        <div class="menu-item" onclick="modals.store.open()"><span class="icon">🛍️</span><h3>স্টোর</h3></div>
         
-        <div class="menu-item" onclick="openModal('games')"><span class="icon">🎮</span><h3>গেম জোন</h3></div>
-        <div class="menu-item" onclick="openModal('store')"><span class="icon">🛍️</span><h3>কোয়ান্ট স্টোর</h3></div>
-        <div class="menu-item" onclick="openModal('gallery')"><span class="icon">🖼️</span><h3>গ্যালারি</h3></div>
+        <div class="menu-item" onclick="modals.games.open()"><span class="icon">🎮</span><h3>গেম জোন</h3></div>
+        <div class="menu-item" onclick="modals.health.open()"><span class="icon">🏥</span><h3>হেলথ হাব</h3></div>
+        <div class="menu-item" onclick="modals.env.open()"><span class="icon">🌳</span><h3>পরিবেশ</h3></div>
         
-        <div class="menu-item" onclick="openModal('transport')"><span class="icon">🚆</span><h3>যাতায়াত</h3></div>
-        <div class="menu-item" onclick="openModal('education')"><span class="icon">🎓</span><h3>শিক্ষা</h3></div>
-        <div class="menu-item" onclick="openModal('market')"><span class="icon">🛒</span><h3>অনলাইন বাজার</h3></div>
+        <div class="menu-item" onclick="modals.map.open()"><span class="icon">🗺️</span><h3>মানচিত্র</h3></div>
+        <div class="menu-item" onclick="modals.edu.open()"><span class="icon">📚</span><h3>মেধাভূমি</h3></div>
+        <div class="menu-item" onclick="modals.const.open()"><span class="icon">📜</span><h3>সংবিধান</h3></div>
     </div>
     
-    <button style="background:none; border:none; color:white; text-align:center; width:100%; margin-top:20px; text-decoration:underline; cursor:pointer;" onclick="resetAllData()">তথ্য রিসেট করুন (লগ আউট)</button>
+    <button class="btn btn-danger" onclick="hardReset()">অ্যাকাউন্ট ডিলিট ও রিসেট করুন</button>
+    <p class="text-center mt-3" style="font-size:12px; color:#888;">© ২০২৬ রেডিকা প্রজাতন্ত্র সরকার</p>
 </div>
 
-<div id="infoModal" class="modal">
+<div id="dynamicModal" class="modal">
     <div class="modal-content">
-        <span class="close-btn" onclick="closeModal()">×</span>
-        <h2 id="modalTitle" style="color: var(--primary); margin-top: 0;">টাইটেল</h2>
+        <button class="close-btn" onclick="document.getElementById('dynamicModal').style.display='none'">×</button>
+        <h2 id="modalTitle" class="modal-header-title">Title</h2>
         <div id="modalBody"></div>
     </div>
 </div>
 
 <script>
-    // --- User Data, Balance & Inventory Initialization ---
-    let user = JSON.parse(localStorage.getItem("radicaUser"));
-    let balance = parseInt(localStorage.getItem("radicaBal")) || 0;
-    let inventory = JSON.parse(localStorage.getItem("radicaInventory")) || []; // নতুন: সংগ্রহশালা
+    // ==========================================
+    // 1. CORE SYSTEM & DATA MANAGEMENT
+    // ==========================================
+    let user = JSON.parse(localStorage.getItem("radicaMegaUser")) || null;
+    let theme = localStorage.getItem("radicaTheme") || "light";
 
-    function initApp() {
-        if (!user) {
-            document.getElementById('onboarding').style.display = 'flex';
-        } else {
-            document.getElementById('greetingText').innerText = "নমস্কার, " + user.name + "!";
-            updateBalanceUI();
-        }
+    function applyTheme() {
+        document.documentElement.setAttribute("data-theme", theme);
+        document.querySelector('.theme-btn').innerText = theme === 'dark' ? '☀️' : '🌙';
     }
 
-    function registerUser() {
-        let name = document.getElementById('regName').value;
-        let dist = document.getElementById('regDistrict').value;
-        let prof = document.getElementById('regProf').value;
-        
-        if(name.trim() === "") { alert("দয়া করে নাম লিখুন!"); return; }
+    function toggleTheme() {
+        theme = theme === 'light' ? 'dark' : 'light';
+        localStorage.setItem("radicaTheme", theme);
+        applyTheme();
+    }
+
+    function showToast(msg, type = 'success') {
+        let toast = document.getElementById("toast");
+        toast.innerText = msg;
+        toast.style.backgroundColor = type === 'success' ? "#28a745" : (type === 'error' ? "#dc3545" : "#004a99");
+        toast.className = "show";
+        setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+    }
+
+    function initSuperApp() {
+        applyTheme();
+        if (!user) { document.getElementById('onboarding').style.display = 'flex'; } 
+        else { migrateData(); updateDashboard(); }
+    }
+
+    function migrateData() {
+        // Ensure old users get new arrays if they update app
+        if(!user.inventory) user.inventory = [];
+        if(!user.history) user.history = [];
+        save();
+    }
+
+    function save() { localStorage.setItem("radicaMegaUser", JSON.stringify(user)); }
+
+    function register() {
+        let n = document.getElementById('regName').value;
+        if(!n) return showToast("নাম লিখতেই হবে!", 'error');
         
         user = {
-            name: name, district: dist, prof: prof,
-            id: "RD-" + new Date().getFullYear() + "-" + Math.floor(1000 + Math.random() * 9000),
-            date: new Date().toLocaleDateString('bn-IN')
+            name: n, district: document.getElementById('regDistrict').value, prof: document.getElementById('regProf').value || "নাগরিক",
+            id: "RD-" + Math.floor(100000 + Math.random() * 900000), joined: new Date().toLocaleDateString('bn-IN'),
+            bal: 5000, xp: 0, level: 1, inventory: [], history: [], fdAmt: 0
         };
-        
-        balance = 5000; // Welcome Bonus
-        inventory = []; // Reset inventory for new user
-        
-        localStorage.setItem("radicaUser", JSON.stringify(user));
-        localStorage.setItem("radicaBal", balance);
-        localStorage.setItem("radicaInventory", JSON.stringify(inventory));
-        
-        document.getElementById('onboarding').style.display = 'none';
-        alert("স্বাগতম! নাগরিকত্বের বোনাস হিসেবে ৫,০০০ কোয়ান্ট (Q) দেওয়া হলো।");
-        initApp();
+        logTx("স্বাগতম বোনাস", 5000);
+        save(); document.getElementById('onboarding').style.display = 'none';
+        showToast("নাগরিকত্ব সফল! ৫,০০০ Q বোনাস।"); updateDashboard();
     }
 
-    function resetAllData() {
-        if(confirm("আপনি কি সমস্ত ডেটা মুছে নতুন করে শুরু করতে চান?")) {
-            localStorage.clear();
-            location.reload();
+    function hardReset() {
+        if(confirm("সতর্কতা: আপনার সমস্ত কোয়ান্ট, লেভেল এবং তথ্য মুছে যাবে। নিশ্চিত?")) {
+            localStorage.removeItem("radicaMegaUser"); location.reload();
         }
     }
 
-    function updateBalanceUI() {
-        localStorage.setItem("radicaBal", balance);
-        document.getElementById('topBal').innerText = "Q: " + balance;
-        document.getElementById('mainBal').innerText = balance;
+    // ==========================================
+    // 2. ECONOMY & PROGRESSION ENGINE
+    // ==========================================
+    function logTx(note, amt) {
+        user.history.unshift({ date: new Date().toLocaleString('bn-IN'), note: note, amt: amt });
+        if(user.history.length > 20) user.history.pop(); // Keep last 20
     }
 
-    function addBal(amt) { balance += amt; updateBalanceUI(); }
-    function subBal(amt) { if(balance >= amt) { balance -= amt; updateBalanceUI(); return true; } return false; }
+    function addBal(amt, note, xpGain = 10) { 
+        user.bal += amt; user.xp += xpGain; 
+        logTx(note, amt); checkLevel(); save(); updateDashboard(); 
+    }
 
-    // --- Content Data ---
-    const data = {
-        map: { title: "প্রশাসনিক মানচিত্র", content: `<img src="./map.png.jpg" alt="Map" onerror="this.src='https://via.placeholder.com/400x300?text=Map+Not+Found'" class="map-image"><p><b>জেলাসমূহ:</b> প্রজ্ঞাকেন্দ্র, মেধাভূমি, আরোগ্যনগর, শৌর্যপুর, সৃষ্টিশিলা, সবুজায়ন।</p>` },
-        const: { title: "সংবিধান", content: `<img src="./poster.png" alt="Constitution" onerror="this.src='https://via.placeholder.com/400x600?text=Poster+Not+Found'" class="map-image"><p style="font-size:14px; margin-top:10px;"><b>অধ্যায় ২:</b> ধর্ম-বর্ণ নির্বিশেষে সকলের সমান অধিকার সুরক্ষিত।</p>` },
-        gallery: { title: "ভার্চুয়াল গ্যালারি 🖼️", content: `
-            <img src="./poster.png" class="gallery-img" onerror="this.src='https://via.placeholder.com/400x200?text=Poster'">
-            <img src="./parliament.png" class="gallery-img" onerror="this.src='https://via.placeholder.com/400x200?text=Parliament+Building'">
-            <img src="./map.png.jpg" class="gallery-img" onerror="this.src='https://via.placeholder.com/400x200?text=Map'">
-        `},
-        store: { title: "কোয়ান্ট স্টোর 🛍️", content: `
-            <p style="font-size:13px; margin-bottom:15px;">আপনার জমানো কোয়ান্ট দিয়ে জিনিস কিনুন এবং ই-পাসপোর্টে সাজান!</p>
-            <div class="store-item"><div><b>🌱 অ্যাডেনিয়াম চারা</b><br><small>৩০০ Q</small></div><button class="buy-btn" onclick="buyItem('অ্যাডেনিয়াম চারা', 300, '🌱')">কিনুন</button></div>
-            <div class="store-item"><div><b>🌸 বোগেনভিলিয়া</b><br><small>২০০ Q</small></div><button class="buy-btn" onclick="buyItem('বোগেনভিলিয়া', 200, '🌸')">কিনুন</button></div>
-            <div class="store-item"><div><b>🛡️ শৌর্যপুর ব্যাজ</b><br><small>৫০০ Q</small></div><button class="buy-btn" onclick="buyItem('শৌর্যপুর ব্যাজ', 500, '🛡️')">কিনুন</button></div>
-            <div class="store-item"><div><b>📚 মেধাভূমির বই</b><br><small>১৫০ Q</small></div><button class="buy-btn" onclick="buyItem('মেধাভূমির বই', 150, '📚')">কিনুন</button></div>
-            <div class="store-item"><div><b>👑 রেডিকা স্টার</b><br><small>১০০০ Q</small></div><button class="buy-btn" onclick="buyItem('রেডিকা স্টার', 1000, '👑')">কিনুন</button></div>
-        `},
-        games: { title: "রেডিকা গেম জোন 🎮", content: `
-            <button class="play-btn" onclick="startMath()">➕ দ্রুত গণিত (প্রতি সঠিক উত্তরে 10 Q)</button>
-            <button class="play-btn" onclick="startScramble()" style="background:#28a745;">🧩 শব্দ-ধাঁধা (সঠিক হলে 50 Q)</button>
-            <div id="gameActiveArea" style="margin-top:15px;"></div>
-        `},
-        transport: { title: "যাতায়াত", content: `<a href="https://www.railyatri.in/" target="_blank" class="play-btn" style="text-decoration:none; display:block; text-align:center;">🚆 RailYatri খুলুন</a>` },
-        education: { title: "শিক্ষা", content: `<a href="https://openlibrary.org/" target="_blank" class="play-btn" style="text-decoration:none; display:block; text-align:center;">📚 ওপেন লাইব্রেরি</a>` },
-        market: { title: "বাজার", content: `<a href="https://www.flipkart.com/" target="_blank" class="play-btn" style="text-decoration:none; display:block; text-align:center;">🛍️ ফ্লিপকার্ট</a>` }
+    function subBal(amt, note) { 
+        if(user.bal >= amt) { 
+            user.bal -= amt; logTx(note, -amt); save(); updateDashboard(); return true; 
+        } 
+        return false; 
+    }
+
+    function checkLevel() {
+        let limit = user.level * 150; // Dynamic scaling
+        if(user.xp >= limit) {
+            user.xp -= limit; user.level++;
+            let reward = user.level * 200;
+            user.bal += reward; logTx("লেভেল আপ বোনাস", reward);
+            showToast(`🎉 অভিনন্দন! আপনি লেভেল ${user.level}-এ পৌঁছেছেন!`, 'info');
+        }
+    }
+
+    function updateDashboard() {
+        document.getElementById('dashName').innerText = user.name;
+        document.getElementById('dashID').innerText = "ID: " + user.id;
+        document.getElementById('mainBal').innerText = user.bal.toLocaleString('en-IN');
+        document.getElementById('hdrLevel').innerText = user.level;
+        
+        let limit = user.level * 150;
+        document.getElementById('xpText').innerText = `${user.xp} / ${limit}`;
+        document.getElementById('xpBar').style.width = `${(user.xp / limit) * 100}%`;
+    }
+
+    // ==========================================
+    // 3. MODAL MANAGERS & APPS
+    // ==========================================
+    const renderModal = (title, html) => {
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalBody').innerHTML = html;
+        document.getElementById('dynamicModal').style.display = "flex";
     };
 
-    function openModal(cat) {
-        document.getElementById('modalTitle').innerText = data[cat].title;
-        document.getElementById('modalBody').innerHTML = data[cat].content;
-        document.getElementById('infoModal').style.display = "flex";
-    }
-    function closeModal() { document.getElementById('infoModal').style.display = "none"; }
+    const modals = {
+        // --- ID CARD APP ---
+        id: {
+            open: () => {
+                let badges = user.inventory.length ? user.inventory.map(i => `<span class="badge">${i.icon} ${i.name}</span>`).join('') : '<small>কোনো ব্যাজ নেই</small>';
+                renderModal("রেডিকা ই-পাসপোর্ট", `
+                    <div class="id-pass">
+                        <h2 style="margin-top:0;">${user.name} <span style="float:right;">🪪</span></h2>
+                        <div class="id-row"><span>নাগরিক আইডি:</span> <b>${user.id}</b></div>
+                        <div class="id-row"><span>জেলা:</span> <b>${user.district}</b></div>
+                        <div class="id-row"><span>পেশা:</span> <b>${user.prof}</b></div>
+                        <div class="id-row"><span>যোগদান:</span> <b>${user.joined}</b></div>
+                        <div class="id-row"><span>রাষ্ট্রীয় মর্যাদা:</span> <b>লেভেল ${user.level}</b></div>
+                    </div>
+                    <h3 style="margin-top:20px; font-size:16px;">আমার সংগ্রহশালা (Inventory)</h3>
+                    <div class="badge-list">${badges}</div>
+                `);
+            }
+        },
 
-    // --- E-Passport & Inventory Logic ---
-    function showIDCard() {
-        // Generate Badges HTML
-        let badgesHtml = inventory.length > 0 
-            ? inventory.map(item => `<span class="badge-item">${item.icon} ${item.name}</span>`).join('') 
-            : `<span style="font-size:12px; color:#ccc;">এখনও কিছু কেনা হয়নি। স্টোর থেকে কিনুন!</span>`;
-
-        let html = `
-            <div class="id-card">
-                <div class="id-header">
-                    <h3 style="margin:0;">রেডিকা প্রজাতন্ত্র</h3>
-                    <span style="font-size:24px;">🪪</span>
-                </div>
-                <div class="id-details">
-                    <p>নাম: <span>${user.name}</span></p>
-                    <p>নাগরিক আইডি: <span>${user.id}</span></p>
-                    <p>জেলা: <span>${user.district}</span></p>
-                    <p>পেশা: <span>${user.prof}</span></p>
-                    <p style="font-size:11px; margin-top:10px; border-top:1px solid rgba(255,255,255,0.2); padding-top:5px;">ইস্যু তারিখ: ${user.date}</p>
-                </div>
+        // --- BANKING APP ---
+        bank: {
+            open: () => {
+                let historyHTML = user.history.map(tx => `
+                    <div class="tx-item">
+                        <div><b>${tx.note}</b><br><small style="color:#777;">${tx.date}</small></div>
+                        <div class="${tx.amt > 0 ? 'tx-plus' : 'tx-minus'}">${tx.amt > 0 ? '+' : ''}${tx.amt} Q</div>
+                    </div>
+                `).join('');
                 
-                <div style="margin-top:15px; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.4);">
-                    <p style="margin:0 0 5px 0; font-size:13px; color:var(--accent); font-weight:bold;">আমার সংগ্রহ (Badges):</p>
-                    <div>${badgesHtml}</div>
-                </div>
-            </div>
-            <p style="text-align:center; font-size:12px; margin-top:15px;">এটি আপনার সরকারি ই-পাসপোর্ট। বন্ধুদের সাথে শেয়ার করুন!</p>
-        `;
-        document.getElementById('modalTitle').innerText = "ই-পাসপোর্ট ও নাগরিকত্ব";
-        document.getElementById('modalBody').innerHTML = html;
-        document.getElementById('infoModal').style.display = "flex";
-    }
+                renderModal("সেন্ট্রাল ব্যাংক অফ রেডিকা", `
+                    <div class="list-card" style="flex-direction:column; align-items:flex-start;">
+                        <h3 style="margin:0 0 10px 0; color:var(--primary);">মানি ট্রান্সফার</h3>
+                        <input type="text" id="trID" class="form-control" placeholder="প্রাপকের আইডি (RD-XXXX)" style="margin-bottom:10px;">
+                        <input type="number" id="trAmt" class="form-control" placeholder="পরিমাণ (Q)" style="margin-bottom:10px;">
+                        <button class="btn btn-primary" style="margin:0;" onclick="apps.bank.transfer()">টাকা পাঠান</button>
+                    </div>
+                    <h3 style="margin-top:20px; font-size:16px;">লেনদেনের ইতিহাস (Passbook)</h3>
+                    <div class="tx-history">${historyHTML || 'কোনো লেনদেন হয়নি।'}</div>
+                `);
+            }
+        },
 
-    // --- Buying Items ---
-    function buyItem(itemName, price, icon) {
-        if(subBal(price)) {
-            // Add to inventory
-            inventory.push({ name: itemName, icon: icon });
-            localStorage.setItem("radicaInventory", JSON.stringify(inventory)); // Save local
-            
-            alert("✅ অভিনন্দন! আপনি " + price + " Q দিয়ে '" + itemName + "' কিনেছেন। আপনার ই-পাসপোর্টে গিয়ে ব্যাজটি দেখে নিন!");
-        } else {
-            alert("❌ আপনার পর্যাপ্ত কোয়ান্ট (Q) নেই! গেম খেলে আরও কোয়ান্ট আয় করুন।");
+        // --- STORE APP ---
+        store: {
+            open: () => {
+                const items = [
+                    {n: 'অ্যাডেনিয়াম চারা', p: 300, i: '🌱'}, {n: 'বোগেনভিলিয়া', p: 250, i: '🌸'}, 
+                    {n: 'শৌর্যপুর শিল্ড', p: 800, i: '🛡️'}, {n: 'মেধাভূমির বই', p: 150, i: '📚'},
+                    {n: 'ভিআইপি মুকুট', p: 5000, i: '👑'}
+                ];
+                let html = items.map(itm => `
+                    <div class="list-card">
+      <div><b style="font-size:16px;">${itm.i} ${itm.n}</b><br><small style="color:var(--accent); font-weight:bold;">${itm.p} Q</small></div>
+                        <button class="btn btn-primary" style="width:auto; margin:0; padding:8px 15px;" onclick="apps.store.buy('${itm.n}', ${itm.p}, '${itm.i}')">কিনুন</button>
+                    </div>
+                `).join('');
+                renderModal("রেডিকা কোয়ান্ট স্টোর", `<p style="font-size:13px; margin-bottom:15px;">আপনার কোয়ান্ট খরচ করে ব্যাজ কিনুন এবং প্রোফাইল সাজান।</p>${html}`);
+            }
+        },
+
+        // --- HEALTH HUB ---
+        health: {
+            open: () => {
+                renderModal("আরোগ্যনগর হেলথ হাব 🏥", `
+                    <div class="list-card" style="flex-direction:column; text-align:center;">
+                        <h3 style="margin:0;">BMI ক্যালকুলেটর</h3>
+                        <p style="font-size:12px; color:#666;">আপনার উচ্চতা ও ওজন দিয়ে স্বাস্থ্য পরীক্ষা করুন</p>
+                        <div class="grid-2" style="width:100%;">
+                            <input type="number" id="hHeight" class="form-control" placeholder="উচ্চতা (cm)">
+                            <input type="number" id="hWeight" class="form-control" placeholder="ওজন (kg)">
+                        </div>
+                        <button class="btn btn-success" onclick="apps.health.calcBMI()">চেক করুন</button>
+                        <h2 id="bmiResult" style="color:var(--primary); margin-top:15px; display:none;"></h2>
+                    </div>
+                    <div class="list-card" style="display:block;">
+                        <h4 style="margin:0 0 5px 0;">আজকের স্বাস্থ্য টিপস:</h4>
+                        <ul style="margin:0; padding-left:20px; font-size:13px; color:#555;">
+                            <li>প্রতিদিন সকালে অন্তত ৩০ মিনিট হাঁটুন।</li>
+                            <li>খাবারে লবণের পরিমাণ কমান।</li>
+                            <li>পর্যাপ্ত ঘুমান এবং মানসিক চাপ মুক্ত থাকুন।</li>
+                        </ul>
+                    </div>
+                `);
+            }
+        },
+        
+        // --- ENVIRONMENT APP ---
+        env: {
+            open: () => {
+                // Mock random data
+                let temp = Math.floor(Math.random() * 10) + 25; 
+                let aqi = Math.floor(Math.random() * 50) + 30;
+                renderModal("সবুজায়ন ড্যাশবোর্ড 🌳", `
+                    <div class="grid-2">
+                        <div class="list-card" style="flex-direction:column; text-align:center; border-color:var(--accent);">
+                            <span style="font-size:30px;">🌡️</span><h3>${temp}°C</h3><small>বর্তমান তাপমাত্রা</small>
+                        </div>
+                        <div class="list-card" style="flex-direction:column; text-align:center; border-color:var(--success);">
+                            <span style="font-size:30px;">🍃</span><h3>${aqi} (Good)</h3><small>বায়ুর মান (AQI)</small>
+                        </div>
+                    </div>
+                    <div class="list-card" style="display:block; text-align:center;">
+                        <h3 style="color:var(--success); margin:0;">১,৪৫০+</h3>
+                        <p style="font-size:13px; margin:5px 0 0 0;">পরম বৃক্ষ সফলভাবে সংরক্ষিত হয়েছে।</p>
+                    </div>
+                `);
+            }
+        },
+
+        // --- GAME ZONE ---
+        games: {
+            open: () => {
+                renderModal("রেডিকা গেম জোন 🎮", `
+                    <div class="list-card" style="display:block; text-align:center;">
+                        <h3 style="margin-top:0;">➕ দ্রুত গণিত</h3><p style="font-size:13px;">যোগ-বিয়োগ করে Q ও XP জিতুন।</p>
+                        <button class="btn btn-primary" style="margin:0;" onclick="apps.games.math()">শুরু করুন</button>
+                    </div>
+                    <div class="list-card" style="display:block; text-align:center;">
+                        <h3 style="margin-top:0;">🤖 AI এর সাথে যুদ্ধ</h3><p style="font-size:13px;">রক-পেপার-সিজারস খেলে ভাগ্য পরীক্ষা করুন!</p>
+                        <button class="btn btn-success" style="margin:0;" onclick="apps.games.rps()">শুরু করুন</button>
+                    </div>
+                    <div id="gameArena" class="mt-3"></div>
+                `);
+            }
+        },
+         // --- STATIC CONTENT ---
+        map: { open: () => renderModal("মানচিত্র", `<img src="./map.png.jpg" style="width:100%; border-radius:15px; border:2px solid var(--border-col);" onerror="this.src='https://via.placeholder.com/400'"><p class="text-center mt-3">৬টি জেলা নিয়ে গঠিত সমবাহু পঞ্চভুজ রাষ্ট্র।</p>`) },
+        const: { open: () => renderModal("সংবিধান", `<img src="./poster.png" style="width:100%; border-radius:15px; border:2px solid var(--border-col);" onerror="this.src='https://via.placeholder.com/400'"><ul class="mt-3" style="font-size:14px; line-height:1.6;"><li>সবার উপরে মনুষ্যত্ব।</li><li>সকলের সমান অধিকার।</li><li>পরম বৃক্ষ আইনি মর্যাদা পাবে।</li></ul>`) },
+        edu: { open: () => renderModal("মেধাভূমি একাডেমি 📚", `<p>জ্ঞানের দুনিয়ায় স্বাগতম!</p><button class="btn btn-primary" onclick="window.open('https://openlibrary.org/')">ওপেন লাইব্রেরি খুলুন</button><button class="btn btn-success" onclick="window.open('https://en.wikipedia.org/wiki/Portal:Science')">বিজ্ঞানের জগত</button>`) }
+    };
+
+    // ==========================================
+    // 4. APP LOGIC CONTROLLERS
+    // ==========================================
+    const apps = {
+        bank: {
+            transfer: () => {
+                let id = document.getElementById('trID').value;
+                let amt = parseInt(document.getElementById('trAmt').value);
+                if(id.length < 5 || isNaN(amt) || amt <= 0) return showToast("সঠিক তথ্য দিন!", 'error');
+                if(subBal(amt, `ট্রান্সফার: ${id}`)) {
+                    showToast(`সফল! ${id} কে ${amt} Q পাঠানো হয়েছে।`);
+                    document.getElementById('trID').value = ''; document.getElementById('trAmt').value = '';
+                    setTimeout(modals.bank.open, 500); // refresh
+                } else showToast("পর্যাপ্ত ব্যালেন্স নেই!", 'error');
+            }
+        },
+        store: {
+            buy: (name, price, icon) => {
+                if(user.inventory.find(i => i.name === name)) return showToast("এটি আগেই কেনা আছে!", 'error');
+                if(subBal(price, `স্টোর ক্রয়: ${name}`)) {
+                    user.inventory.push({name, icon}); save();
+                    showToast(`${name} সফলভাবে কেনা হয়েছে! ই-পাসপোর্ট চেক করুন।`);
+                } else showToast("পর্যাপ্ত কোয়ান্ট নেই!", 'error');
+            }
+        },
+        health: {
+            calcBMI: () => {
+                let h = parseFloat(document.getElementById('hHeight').value) / 100;
+                let w = parseFloat(document.getElementById('hWeight').value);
+                if(h > 0 && w > 0) {
+                    let bmi = (w / (h * h)).toFixed(1);
+                    let res = document.getElementById('bmiResult');
+                    res.style.display = 'block';
+                    if(bmi < 18.5) res.innerHTML = `BMI: ${bmi} <br><small style="color:var(--accent)">ওজন কম</small>`;
+                    else if(bmi < 24.9) res.innerHTML = `BMI: ${bmi} <br><small style="color:var(--success)">স্বাভাবিক ওজন</small>`;
+                    else res.innerHTML = `BMI: ${bmi} <br><small style="color:var(--danger)">ওজন বেশি</small>`;
+                } else showToast("সঠিক উচ্চতা ও ওজন দিন", 'error');
+            }
+        },
+        games: {
+            math: () => {
+                let a = Math.floor(Math.random() * 50) + 10; let b = Math.floor(Math.random() * 50) + 10;
+                document.getElementById('gameArena').innerHTML = `
+                    <div class="list-card" style="flex-direction:column; text-align:center; border-color:var(--primary);">
+                        <h2 style="font-size:36px; margin:10px 0;">${a} + ${b} = ?</h2>
+                        <input type="number" id="mathAns" class="form-control text-center" placeholder="উত্তর">
+                        <button class="btn btn-primary" onclick="apps.games.checkMath(${a+b})">সাবমিট</button>
+                    </div>`;
+            },
+            checkMath: (correct) => {
+                if(parseInt(document.getElementById('mathAns').value) === correct) {
+                    showToast("সঠিক উত্তর! +15 Q, +20 XP"); addBal(15, "গেম: গণিত", 20); apps.games.math();
+                } else showToast("ভুল উত্তর!", 'error');
+            },
+            rps: () => {
+                document.getElementById('gameArena').innerHTML = `
+                    <div class="list-card" style="flex-direction:column; text-align:center;">
+                        <h3>AI এর সাথে খেলুন</h3><p>প্রতি জয়ে ২০ Q</p>
+                        <div class="grid-2" style="width:100%;">
+                            <button class="btn btn-primary" onclick="apps.games.playRPS('🪨')">🪨 পাথর</button>
+                            <button class="btn btn-primary" onclick="apps.games.playRPS('📄')">📄 কাগজ</button>
+                            <button class="btn btn-primary" style="grid-column: span 2;" onclick="apps.games.playRPS('✂️')">✂️ কাঁচি</button>
+                        </div>
+                        <h2 id="rpsResult" style="margin-top:15px;"></h2>
+                    </div>`;
+            },
+            playRPS: (userChoice) => {
+                const choices = ['🪨', '📄', '✂️'];
+                let ai = choices[Math.floor(Math.random() * 3)];
+                let resTxt = `আপনি: ${userChoice} | AI: ${ai}<br>`;
+                let resDOM = document.getElementById('rpsResult');
+                
+                if(userChoice === ai) { resDOM.innerHTML = resTxt + "<span style='color:var(--accent)'>ম্যাচ ড্র!</span>"; }
+                else if((userChoice==='🪨'&&ai==='✂️') || (userChoice==='📄'&&ai==='🪨') || (userChoice==='✂️'&&ai==='📄')) {
+                    resDOM.innerHTML = resTxt + "<span style='color:var(--success)'>আপনি জিতেছেন! (+20 Q)</span>";
+                    addBal(20, "গেম: জয়", 15);
+                } else {
+                    resDOM.innerHTML = resTxt + "<span style='color:var(--danger)'>AI জিতেছে!</span>";
+                }
+            }
         }
-    }
-
-    // --- Games Logic (Kept as before) ---
-    function startMath() {
-        let n1 = Math.floor(Math.random() * 20) + 1; let n2 = Math.floor(Math.random() * 20) + 1;
-        let area = document.getElementById('gameActiveArea');
-        area.innerHTML = `
-            <div style="background:#f9f9f9; padding:15px; border-radius:10px; text-align:center; border:2px solid var(--primary);">
-                <h3>অঙ্ক করুন</h3><h2 style="color:var(--accent);">${n1} + ${n2} = ?</h2>
-                <input type="number" id="mathAns" style="padding:10px; width:80%; font-size:16px;" placeholder="উত্তর লিখুন">
-                <button class="play-btn" onclick="checkMath(${n1+n2})">জমা দিন</button>
-            </div>
-        `;
-    }
-    function checkMath(correct) {
-        let ans = parseInt(document.getElementById('mathAns').value);
-        if(ans === correct) { alert("✅ সঠিক! 10 Q পেলেন।"); addBal(10); startMath(); } else { alert("❌ ভুল উত্তর!"); }
-    }
-
-    const dists = ["PRAJNAKENDRA", "MEDHABHUMI", "AROGYANAGAR", "SABUJAYAN"];
-    function startScramble() {
-        let word = dists[Math.floor(Math.random()*dists.length)];
-        let scram = word.split('').sort(()=>Math.random()-0.5).join('');
-        let area = document.getElementById('gameActiveArea');
-        area.innerHTML = `
-            <div style="background:#f9f9f9; padding:15px; border-radius:10px; text-align:center; border:2px solid #28a745;">
-                <h3>জেলার নাম সাজান</h3><h2 style="letter-spacing:3px;">${scram}</h2>
-                <input type="text" id="scrAns" style="padding:10px; width:80%; font-size:16px;" placeholder="সঠিক নাম ইংরেজিতে">
-                <button class="play-btn" style="background:#28a745;" onclick="checkScram('${word}')">জমা দিন</button>
-            </div>
-        `;
-    }
-    function checkScram(correct) {
-        let ans = document.getElementById('scrAns').value.toUpperCase().trim();
-        if(ans === correct) { alert("✅ সঠিক! 50 Q পেলেন।"); addBal(50); startScramble(); } else { alert("❌ ভুল উত্তর!"); }
-    }
+    };
 </script>
 </body>
 </html>
