@@ -10,59 +10,49 @@
             font-family: 'Hind Siliguri', sans-serif; 
             margin: 0; padding: 0; 
             background: radial-gradient(circle at center, #003366 0%, #001122 100%);
-            background-attachment: fixed;
-            color: #333;
-            overflow-x: hidden;
+            background-attachment: fixed; color: #333; overflow-x: hidden;
         }
         body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 74, 153, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 74, 153, 0.1) 1px, transparent 1px);
-            background-size: 30px 30px;
-            z-index: -1;
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(0, 74, 153, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 74, 153, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px; z-index: -1;
         }
         header { background: rgba(255, 255, 255, 0.95); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 15px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(5px); }
         .logo { font-size: 26px; font-weight: 800; color: var(--primary); cursor: pointer; }
         .logo span { color: var(--accent); }
         .container { max-width: 500px; margin: 20px auto; padding: 0 15px; position: relative; z-index: 1; }
-        .welcome-banner { 
-            background: linear-gradient(135deg, rgba(0, 74, 153, 0.9), rgba(0, 51, 102, 0.9)); 
-            color: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; position: relative; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
+        .welcome-banner { background: linear-gradient(135deg, rgba(0, 74, 153, 0.9), rgba(0, 51, 102, 0.9)); color: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); }
         .change-name { position: absolute; top: 10px; right: 15px; font-size: 11px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; cursor: pointer; }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .menu-item { 
-            background: rgba(255, 255, 255, 0.9); 
-            padding: 20px; border-radius: 18px; text-align: center; cursor: pointer; 
-            transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-            border: 1px solid transparent; 
-            backdrop-filter: blur(10px);
-        }
+        .menu-item { background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 18px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid transparent; backdrop-filter: blur(10px); }
         .menu-item:hover { border-color: var(--accent); transform: translateY(-5px); background: #fff; }
         .icon { font-size: 30px; margin-bottom: 10px; display: block; }
         .sos-btn { background: #ff4d4d; color: white; text-align: center; padding: 15px; border-radius: 15px; margin-top: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(255,77,77,0.4); }
         
-        /* Modal Styles */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
         .modal-content { background: white; width: 95%; max-width: 480px; max-height: 85vh; overflow-y: auto; padding: 25px; border-radius: 20px; position: relative; animation: slideIn 0.3s ease; }
         @keyframes slideIn { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .close-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; z-index: 10; background: rgba(255,255,255,0.8); border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; }
         
-        /* Game Styles */
-        .game-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; perspective: 1000px; }
+        /* Memory Game Styles */
+        .game-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; perspective: 1000px; }
         .card { width: 100%; aspect-ratio: 1; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.5s; }
         .card.flipped { transform: rotateY(180deg); }
-        .card .front, .card .back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 5px; box-sizing: border-box; text-align: center; }
-        .card .back { background: linear-gradient(135deg, var(--primary), #002244); color: var(--accent); font-size: 30px; transform: rotateY(0deg); border: 2px solid var(--accent); }
-        .card .front { background: white; color: var(--primary); transform: rotateY(180deg); border: 2px solid var(--primary); font-size: 13px; font-weight: bold; }
-        .card .front span { font-size: 28px; margin-bottom: 5px; display: block; }
-        .game-stats { display: flex; justify-content: space-between; margin-top: 15px; font-weight: bold; color: var(--primary); }
+        .card .front, .card .back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight:bold; }
+        .card .back { background: linear-gradient(135deg, var(--primary), #002244); color: var(--accent); font-size: 30px; border: 2px solid var(--accent); }
+        .card .front { background: white; color: var(--primary); transform: rotateY(180deg); border: 2px solid var(--primary); font-size: 13px; text-align:center; }
+        
+        /* Board Game (Snake/Ladder) Styles */
+        .sl-board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; background: #ddd; padding: 5px; border-radius: 10px; margin-top: 15px; }
+        .sl-cell { background: white; height: 50px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 5px; position: relative; color: #555; }
+        .sl-ladder { background: #d4edda; border: 2px solid #28a745; }
+        .sl-snake { background: #f8d7da; border: 2px solid #dc3545; }
+        .sl-player { position: absolute; font-size: 25px; transition: all 0.3s; z-index: 5; }
+        .dice-btn { background: var(--accent); color: #000; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; font-size: 16px; box-shadow: 0 4px 0 #cc9000; transition: 0.1s; }
+        .dice-btn:active { transform: translateY(4px); box-shadow: none; }
+        .dice-display { text-align: center; font-size: 40px; margin: 10px 0; }
+        
         .play-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
     </style>
 </head>
@@ -83,13 +73,13 @@
     <div class="menu-grid">
         <div class="menu-item" onclick="openModal('map')"><span class="icon">🗺️</span><h3>মানচিত্র</h3></div>
         <div class="menu-item" onclick="openModal('const')"><span class="icon">📜</span><h3>সংবিধান</h3></div>
-        <div class="menu-item" onclick="openModal('game')"><span class="icon">🎮</span><h3>রেডিকা গেম</h3></div>
+        <div class="menu-item" onclick="openModal('memoryGame')"><span class="icon">🎴</span><h3>মেমরি গেম</h3></div>
+        <div class="menu-item" onclick="openModal('boardGame')"><span class="icon">🎲</span><h3>জ্ঞান-অভিযান</h3></div>
         <div class="menu-item" onclick="openModal('transport')"><span class="icon">🚆</span><h3>যাতায়াত</h3></div>
         <div class="menu-item" onclick="openModal('education')"><span class="icon">🎓</span><h3>শিক্ষা</h3></div>
         <div class="menu-item" onclick="openModal('market')"><span class="icon">🛒</span><h3>বাজার</h3></div>
+        <div class="menu-item" onclick="openModal('jobs')"><span class="icon">💼</span><h3>কর্ম-নিয়োগ</h3></div>
     </div>
-
-    <div class="sos-btn" onclick="window.location.href='https://wa.me/918597290189?text=জরুরি%20সাহায্য%20প্রয়োজন!'">জরুরি সাহায্য (SOS)</div>
 </div>
 
 <div id="infoModal" class="modal">
@@ -101,13 +91,13 @@
 </div>
 
 <script>
-    // User Balance Logic
+    // --- User & Balance System ---
     let balance = localStorage.getItem("quantBalance") ? parseInt(localStorage.getItem("quantBalance")) : 5450;
     
     function checkUser() {
         let name = localStorage.getItem("userName");
         if (!name) {
-            name = prompt("রেডিকা প্রজাতন্ত্রে আপনাকে স্বাগতম! আপনার নাম লিখুন:");
+            name = prompt("রেডিকা প্রজাতন্ত্রে স্বাগতম! আপনার নাম লিখুন:");
             if (!name) name = "রেডিকাবাসী";
             localStorage.setItem("userName", name);
         }
@@ -124,18 +114,30 @@
         document.getElementById("quantBalance").innerText = balance.toLocaleString('bn-IN');
     }
 
-    // App Data
+    // --- App Data & Modals ---
     const data = {
         map: { title: "প্রশাসনিক মানচিত্র", content: `<p>রেডিকার জেলাসমূহ:</p><ul><li>🏛️ প্রজ্ঞাকেন্দ্র (বর্ধমান)</li><li>📚 মেধাভূমি (দেবীপুর)</li><li>🏥 আরোগ্যনগর (মগরা)</li><li>⚔️ শৌর্যপুর (পাণ্ডুয়া)</li><li>🎨 সৃষ্টিশিলা (মেমারি)</li><li>🌳 সবুজায়ন (দেবীপুর গ্রিন জোন)</li></ul>` },
-        const: { title: "সংবিধান", content: `<p>১০০ বছরের প্রাচীন গাছ 'পরম বৃক্ষ' মর্যাদা পাইবে। ৫৩% মুনাফা জনকল্যাণে ব্যয় হইবে।</p>` },
-        transport: { title: "যাতায়াত সেবা", content: `<ul style="list-style:none; padding:0;"><li>🚆 RailYatri</li></ul>` },
-        education: { title: "শিক্ষা ও জ্ঞান", content: `<ul style="list-style:none; padding:0;"><li>📚 ওপেন লাইব্রেরি</li></ul>` },
-        market: { title: "রেডিকা বাজার", content: `<ul style="list-style:none; padding:0;"><li>🛍️ ফ্লিপকার্ট</li></ul>` },
-        game: { title: "রেডিকা মেমরি চ্যালেঞ্জ 🎮", content: `
-            <p style="font-size:14px; text-align:center;">দুটি একই জেলার কার্ড মিলিয়ে ১০০ কোয়ান্ট (Q) জিতে নিন!</p>
-            <div class="game-stats"><span>চাল: <span id="moves">0</span></span><span>জোড়া মিলেছে: <span id="matches">0</span>/6</span></div>
+        const: { title: "সংবিধান", content: `<img src="./poster.png" style="width:100%; border-radius:10px;"><p style="font-size:14px; margin-top:10px;"><b>অধ্যায় ২:</b> রাষ্ট্রের প্রধান জাতিসত্তা 'বাঙালি', তবে ধর্ম-বর্ণ নির্বিশেষে সকলের সমান অধিকার সুরক্ষিত।</p>` },
+        transport: { title: "যাতায়াত", content: `<ul><li><a href="https://www.railyatri.in/" target="_blank">RailYatri</a></li></ul>` },
+        education: { title: "শিক্ষা", content: `<ul><li><a href="https://openlibrary.org/" target="_blank">ওপেন লাইব্রেরি</a></li></ul>` },
+        market: { title: "বাজার", content: `<ul><li><a href="https://www.flipkart.com/" target="_blank">ফ্লিপকার্ট</a></li></ul>` },
+        jobs: { title: "কর্ম-নিয়োগ", content: `<ul><li><a href="https://www.ncs.gov.in/" target="_blank">National Job Portal</a></li></ul>` },
+        
+        // Memory Game
+        memoryGame: { title: "রেডিকা মেমরি গেম 🎴", content: `
+            <p style="font-size:13px; text-align:center;">দুটি একই জেলার কার্ড মিলিয়ে ১০০ কোয়ান্ট জিতে নিন!</p>
+            <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary);"><span>চাল: <span id="moves">0</span></span><span>মেলেছে: <span id="matches">0</span>/6</span></div>
             <div id="gameBoard" class="game-board"></div>
-            <button class="play-btn" onclick="initGame()">নতুন গেম শুরু করুন</button>
+            <button class="play-btn" onclick="initMemoryGame()">নতুন গেম</button>
+        `},
+        
+        // Board Game (Snake & Ladder with Quiz)
+        boardGame: { title: "জ্ঞান-অভিযান 🎲", content: `
+            <p style="font-size:13px; text-align:center;"><b>মই (Ladder):</b> সঠিক উত্তরে উপরে উঠবেন।<br><b>সাপ (Snake):</b> সঠিক উত্তরে সাপের কামড় থেকে বাঁচবেন!</p>
+            <div class="dice-display" id="diceDisplay">🎲</div>
+            <div id="slBoard" class="sl-board"></div>
+            <button class="dice-btn" id="rollBtn" onclick="rollDice()">ছক্কা ঘুরান (Roll Dice)</button>
+            <button class="play-btn" onclick="initBoardGame()" style="margin-top:10px; background:#666;">গেম রিসেট করুন</button>
         `}
     };
 
@@ -143,92 +145,164 @@
         document.getElementById('modalTitle').innerText = data[category].title;
         document.getElementById('modalBody').innerHTML = data[category].content;
         document.getElementById('infoModal').style.display = "flex";
-        if (category === 'game') setTimeout(initGame, 100);
+        if (category === 'memoryGame') setTimeout(initMemoryGame, 100);
+        if (category === 'boardGame') setTimeout(initBoardGame, 100);
     }
     function closeModal() { document.getElementById('infoModal').style.display = "none"; }
 
-    // Game Logic
-    const districts = [
-        { name: "প্রজ্ঞাকেন্দ্র", icon: "🏛️" }, { name: "মেধাভূমি", icon: "📚" },
-        { name: "আরোগ্যনগর", icon: "🏥" }, { name: "শৌর্যপুর", icon: "⚔️" },
-        { name: "সৃষ্টিশিলা", icon: "⚙️" }, { name: "সবুজায়ন", icon: "🌳" }
+    // --- Board Game (Snake/Ladder) Logic ---
+    let playerPos = 1;
+    const totalCells = 25;
+    // Ladders: start -> end. Snakes: start -> end
+    const ladders = { 4: 13, 10: 22 }; 
+    const snakes = { 17: 6, 24: 9 };
+    
+    // Questions Bank
+    const questions = [
+        { q: "রেডিকা প্রজাতন্ত্রের মুদ্রার নাম কী?", a: "কোয়ান্ট", options: "১. কোয়ান্ট ২. টাকা" },
+        { q: "রেডিকার রাজধানীর নাম কী?", a: "প্রজ্ঞাকেন্দ্র", options: "১. আরোগ্যনগর ২. প্রজ্ঞাকেন্দ্র" },
+        { q: "কত বছরের পুরনো গাছকে 'পরম বৃক্ষ' বলা হয়?", a: "১০০", options: "১. ৫০ ২. ১০০" },
+        { q: "রেডিকার আকৃতি কেমন?", a: "পঞ্চভুজ", options: "১. চতুর্ভুজ ২. পঞ্চভুজ" },
+        { q: "অঙ্ক করুন: ৮ + ৭ = ?", a: "১৫", options: "উত্তর লিখুন:" }
     ];
-    let cards = [], hasFlippedCard = false, lockBoard = false, firstCard, secondCard;
-    let matches = 0, moves = 0;
 
-    function initGame() {
-        matches = 0; moves = 0;
-        document.getElementById('moves').innerText = moves;
-        document.getElementById('matches').innerText = matches;
-        const gameBoard = document.getElementById('gameBoard');
-        gameBoard.innerHTML = '';
-        cards = [...districts, ...districts];
-        cards.sort(() => Math.random() - 0.5); // Shuffle
+    function initBoardGame() {
+        playerPos = 1;
+        document.getElementById('rollBtn').disabled = false;
+        document.getElementById('diceDisplay').innerText = "🎲";
+        renderBoard();
+    }
 
-        cards.forEach((dist, index) => {
-            const cardElement = document.createElement('div');
-            cardElement.classList.add('card');
-            cardElement.dataset.name = dist.name;
-            cardElement.innerHTML = `
-                <div class="back">R</div>
-                <div class="front"><span>${dist.icon}</span>${dist.name}</div>
-            `;
-            cardElement.addEventListener('click', flipCard);
-            gameBoard.appendChild(cardElement);
+    function renderBoard() {
+        const board = document.getElementById('slBoard');
+        board.innerHTML = '';
+        
+        // Create 25 cells (1 to 25, bottom to top visual logic handled by CSS grid flex-wrap/order or just simple rendering)
+        // For simplicity in mobile view, we render 25 to 1 downwards.
+        for (let i = totalCells; i >= 1; i--) {
+            let cell = document.createElement('div');
+            cell.classList.add('sl-cell');
+            cell.id = 'cell-' + i;
+            
+            if (ladders[i]) { cell.classList.add('sl-ladder'); cell.innerHTML = `${i} 🪜`; }
+            else if (snakes[i]) { cell.classList.add('sl-snake'); cell.innerHTML = `${i} 🐍`; }
+            else { cell.innerText = i; }
+
+            // Place Player
+            if (i === playerPos) {
+                let p = document.createElement('div');
+                p.classList.add('sl-player');
+                p.innerText = "🏃‍♂️";
+                cell.appendChild(p);
+            }
+            board.appendChild(cell);
+        }
+    }
+
+    function rollDice() {
+        const diceBtn = document.getElementById('rollBtn');
+        diceBtn.disabled = true;
+        
+        // Random Dice 1-6
+        let diceValue = Math.floor(Math.random() * 6) + 1;
+        const diceFaces = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+        document.getElementById('diceDisplay').innerText = diceFaces[diceValue];
+        
+        setTimeout(() => { movePlayer(diceValue); }, 500);
+    }
+
+    function movePlayer(step) {
+        if (playerPos + step <= totalCells) {
+            playerPos += step;
+        } else {
+            alert("আপনাকে ঠিক " + (totalCells - playerPos) + " ফেলতে হবে!");
+        }
+        
+        renderBoard();
+        
+        setTimeout(() => {
+            checkSnakesAndLadders();
+        }, 500);
+    }
+
+    function checkSnakesAndLadders() {
+        if (ladders[playerPos]) {
+            askQuestion("মই 🪜", playerPos, ladders[playerPos], true);
+        } 
+        else if (snakes[playerPos]) {
+            askQuestion("সাপ 🐍", playerPos, snakes[playerPos], false);
+        } 
+        else {
+            checkWin();
+        }
+    }
+
+    function askQuestion(type, currentPos, targetPos, isLadder) {
+        let q = questions[Math.floor(Math.random() * questions.length)];
+        let ans = prompt(`আপনি ${type} এর সামনে!\nপ্রশ্ন: ${q.q}\n${q.options}`);
+        
+        if (ans && ans.trim().toLowerCase() === q.a.toLowerCase()) {
+            alert("✅ সঠিক উত্তর!");
+            if (isLadder) {
+                alert("আপনি মই দিয়ে উপরে উঠলেন!");
+                playerPos = targetPos;
+            } else {
+                alert("বুদ্ধির জোরে আপনি সাপের কামড় থেকে বেঁচে গেলেন!");
+                // doesn't fall down
+            }
+        } else {
+            alert("❌ ভুল উত্তর! সঠিক উত্তর ছিল: " + q.a);
+            if (isLadder) {
+                alert("ভুল উত্তরের জন্য আপনি মই বেয়ে উঠতে পারলেন না।");
+                // stays at bottom
+            } else {
+                alert("সাপ আপনাকে কামড় দিয়েছে! নিচে নেমে যান।");
+                playerPos = targetPos;
+            }
+        }
+        renderBoard();
+        checkWin();
+    }
+
+    function checkWin() {
+        if (playerPos === totalCells) {
+            alert("🎉 অসাধারণ! আপনি জ্ঞান-অভিযান জিতেছেন! আপনার অ্যাকাউন্টে ২০০ কোয়ান্ট (Q) যোগ করা হলো।");
+            updateBalance(200);
+            document.getElementById('rollBtn').disabled = true;
+        } else {
+            document.getElementById('rollBtn').disabled = false;
+        }
+    }
+
+    // --- Memory Game Logic (Kept from previous version) ---
+    const districts = [ { name: "প্রজ্ঞাকেন্দ্র", icon: "🏛️" }, { name: "মেধাভূমি", icon: "📚" }, { name: "আরোগ্যনগর", icon: "🏥" }, { name: "শৌর্যপুর", icon: "⚔️" }, { name: "সৃষ্টিশিলা", icon: "⚙️" }, { name: "সবুজায়ন", icon: "🌳" } ];
+    let cards = [], hasFlippedCard = false, lockBoard = false, firstCard, secondCard, matches = 0, moves = 0;
+
+    function initMemoryGame() {
+        matches = 0; moves = 0; document.getElementById('moves').innerText = moves; document.getElementById('matches').innerText = matches;
+        const board = document.getElementById('gameBoard'); board.innerHTML = '';
+        cards = [...districts, ...districts].sort(() => Math.random() - 0.5);
+        cards.forEach((d) => {
+            let c = document.createElement('div'); c.classList.add('card'); c.dataset.name = d.name;
+            c.innerHTML = `<div class="back">R</div><div class="front"><span style="font-size:24px;display:block;">${d.icon}</span>${d.name}</div>`;
+            c.addEventListener('click', flipCard); board.appendChild(c);
         });
     }
-
     function flipCard() {
-        if (lockBoard) return;
-        if (this === firstCard) return;
-
+        if (lockBoard || this === firstCard) return;
         this.classList.add('flipped');
-
-        if (!hasFlippedCard) {
-            hasFlippedCard = true;
-            firstCard = this;
-            return;
-        }
-
-        secondCard = this;
-        moves++;
-        document.getElementById('moves').innerText = moves;
-        checkForMatch();
+        if (!hasFlippedCard) { hasFlippedCard = true; firstCard = this; return; }
+        secondCard = this; moves++; document.getElementById('moves').innerText = moves;
+        firstCard.dataset.name === secondCard.dataset.name ? disableCards() : unflipCards();
     }
-
-    function checkForMatch() {
-        let isMatch = firstCard.dataset.name === secondCard.dataset.name;
-        isMatch ? disableCards() : unflipCards();
-    }
-
     function disableCards() {
-        firstCard.removeEventListener('click', flipCard);
-        secondCard.removeEventListener('click', flipCard);
-        matches++;
-        document.getElementById('matches').innerText = matches;
-        resetBoard();
-
-        if (matches === 6) {
-            setTimeout(() => {
-                alert("🎉 অভিনন্দন! আপনি সবকটি জেলা মিলিয়েছেন! পুরস্কার হিসেবে ১০০ কোয়ান্ট (Q) যোগ করা হলো।");
-                updateBalance(100);
-            }, 500);
-        }
+        firstCard.removeEventListener('click', flipCard); secondCard.removeEventListener('click', flipCard);
+        matches++; document.getElementById('matches').innerText = matches; resetBoard();
+        if (matches === 6) { setTimeout(() => { alert("🎉 মেমরি গেম জয়! ১০০ কোয়ান্ট (Q) পেলেন।"); updateBalance(100); }, 500); }
     }
+    function unflipCards() { lockBoard = true; setTimeout(() => { firstCard.classList.remove('flipped'); secondCard.classList.remove('flipped'); resetBoard(); }, 1000); }
+    function resetBoard() { [hasFlippedCard, lockBoard, firstCard, secondCard] = [false, false, null, null]; }
 
-    function unflipCards() {
-        lockBoard = true;
-        setTimeout(() => {
-            firstCard.classList.remove('flipped');
-            secondCard.classList.remove('flipped');
-            resetBoard();
-        }, 1000);
-    }
-
-    function resetBoard() {
-        [hasFlippedCard, lockBoard] = [false, false];
-        [firstCard, secondCard] = [null, null];
-    }
 </script>
 
 </body>
