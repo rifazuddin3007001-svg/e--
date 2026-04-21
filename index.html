@@ -46,6 +46,7 @@
         .id-header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 15px; }
         .id-details p { margin: 5px 0; font-size: 14px; }
         .id-details span { color: var(--accent); font-weight: bold; }
+        .badge-item { display: inline-block; background: white; color: var(--primary); padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin: 3px 2px; border: 1px solid var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
         /* Quant Store & Gallery */
         .store-item { display: flex; justify-content: space-between; align-items: center; background: #f0f4f8; padding: 10px 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #ddd; }
@@ -88,7 +89,7 @@
 </div>
 
 <div class="news-ticker">
-    <span>📢 ব্রেকিং নিউজ: রেডিকা প্রজাতন্ত্রে নতুন 'ই-নাগরিকত্ব' এবং 'কোয়ান্ট স্টোর' চালু হলো! গেম খেলে কোয়ান্ট আয় করুন!</span>
+    <span>📢 ব্রেকিং নিউজ: ই-পাসপোর্টে যুক্ত হলো 'আমার সংগ্রহ' ব্যাজ সিস্টেম! স্টোর থেকে আপনার পছন্দের জিনিস কিনে প্রোফাইল সাজান!</span>
 </div>
 <header>
     <div class="logo" onclick="location.reload()">e-<span>র</span> (ERA)</div>
@@ -114,6 +115,8 @@
         <div class="menu-item" onclick="openModal('education')"><span class="icon">🎓</span><h3>শিক্ষা</h3></div>
         <div class="menu-item" onclick="openModal('market')"><span class="icon">🛒</span><h3>অনলাইন বাজার</h3></div>
     </div>
+    
+    <button style="background:none; border:none; color:white; text-align:center; width:100%; margin-top:20px; text-decoration:underline; cursor:pointer;" onclick="resetAllData()">তথ্য রিসেট করুন (লগ আউট)</button>
 </div>
 
 <div id="infoModal" class="modal">
@@ -125,9 +128,10 @@
 </div>
 
 <script>
-    // --- User Data & Initialization ---
+    // --- User Data, Balance & Inventory Initialization ---
     let user = JSON.parse(localStorage.getItem("radicaUser"));
     let balance = parseInt(localStorage.getItem("radicaBal")) || 0;
+    let inventory = JSON.parse(localStorage.getItem("radicaInventory")) || []; // নতুন: সংগ্রহশালা
 
     function initApp() {
         if (!user) {
@@ -152,12 +156,22 @@
         };
         
         balance = 5000; // Welcome Bonus
+        inventory = []; // Reset inventory for new user
+        
         localStorage.setItem("radicaUser", JSON.stringify(user));
         localStorage.setItem("radicaBal", balance);
+        localStorage.setItem("radicaInventory", JSON.stringify(inventory));
         
         document.getElementById('onboarding').style.display = 'none';
         alert("স্বাগতম! নাগরিকত্বের বোনাস হিসেবে ৫,০০০ কোয়ান্ট (Q) দেওয়া হলো।");
         initApp();
+    }
+
+    function resetAllData() {
+        if(confirm("আপনি কি সমস্ত ডেটা মুছে নতুন করে শুরু করতে চান?")) {
+            localStorage.clear();
+            location.reload();
+        }
     }
 
     function updateBalanceUI() {
@@ -177,14 +191,14 @@
             <img src="./poster.png" class="gallery-img" onerror="this.src='https://via.placeholder.com/400x200?text=Poster'">
             <img src="./parliament.png" class="gallery-img" onerror="this.src='https://via.placeholder.com/400x200?text=Parliament+Building'">
             <img src="./map.png.jpg" class="gallery-img" onerror="this.src='https://via.placeholder.com/400x200?text=Map'">
-            <p style="text-align:center; font-size:12px; color:#666;">(গিটহাবে ছবিগুলো সঠিক নামে আপলোড থাকলে এখানে দেখতে পাবেন)</p>
         `},
         store: { title: "কোয়ান্ট স্টোর 🛍️", content: `
-            <p style="font-size:13px; margin-bottom:15px;">আপনার জমানো কোয়ান্ট দিয়ে ভার্চুয়াল জিনিস কিনুন!</p>
-            <div class="store-item"><div><b>🌱 অ্যাডেনিয়াম চারা</b><br><small>৩০০ Q</small></div><button class="buy-btn" onclick="buyItem('অ্যাডেনিয়াম চারা', 300)">কিনুন</button></div>
-            <div class="store-item"><div><b>🌸 বোগেনভিলিয়া</b><br><small>২০০ Q</small></div><button class="buy-btn" onclick="buyItem('বোগেনভিলিয়া', 200)">কিনুন</button></div>
-            <div class="store-item"><div><b>🛡️ শৌর্যপুর ব্যাজ</b><br><small>৫০০ Q</small></div><button class="buy-btn" onclick="buyItem('শৌর্যপুর ব্যাজ', 500)">কিনুন</button></div>
-            <div class="store-item"><div><b>📚 মেধাভূমির বই</b><br><small>১৫০ Q</small></div><button class="buy-btn" onclick="buyItem('মেধাভূমির বই', 150)">কিনুন</button></div>
+            <p style="font-size:13px; margin-bottom:15px;">আপনার জমানো কোয়ান্ট দিয়ে জিনিস কিনুন এবং ই-পাসপোর্টে সাজান!</p>
+            <div class="store-item"><div><b>🌱 অ্যাডেনিয়াম চারা</b><br><small>৩০০ Q</small></div><button class="buy-btn" onclick="buyItem('অ্যাডেনিয়াম চারা', 300, '🌱')">কিনুন</button></div>
+            <div class="store-item"><div><b>🌸 বোগেনভিলিয়া</b><br><small>২০০ Q</small></div><button class="buy-btn" onclick="buyItem('বোগেনভিলিয়া', 200, '🌸')">কিনুন</button></div>
+            <div class="store-item"><div><b>🛡️ শৌর্যপুর ব্যাজ</b><br><small>৫০০ Q</small></div><button class="buy-btn" onclick="buyItem('শৌর্যপুর ব্যাজ', 500, '🛡️')">কিনুন</button></div>
+            <div class="store-item"><div><b>📚 মেধাভূমির বই</b><br><small>১৫০ Q</small></div><button class="buy-btn" onclick="buyItem('মেধাভূমির বই', 150, '📚')">কিনুন</button></div>
+            <div class="store-item"><div><b>👑 রেডিকা স্টার</b><br><small>১০০০ Q</small></div><button class="buy-btn" onclick="buyItem('রেডিকা স্টার', 1000, '👑')">কিনুন</button></div>
         `},
         games: { title: "রেডিকা গেম জোন 🎮", content: `
             <button class="play-btn" onclick="startMath()">➕ দ্রুত গণিত (প্রতি সঠিক উত্তরে 10 Q)</button>
@@ -203,8 +217,13 @@
     }
     function closeModal() { document.getElementById('infoModal').style.display = "none"; }
 
-    // --- New Features Logic ---
+    // --- E-Passport & Inventory Logic ---
     function showIDCard() {
+        // Generate Badges HTML
+        let badgesHtml = inventory.length > 0 
+            ? inventory.map(item => `<span class="badge-item">${item.icon} ${item.name}</span>`).join('') 
+            : `<span style="font-size:12px; color:#ccc;">এখনও কিছু কেনা হয়নি। স্টোর থেকে কিনুন!</span>`;
+
         let html = `
             <div class="id-card">
                 <div class="id-header">
@@ -216,32 +235,41 @@
                     <p>নাগরিক আইডি: <span>${user.id}</span></p>
                     <p>জেলা: <span>${user.district}</span></p>
                     <p>পেশা: <span>${user.prof}</span></p>
-                    <p style="font-size:11px; margin-top:15px; border-top:1px solid #ccc; padding-top:5px;">ইস্যু তারিখ: ${user.date}</p>
+                    <p style="font-size:11px; margin-top:10px; border-top:1px solid rgba(255,255,255,0.2); padding-top:5px;">ইস্যু তারিখ: ${user.date}</p>
+                </div>
+                
+                <div style="margin-top:15px; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.4);">
+                    <p style="margin:0 0 5px 0; font-size:13px; color:var(--accent); font-weight:bold;">আমার সংগ্রহ (Badges):</p>
+                    <div>${badgesHtml}</div>
                 </div>
             </div>
-            <p style="text-align:center; font-size:12px; margin-top:15px;">এটি আপনার সরকারি ই-পাসপোর্ট। স্ক্রিনশট নিয়ে রাখতে পারেন।</p>
+            <p style="text-align:center; font-size:12px; margin-top:15px;">এটি আপনার সরকারি ই-পাসপোর্ট। বন্ধুদের সাথে শেয়ার করুন!</p>
         `;
         document.getElementById('modalTitle').innerText = "ই-পাসপোর্ট ও নাগরিকত্ব";
         document.getElementById('modalBody').innerHTML = html;
         document.getElementById('infoModal').style.display = "flex";
     }
 
-    function buyItem(itemName, price) {
+    // --- Buying Items ---
+    function buyItem(itemName, price, icon) {
         if(subBal(price)) {
-            alert("✅ অভিনন্দন! আপনি " + price + " Q দিয়ে '" + itemName + "' কিনেছেন।");
+            // Add to inventory
+            inventory.push({ name: itemName, icon: icon });
+            localStorage.setItem("radicaInventory", JSON.stringify(inventory)); // Save local
+            
+            alert("✅ অভিনন্দন! আপনি " + price + " Q দিয়ে '" + itemName + "' কিনেছেন। আপনার ই-পাসপোর্টে গিয়ে ব্যাজটি দেখে নিন!");
         } else {
-            alert("❌ আপনার পর্যাপ্ত কোয়ান্ট (Q) নেই! গেম খেলে আয় করুন।");
+            alert("❌ আপনার পর্যাপ্ত কোয়ান্ট (Q) নেই! গেম খেলে আরও কোয়ান্ট আয় করুন।");
         }
     }
 
-    // --- Games Logic ---
+    // --- Games Logic (Kept as before) ---
     function startMath() {
         let n1 = Math.floor(Math.random() * 20) + 1; let n2 = Math.floor(Math.random() * 20) + 1;
         let area = document.getElementById('gameActiveArea');
         area.innerHTML = `
             <div style="background:#f9f9f9; padding:15px; border-radius:10px; text-align:center; border:2px solid var(--primary);">
-                <h3>অঙ্ক করুন</h3>
-                <h2 style="color:var(--accent);">${n1} + ${n2} = ?</h2>
+                <h3>অঙ্ক করুন</h3><h2 style="color:var(--accent);">${n1} + ${n2} = ?</h2>
                 <input type="number" id="mathAns" style="padding:10px; width:80%; font-size:16px;" placeholder="উত্তর লিখুন">
                 <button class="play-btn" onclick="checkMath(${n1+n2})">জমা দিন</button>
             </div>
@@ -249,8 +277,7 @@
     }
     function checkMath(correct) {
         let ans = parseInt(document.getElementById('mathAns').value);
-        if(ans === correct) { alert("✅ সঠিক! 10 Q পেলেন।"); addBal(10); startMath(); } 
-        else { alert("❌ ভুল উত্তর!"); }
+        if(ans === correct) { alert("✅ সঠিক! 10 Q পেলেন।"); addBal(10); startMath(); } else { alert("❌ ভুল উত্তর!"); }
     }
 
     const dists = ["PRAJNAKENDRA", "MEDHABHUMI", "AROGYANAGAR", "SABUJAYAN"];
@@ -260,8 +287,7 @@
         let area = document.getElementById('gameActiveArea');
         area.innerHTML = `
             <div style="background:#f9f9f9; padding:15px; border-radius:10px; text-align:center; border:2px solid #28a745;">
-                <h3>জেলার নাম সাজান</h3>
-                <h2 style="letter-spacing:3px;">${scram}</h2>
+                <h3>জেলার নাম সাজান</h3><h2 style="letter-spacing:3px;">${scram}</h2>
                 <input type="text" id="scrAns" style="padding:10px; width:80%; font-size:16px;" placeholder="সঠিক নাম ইংরেজিতে">
                 <button class="play-btn" style="background:#28a745;" onclick="checkScram('${word}')">জমা দিন</button>
             </div>
@@ -269,8 +295,7 @@
     }
     function checkScram(correct) {
         let ans = document.getElementById('scrAns').value.toUpperCase().trim();
-        if(ans === correct) { alert("✅ সঠিক! 50 Q পেলেন।"); addBal(50); startScramble(); } 
-        else { alert("❌ ভুল উত্তর!"); }
+        if(ans === correct) { alert("✅ সঠিক! 50 Q পেলেন।"); addBal(50); startScramble(); } else { alert("❌ ভুল উত্তর!"); }
     }
 </script>
 </body>
