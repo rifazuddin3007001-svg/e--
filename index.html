@@ -160,6 +160,7 @@
         <div class="menu-item" onclick="modals.map.open()"><span class="icon">🗺️</span><h3>মানচিত্র</h3></div>
         <div class="menu-item" onclick="modals.edu.open()"><span class="icon">📚</span><h3>মেধাভূমি</h3></div>
         <div class="menu-item" onclick="modals.const.open()"><span class="icon">📜</span><h3>সংবিধান</h3></div>
+                <div class="menu-item" onclick="modals.profession.open()"><span class="icon">💼</span><h3>পেশাগত সুবিধা</h3></div>
     </div>
     
     <button class="btn btn-danger" onclick="hardReset()">অ্যাকাউন্ট ডিলিট ও রিসেট করুন</button>
@@ -414,7 +415,73 @@
          // --- STATIC CONTENT ---
         map: { open: () => renderModal("মানচিত্র", `<img src="./map.png.jpg" style="width:100%; border-radius:15px; border:2px solid var(--border-col);" onerror="this.src='https://via.placeholder.com/400'"><p class="text-center mt-3">৬টি জেলা নিয়ে গঠিত সমবাহু পঞ্চভুজ রাষ্ট্র।</p>`) },
         const: { open: () => renderModal("সংবিধান", `<img src="./poster.png" style="width:100%; border-radius:15px; border:2px solid var(--border-col);" onerror="this.src='https://via.placeholder.com/400'"><ul class="mt-3" style="font-size:14px; line-height:1.6;"><li>সবার উপরে মনুষ্যত্ব।</li><li>সকলের সমান অধিকার।</li><li>পরম বৃক্ষ আইনি মর্যাদা পাবে।</li></ul>`) },
-        edu: { open: () => renderModal("মেধাভূমি একাডেমি 📚", `<p>জ্ঞানের দুনিয়ায় স্বাগতম!</p><button class="btn btn-primary" onclick="window.open('https://openlibrary.org/')">ওপেন লাইব্রেরি খুলুন</button><button class="btn btn-success" onclick="window.open('https://en.wikipedia.org/wiki/Portal:Science')">বিজ্ঞানের জগত</button>`) }
+        edu: { open: () => renderModal("মেধাভূমি একাডেমি 📚", `<p>জ্ঞানের দুনিয়ায় স্বাগতম!</p><button class="btn btn-primary" onclick="window.open('https://openlibrary.org/')">ওপেন লাইব্রেরি খুলুন</button><button class="btn btn-success" onclick="window.open('https://en.wikipedia.org/wiki/Portal:Science')">বিজ্ঞানের জগত</button>`) },
+                // --- PROFESSION PERKS APP ---
+        profession: {
+            open: () => {
+                let prof = user.prof.toLowerCase();
+                let perkHTML = "";
+                let badge = "নাগরিক";
+
+                if (prof.includes("ছাত্র") || prof.includes("student")) {
+                    badge = "🎓 স্কলার (Scholar)";
+                    perkHTML = `
+                        <div class="list-card" style="display:block; text-align:center; border-color:var(--primary);">
+                            <h3 style="margin-top:0;">স্টাডি হাব</h3>
+                            <p style="font-size:13px;">ছাত্র হিসেবে আপনি অতিরিক্ত সুবিধা পাচ্ছেন!</p>
+                            <button class="btn btn-primary" onclick="window.open('https://bn.khanacademy.org/')">খান একাডেমি খুলুন</button>
+                        </div>`;
+                } else if (prof.includes("শিক্ষক") || prof.includes("teacher") || prof.includes("টিউটর") || prof.includes("master")) {
+                    badge = "📖 জ্ঞানদাতা (Educator)";
+                    perkHTML = `
+                        <div class="list-card" style="display:block; text-align:center; border-color:var(--success);">
+                            <h3 style="margin-top:0;">শিক্ষক পোর্টাল</h3>
+                            <p style="font-size:13px;">রেডিকা সমাজ গড়ায় আপনার অবদানের জন্য বিশেষ সম্মান।</p>
+                            <button class="btn btn-success" onclick="if(!user.teacherBonus){ showToast('শিক্ষক হিসেবে ১০০ Q বিশেষ ভাতা দেওয়া হলো!', 'success'); addBal(100, 'শিক্ষক ভাতা', 50); user.teacherBonus=true; save(); } else { showToast('আপনি ইতিমধ্যে ভাতা নিয়েছেন!', 'error'); }">বিশেষ ভাতা নিন</button>
+                        </div>`;
+                } else if (prof.includes("ব্যবসায়ী") || prof.includes("business") || prof.includes("দোকান") || prof.includes("businessmen")) {
+                    badge = "💼 উদ্যোক্তা (Entrepreneur)";
+                    perkHTML = `
+                        <div class="list-card" style="display:block; text-align:center; border-color:var(--accent);">
+                            <h3 style="margin-top:0;">বাণিজ্যিক সুবিধা</h3>
+                            <p style="font-size:13px;">সেন্ট্রাল ব্যাংকে আপনি ট্রেড লাইসেন্স সুবিধা পাবেন।</p>
+                            <button class="btn btn-primary" style="background:var(--accent); color:#000;" onclick="showToast('আপনার ই-ট্রেড লাইসেন্স সক্রিয় হয়েছে!', 'success')">লাইসেন্স দেখুন</button>
+                        </div>`;
+                } else if (prof.includes("ডাক্তার") || prof.includes("doctor") || prof.includes("নার্স") || prof.includes("চিকিৎসক")) {
+                    badge = "⚕️ প্রাণরক্ষক (Healer)";
+                    perkHTML = `
+                        <div class="list-card" style="display:block; text-align:center; border-color:#dc3545;">
+                            <h3 style="margin-top:0;">মেডিকেল এক্সেস</h3>
+                            <p style="font-size:13px;">চিকিৎসক হিসেবে আপনার জন্য ইমার্জেন্সি কিট আনলক করা হয়েছে।</p>
+                            <button class="btn btn-danger" onclick="showToast('আরোগ্যনগরের ইমার্জেন্সি কিট সক্রিয়!', 'success')">মেডিকেল কিট খুলুন</button>
+                        </div>`;
+                } else if (prof.includes("গার্ডেনার") || prof.includes("কৃষক") || prof.includes("চাষি") || prof.includes("বাগান") || prof.includes("farmer")) {
+                    badge = "🌱 সবুজ-যোদ্ধা (Green Warrior)";
+                    perkHTML = `
+                        <div class="list-card" style="display:block; text-align:center; border-color:#28a745;">
+                            <h3 style="margin-top:0;">সবুজায়ন কিট</h3>
+                            <p style="font-size:13px;">কৃষি ও বাগানের সাথে যুক্ত থাকায় আপনাকে বিনামূল্যে বীজ দেওয়া হচ্ছে!</p>
+                            <button class="btn btn-success" onclick="if(!user.seedBonus){ showToast('বিরল বীজ সংগ্রহশালায় যোগ হয়েছে!', 'success'); user.inventory.push({name: 'বিরল বীজ', icon: '🌰'}); user.seedBonus=true; save(); } else { showToast('আপনি ইতিমধ্যে বীজ নিয়েছেন!', 'error'); }">বীজ সংগ্রহ করুন</button>
+                        </div>`;
+                } else {
+                    badge = "🤝 কর্মবীর (Citizen)";
+                    perkHTML = `
+                        <div class="list-card" style="display:block; text-align:center;">
+                            <h3 style="margin-top:0;">সাধারণ নাগরিক সুবিধা</h3>
+                            <p style="font-size:13px;">আপনার পেশা: <b>${user.prof}</b>। দেশের উন্নয়নে আপনার অবদান অনস্বীকার্য।</p>
+                            <button class="btn btn-primary" onclick="showToast('আপনার পেশার ডেটা প্রোফাইলে সেভ হয়েছে', 'success')">প্রোফাইল আপডেট</button>
+                        </div>`;
+                }
+
+                renderModal("পেশাগত সুবিধা 💼", `
+                    <div style="text-align:center; margin-bottom:15px;">
+                        <span style="font-size:14px; background:var(--border-col); padding:6px 15px; border-radius:20px; font-weight:bold; color:var(--primary);">উপাধি: ${badge}</span>
+                    </div>
+                    ${perkHTML}
+                `);
+            }
+        }
+        
     };
 
     // ==========================================
