@@ -281,14 +281,27 @@
         }
     }
 
-    function initSuperApp() {
+    // নতুন সিঙ্কিং সিস্টেমসহ ফাংশন
+    async function initSuperApp() {
         applyTheme();
-        if (!user) { document.getElementById('onboarding').style.display = 'flex'; } 
-        else { 
-            // Data migration for safety
-            if(!user.inventory) user.inventory = []; if(!user.history) user.history = []; 
-            if(!user.photo) user.photo = "https://ui-avatars.com/api/?name=" + user.name + "&background=004a99&color=fff";
-            save(); updateDashboard(); 
+        if (!user) { 
+            document.getElementById('onboarding').style.display = 'flex'; 
+        } else {
+            // সার্ভার থেকে লেটেস্ট তথ্য টেনে আনা
+            try {
+                let res = await fetch("https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/" + user.id + ".json");
+                let serverData = await res.json();
+                if (serverData) {
+                    user = serverData; 
+                    localStorage.setItem("radicaMegaProUser", JSON.stringify(user));
+                }
+            } catch (e) { 
+                console.log("সার্ভার এরর"); 
+            }
+
+            if(!user.inventory) user.inventory = []; 
+            if(!user.history) user.history = []; 
+            updateDashboard(); 
         }
     }
 
@@ -375,12 +388,18 @@
         }
     }
 
-    function updateDashboard() {
+   function updateDashboard() {
         document.getElementById('dashName').innerText = user.name; document.getElementById('dashID').innerText = "ID: " + user.id;
         document.getElementById('dashPic').src = user.photo;
         document.getElementById('mainBal').innerText = user.bal.toLocaleString('en-IN'); document.getElementById('hdrLevel').innerText = user.level;
         let limit = user.level * 150; document.getElementById('xpText').innerText = `${user.xp} / ${limit}`; 
         document.getElementById('xpBar').style.width = `${(user.xp / limit) * 100}%`;
+
+        // প্রতি ৩০ সেকেন্ড পর পর নিজে থেকেই সার্ভার চেক করবে (Auto Sync)
+        if(!window.syncSet) {
+            setInterval(initSuperApp, 30000);
+            window.syncSet = true;
+        }
     }
         /* =========================================================
        MODAL RENDERER & APPS
