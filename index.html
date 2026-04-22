@@ -534,7 +534,8 @@
                 </div>`;
             }
             html += `</div>`;
-            renderModal("পেশা সুবিধা", html);
+            // ৫৩৭ নম্বর লাইনে নিচের শব্দটি পরিবর্তন করুন
+            openModal("পেশা সুবিধা", html);
         },
         buy: (n, p, i) => { if(user.inventory.find(x=>x.name===n)) return showToast("আগেই কেনা আছে!", 'error'); if(subBal(p, `স্টোর ক্রয়: ${n}`)) { user.inventory.push({name:n, icon:i}); save(); showToast("কেনা সফল! পাসপোর্ট চেক করুন।"); } else showToast("ব্যালেন্স নেই!", 'error'); },
         bmi: () => { let h=parseFloat(document.getElementById('hh').value)/100, w=parseFloat(document.getElementById('hw').value); if(h>0&&w>0) { let b=(w/(h*h)).toFixed(1); document.getElementById('bres').innerHTML=`আপনার BMI: ${b} <br><small style="color:${b>25?'var(--danger)':'var(--success)'}">${b>25?'ওজন কমান':'ফিট আছেন'}</small>`; } else showToast("সঠিক তথ্য দিন", 'error'); },
