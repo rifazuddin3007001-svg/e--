@@ -267,7 +267,19 @@
         t.style.backgroundColor = type === 'success' ? "var(--success)" : (type === 'error' ? "var(--danger)" : "var(--primary)");
         t.className = "show"; setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
     }
-    function save() { localStorage.setItem("radicaMegaProUser", JSON.stringify(user)); }
+    function save() { 
+        localStorage.setItem("radicaMegaProUser", JSON.stringify(user)); 
+        
+        // ফায়ারবেস ক্লাউডে ডেটা সেভ করা হচ্ছে
+        if(user && user.id) {
+            let firebaseUrl = "https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/" + user.id + ".json";
+            fetch(firebaseUrl, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(user)
+            }).catch(e => console.log("সার্ভার সেভ এরর"));
+        }
+    }
 
     function initSuperApp() {
         applyTheme();
