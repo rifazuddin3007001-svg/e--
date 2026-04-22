@@ -513,12 +513,15 @@
                 showToast("সার্ভার সমস্যা! আবার চেষ্টা করুন।", 'error');
             }
         },
-        profession: () => {
+       profession: () => {
+            // সার্ভার থেকে আসা নোটিশগুলো নিশ্চিতভাবে ধরা
+            let allNotices = user.notices || [];
+            
             let html = `<div style="text-align:left; padding:10px;">
                 <p style="color:var(--primary); font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px; margin-bottom:15px;">📜 সরকারি নোটিশ ও পেশা সুবিধা</p>`;
             
-            if(user.notices && user.notices.length > 0) {
-                user.notices.forEach(n => {
+            if(allNotices.length > 0) {
+                allNotices.forEach(n => {
                     html += `
                     <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-bottom:12px; border-left:4px solid var(--accent); position:relative;">
                         <small style="color:#94a3b8; font-size:11px; display:block; margin-bottom:5px;">📅 তারিখ: ${n.date}</small>
@@ -534,7 +537,6 @@
                 </div>`;
             }
             html += `</div>`;
-            // ৫৩৭ নম্বর লাইনে নিচের শব্দটি পরিবর্তন করুন
             openModal("পেশা সুবিধা", html);
         },
         buy: (n, p, i) => { if(user.inventory.find(x=>x.name===n)) return showToast("আগেই কেনা আছে!", 'error'); if(subBal(p, `স্টোর ক্রয়: ${n}`)) { user.inventory.push({name:n, icon:i}); save(); showToast("কেনা সফল! পাসপোর্ট চেক করুন।"); } else showToast("ব্যালেন্স নেই!", 'error'); },
