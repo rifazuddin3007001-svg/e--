@@ -8,47 +8,39 @@
     <style>
         :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --primary: #3b82f6; --accent: #f59e0b; --danger: #ef4444; --success: #10b981; --border: #334155; }
         body { font-family: 'Hind Siliguri', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        
         header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-        .logo { font-size: 24px; font-weight: bold; color: var(--primary); }
-        .logo span { color: var(--danger); }
+        .logo { font-size: 24px; font-weight: bold; color: var(--primary); } .logo span { color: var(--danger); }
         .admin-badge { background: var(--danger); color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; }
-
         .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .card h3 { margin: 0; font-size: 14px; color: #94a3b8; }
-        .card .value { font-size: 32px; font-weight: bold; margin-top: 10px; color: var(--accent); }
-
+        .card h3 { margin: 0; font-size: 14px; color: #94a3b8; } .card .value { font-size: 32px; font-weight: bold; margin-top: 10px; color: var(--accent); }
         .data-table-wrapper { overflow-x: auto; background: var(--card); border-radius: 12px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; text-align: left; min-width: 800px; }
         th, td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; }
         th { background: rgba(0,0,0,0.2); font-weight: bold; color: var(--primary); }
         tr:hover { background: rgba(255,255,255,0.02); }
-        
         .action-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
         .action-btn:hover { background: var(--primary); border-color: var(--primary); }
-        .btn-ban:hover { background: var(--danger); border-color: var(--danger); }
-        
-        .status-active { color: var(--success); font-weight: bold; }
-        .status-warn { color: var(--accent); font-weight: bold; }
         .hidden-info { letter-spacing: 2px; font-family: monospace; }
+        .live-dot { height: 10px; width: 10px; background-color: var(--success); border-radius: 50%; display: inline-block; animation: blinker 1.5s linear infinite; margin-right: 5px; }
+        @keyframes blinker { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo">e-<span>র</span> অ্যাডমিন সার্ভার</div>
-        <div class="admin-badge">⚡ সুপার অ্যাডমিন অ্যাক্সেস</div>
+        <div class="admin-badge"><span class="live-dot"></span> লাইভ ডেটাবেস কানেক্টেড</div>
     </header>
 
     <div class="dashboard-cards">
         <div class="card"><h3>মোট নাগরিক</h3><div class="value" id="totalUsers">0</div></div>
-        <div class="card"><h3>অর্থনীতি (মোট কোয়ান্ট)</h3><div class="value" id="totalEconomy" style="color:var(--primary);">0 Q</div></div>
-        <div class="card"><h3>আজকের লগইন</h3><div class="value" id="todayActive" style="color:var(--success);">0</div></div>
-        <div class="card"><h3>সতর্কতা/ব্যানড</h3><div class="value" id="totalBanned" style="color:var(--danger);">0</div></div>
+        <div class="card"><h3>দেশের মোট কোয়ান্ট</h3><div class="value" id="totalEconomy" style="color:var(--primary);">0 Q</div></div>
+        <div class="card"><h3>অ্যাক্টিভ লেভেল (গড়)</h3><div class="value" id="avgLevel" style="color:var(--success);">0</div></div>
+        <div class="card"><h3>ডেটাবেস স্ট্যাটাস</h3><div class="value" id="dbStatus" style="color:var(--success); font-size:20px; margin-top:18px;">অনলাইন 🟢</div></div>
     </div>
 
-    <h2 style="font-size: 18px; margin-bottom: 15px;">নাগরিক ডিরেক্টরি ও সার্ভার ডেটা</h2>
+    <h2 style="font-size: 18px; margin-bottom: 15px;">নাগরিক ডিরেক্টরি (Live)</h2>
     <div class="data-table-wrapper">
         <table>
             <thead>
@@ -59,68 +51,75 @@
                     <th>জেলা</th>
                     <th>পেশা</th>
                     <th>লেভেল / ব্যালেন্স</th>
-                    <th>অ্যাক্টিভিটি (লগইন)</th>
                     <th>অ্যাকশন</th>
                 </tr>
             </thead>
             <tbody id="userTableBody">
-                </tbody>
+                <tr><td colspan="7" style="text-align:center;">সার্ভার থেকে ডেটা লোড হচ্ছে...</td></tr>
+            </tbody>
         </table>
     </div>
 
     <script>
-        // এটি একটি ডেমো ডেটাবেস। ভবিষ্যতে এখানে ফায়ারবেস (Firebase) থেকে আসল ডেটা আসবে।
-        const mockDatabase = [
-            { id: "RD-492011", name: "স্ক. রিয়াজ", phone: "01789123456", dist: "প্রজ্ঞাকেন্দ্র", prof: "সিস্টেম অ্যাডমিন", level: 10, bal: 55000, logins: 42, status: "active" },
-            { id: "RD-104522", name: "রাহুল সেন", phone: "9876543210", dist: "সবুজায়ন", prof: "গার্ডেনার", level: 3, bal: 7200, logins: 15, status: "active" },
-            { id: "RD-883901", name: "অজানা হ্যাকার", phone: "9999999999", dist: "শৌর্যপুর", prof: "অজানা", level: 1, bal: 0, logins: 2, status: "banned" },
-            { id: "RD-567112", name: "সুমনা দাস", phone: "8123456789", dist: "মেধাভূমি", prof: "ছাত্রী", level: 5, bal: 12400, logins: 28, status: "warn" }
-        ];
+        // আপনার আসল ফায়ারবেস ডেটাবেস লিংক
+        const firebaseUrl = "https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users.json";
 
-        // ফোন নম্বর গোপন করার লজিক (Privacy Protection)
         function maskPhone(phone) {
+            if(!phone) return "N/A";
             if(phone.length < 10) return phone;
             return phone.substring(0, 3) + "XXXXX" + phone.substring(phone.length - 2);
         }
 
-        function loadAdminData() {
-            let tbody = document.getElementById("userTableBody");
-            let tUsers = 0, tEcon = 0, tBanned = 0;
+        async function loadAdminData() {
+            try {
+                let response = await fetch(firebaseUrl);
+                let data = await response.json();
+                let tbody = document.getElementById("userTableBody");
+                tbody.innerHTML = "";
 
-            mockDatabase.forEach(user => {
-                tUsers++;
-                tEcon += user.bal;
-                if(user.status === "banned" || user.status === "warn") tBanned++;
+                let tUsers = 0, tEcon = 0, tLevel = 0;
 
-                let statusBadge = user.status === "active" ? "<span class='status-active'>🟢 Active</span>" : 
-                                  user.status === "warn" ? "<span class='status-warn'>🟡 Warned</span>" : 
-                                  "<span style='color:var(--danger);'>🔴 Banned</span>";
+                if(!data) {
+                    tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:var(--accent);'>এখনো কোনো নাগরিক অ্যাকাউন্ট খোলেনি।</td></tr>";
+                    document.getElementById("totalUsers").innerText = "0";
+                    return;
+                }
 
-                let tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td style="font-family:monospace; color:var(--accent);">${user.id}</td>
-                    <td style="font-weight:bold;">${user.name}</td>
-                    <td class="hidden-info">${maskPhone(user.phone)}</td>
-                    <td>${user.dist}</td>
-                    <td>${user.prof}</td>
-                    <td>⭐ ${user.level} <br><small style="color:var(--primary);">${user.bal} Q</small></td>
-                    <td>${user.logins} বার</td>
-                    <td>
-                        <button class="action-btn" onclick="alert('বিশ্লেষণ: ${user.name}')">👁️ দেখুন</button>
-                        <button class="action-btn btn-ban" onclick="alert('সতর্কতা পাঠানো হলো!')">⚠️</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+                // ডেটাবেস থেকে পাওয়া সব ইউজারকে সাজানো হচ্ছে
+                Object.values(data).forEach(user => {
+                    tUsers++;
+                    tEcon += user.bal || 0;
+                    tLevel += user.level || 1;
 
-            // Update Top Cards
-            document.getElementById("totalUsers").innerText = tUsers;
-            document.getElementById("totalEconomy").innerText = tEcon.toLocaleString('en-IN') + " Q";
-            document.getElementById("todayActive").innerText = Math.floor(tUsers * 0.8);
-            document.getElementById("totalBanned").innerText = tBanned;
+                    let tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td style="font-family:monospace; color:var(--accent);">${user.id || 'N/A'}</td>
+                        <td style="font-weight:bold; display:flex; align-items:center; gap:10px;">
+                            <img src="${user.photo || 'https://via.placeholder.com/30'}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+                            ${user.name || 'অজানা'}
+                        </td>
+                        <td class="hidden-info">${maskPhone(user.phone)}</td>
+                        <td>${user.district || 'N/A'}</td>
+                        <td>${user.prof || 'N/A'}</td>
+                        <td>⭐ ${user.level || 1} <br><small style="color:var(--primary);">${(user.bal || 0).toLocaleString('en-IN')} Q</small></td>
+                        <td><button class="action-btn" onclick="alert('বিস্তারিত: ${user.extra || 'কিছু নেই'}')">তথ্য দেখুন</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                document.getElementById("totalUsers").innerText = tUsers;
+                document.getElementById("totalEconomy").innerText = tEcon.toLocaleString('en-IN') + " Q";
+                document.getElementById("avgLevel").innerText = "⭐ " + Math.floor(tLevel / tUsers);
+
+            } catch(error) {
+                document.getElementById("userTableBody").innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">সার্ভার কানেক্ট করতে সমস্যা হচ্ছে!</td></tr>`;
+                document.getElementById("dbStatus").innerText = "অফলাইন 🔴";
+                document.getElementById("dbStatus").style.color = "var(--danger)";
+            }
         }
 
         window.onload = loadAdminData;
+        setInterval(loadAdminData, 10000); // প্রতি ১০ সেকেন্ডে নিজে থেকে আপডেট হবে!
     </script>
 </body>
 </html>
