@@ -9,16 +9,20 @@
         [data-theme="dark"] { --primary: #66a3ff; --accent: #ffcc00; --bg-main: #121212; --text-main: #f1f1f1; --card-bg: #1e1e1e; --border-col: #333; --grad-bg: linear-gradient(135deg, #111, #222); }
         body { font-family: 'Hind Siliguri', sans-serif; margin: 0; padding: 0; background: var(--bg-main); color: var(--text-main); overflow-x: hidden; }
         * { box-sizing: border-box; }
+        
         header { background: var(--card-bg); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
         .logo { font-size: 24px; font-weight: 900; color: var(--primary); } .logo span { color: var(--accent); }
         .theme-btn { background: var(--border-col); border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; color: var(--text-main); font-weight: bold; }
         .news-ticker { background: var(--accent); color: #000; padding: 8px; font-size: 14px; font-weight: bold; overflow: hidden; white-space: nowrap; }
         .news-ticker span { display: inline-block; animation: scroll 20s linear infinite; }
         @keyframes scroll { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+        
         .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
         
+        /* Dashboard & Profile Pic */
         .dash-card { background: var(--grad-bg); color: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); position: relative; }
-        .dash-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px dashed rgba(255,255,255,0.3); padding-bottom: 15px; margin-bottom: 15px; }
+        .dash-header { display: flex; align-items: center; gap: 15px; border-bottom: 1px dashed rgba(255,255,255,0.3); padding-bottom: 15px; margin-bottom: 15px; }
+        .profile-pic { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); background: #fff; }
         .bal-display { font-size: 32px; font-weight: bold; color: var(--accent); margin-top: 5px; }
         .xp-bar-bg { background: rgba(255,255,255,0.2); height: 10px; border-radius: 10px; overflow: hidden; }
         .xp-bar-fill { background: var(--accent); height: 100%; width: 0%; transition: 0.8s; }
@@ -34,13 +38,19 @@
         
         .form-group { margin-bottom: 15px; } .form-group label { display: block; font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 5px; }
         .form-control { width: 100%; padding: 12px; border: 2px solid var(--border-col); border-radius: 10px; font-size: 16px; background: var(--bg-main); color: var(--text-main); }
-        .btn { width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; }
-        .btn-primary { background: var(--primary); color: white; } .btn-success { background: var(--success); color: white; } .btn-danger { background: var(--danger); color: white; }
+        .btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; }
+        .btn-primary { background: var(--primary); color: white; } .btn-success { background: var(--success); color: white; } .btn-danger { background: var(--danger); color: white; } .btn-warning { background: var(--accent); color: #000; }
         
-        .id-pass { background: linear-gradient(135deg, #002244, #0055a4); color: white; border-radius: 18px; padding: 20px; border: 2px solid var(--accent); }
+        .id-pass { background: linear-gradient(135deg, #002244, #0055a4); color: white; border-radius: 18px; padding: 20px; border: 2px solid var(--accent); position: relative; }
         .id-row { display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.2); padding: 8px 0; font-size: 14px; }
         .badge { background: white; color: #002244; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid var(--accent); margin: 3px; display: inline-block; }
         .list-card { background: var(--bg-main); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border-col); }
+        
+        /* Chess Board Styles */
+        .chess-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; background: #333; padding: 5px; border-radius: 10px; margin: 15px auto; width: 200px; height: 200px; }
+        .chess-cell { background: #eee; display: flex; justify-content: center; align-items: center; font-size: 30px; cursor: pointer; border-radius: 5px; }
+        .chess-cell.dark { background: #bbb; }
+        .chess-cell.selected { border: 3px solid var(--accent); }
         
         #toast { visibility: hidden; min-width: 250px; background: #333; color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; }
         #toast.show { visibility: visible; animation: fadein 0.4s, fadeout 0.4s 2.6s; }
@@ -72,10 +82,17 @@
     </div>
 </div>
 
-    <div id="editProfileModal" class="modal">
+<div id="editProfileModal" class="modal">
     <div class="modal-content text-center">
         <button class="close-btn" onclick="document.getElementById('editProfileModal').style.display='none'">×</button>
         <h2 style="color: var(--primary); margin-top: 0; border-bottom: 2px solid var(--border-col); padding-bottom: 10px;">প্রোফাইল আপডেট</h2>
+        
+        <div class="form-group text-left">
+            <label>প্রোফাইল ছবি (ঐচ্ছিক):</label>
+            <input type="file" id="updPhoto" class="form-control" accept="image/*" style="padding: 8px;">
+            <small style="color:#888;">২ এমবি (2MB) এর ছোট ছবি দিন</small>
+        </div>
+        
         <div class="form-group text-left"><label>নাম:</label><input type="text" id="updName" class="form-control"></div>
         <div class="form-group text-left"><label>ফোন নম্বর (বাধ্যতামূলক):</label><input type="tel" id="updPhone" class="form-control"></div>
         <div class="form-group text-left"><label>পেশা/শখ:</label><input type="text" id="updProf" class="form-control" placeholder="যেমন: ছাত্র, শিক্ষক, গার্ডেনার"></div>
@@ -84,7 +101,21 @@
     </div>
 </div>
 
-<div class="news-ticker"><span>📢 ব্রেকিং নিউজ: রেডিকার প্রোফাইল সিস্টেম আপডেট হয়েছে! এখন যেকোনো সময় নিজের পেশা ও অন্যান্য তথ্য আপডেট করতে পারবেন!</span></div>
+<div id="chessRulesModal" class="modal" style="z-index: 1001;">
+    <div class="modal-content text-center">
+        <h2 style="color:var(--primary); margin-top:0;">রেডিকা দাবার নিয়ম</h2>
+        <ul style="text-align:left; font-size:14px; line-height:1.6; color:#555;">
+            <li>এটি একটি ৩x৩ বোর্ডের খেলা (Pawn Wars)।</li>
+            <li>আপনার ৩টি ঘুঁটি (🔵) নিচে থাকবে, AI এর ৩টি (🔴) উপরে।</li>
+            <li><b>চাল:</b> ঘুঁটি সোজা একঘর এগোতে পারে (যদি সামনে ফাঁকা থাকে)।</li>
+            <li><b>আক্রমণ:</b> কোণাকুণি (Diagonal) একঘর গিয়ে বিপক্ষের ঘুঁটি কাটতে পারে।</li>
+            <li><b>জয়ের উপায়:</b> আপনার কোনো ঘুঁটি যদি একদম ওপারে পৌঁছে যায়, অথবা AI এর সব ঘুঁটি কাটা পড়ে!</li>
+        </ul>
+        <button class="btn btn-primary" onclick="document.getElementById('chessRulesModal').style.display='none'">বুঝেছি, খেলব</button>
+    </div>
+</div>
+
+<div class="news-ticker"><span>📢 ব্রেকিং নিউজ: রেডিকার গেমিং জোনে এখন মোট ৫টি গেম! নিজের ছবি আপলোড করে প্রোফাইল সাজান!</span></div>
 <header>
     <div class="logo">e-<span>র</span></div>
     <div style="display:flex; gap:10px; align-items:center;">
@@ -95,8 +126,9 @@
 
 <div class="container">
     <div class="dash-card">
-        <span style="position:absolute; top:15px; right:15px; font-size:12px; background:rgba(255,255,255,0.2); padding:5px 10px; border-radius:10px; cursor:pointer;" onclick="openProfileEdit()">✏️ আপডেট প্রোফাইল</span>
+        <span style="position:absolute; top:15px; right:15px; font-size:12px; background:rgba(255,255,255,0.2); padding:5px 10px; border-radius:10px; cursor:pointer;" onclick="openProfileEdit()">✏️ প্রোফাইল</span>
         <div class="dash-header">
+            <img id="dashPic" src="https://via.placeholder.com/60?text=Pic" class="profile-pic" alt="Profile">
             <div><h2 style="margin:0;">নমস্কার, <span id="dashName">User</span>!</h2><small id="dashID">ID: RD-000000</small></div>
         </div>
         <div style="text-align: right; margin-bottom: 15px;"><small>মোট ব্যালেন্স</small><div class="bal-display"><span id="mainBal">0</span> 𝐐</div></div>
@@ -106,10 +138,10 @@
 
     <div class="menu-grid">
         <div class="menu-item" onclick="modals.id.open()"><span class="icon">🪪</span><h3>ই-পাসপোর্ট</h3></div>
-        <div class="menu-item" onclick="modals.bank.open()"><span class="icon">🏦</span><h3>সেন্ট্রাল ব্যাংক</h3></div>
+        <div class="menu-item" onclick="modals.bank.open()"><span class="icon">🏦</span><h3>ব্যাংক</h3></div>
         <div class="menu-item" onclick="modals.store.open()"><span class="icon">🛍️</span><h3>স্টোর</h3></div>
         
-        <div class="menu-item" onclick="modals.games.open()"><span class="icon">🎮</span><h3>গেম জোন</h3></div>
+        <div class="menu-item" onclick="modals.games.open()" style="border-color:var(--accent);"><span class="icon">🎮</span><h3>গেম জোন (৫টি)</h3></div>
         <div class="menu-item" onclick="modals.health.open()"><span class="icon">🏥</span><h3>হেলথ হাব</h3></div>
         <div class="menu-item" onclick="modals.profession.open()"><span class="icon">💼</span><h3>পেশাগত সুবিধা</h3></div>
         
@@ -153,29 +185,36 @@
         let n = document.getElementById('regName').value, p = document.getElementById('regPhone').value;
         if(!n || !p) return showToast("নাম এবং ফোন নম্বর বাধ্যতামূলক!", 'error');
         user = {
-            name: n, phone: p, district: document.getElementById('regDistrict').value, prof: "নাগরিক", extra: "",
+            name: n, phone: p, district: document.getElementById('regDistrict').value, prof: "নাগরিক", extra: "", photo: "",
             id: "RD-" + Math.floor(100000 + Math.random() * 900000), joined: new Date().toLocaleDateString('bn-IN'),
             bal: 5000, xp: 0, level: 1, inventory: [], history: []
         };
         save(); document.getElementById('onboarding').style.display = 'none'; showToast("স্বাগতম! ৫,০০০ Q বোনাস।"); updateDashboard();
-    }
-
+        
     function openProfileEdit() {
-        document.getElementById('updName').value = user.name || "";
-        document.getElementById('updPhone').value = user.phone || "";
-        document.getElementById('updProf').value = user.prof || "";
-        document.getElementById('updExtra').value = user.extra || "";
+        document.getElementById('updName').value = user.name || ""; document.getElementById('updPhone').value = user.phone || "";
+        document.getElementById('updProf').value = user.prof || ""; document.getElementById('updExtra').value = user.extra || "";
         document.getElementById('editProfileModal').style.display = "flex";
     }
 
     function saveProfileData() {
         let n = document.getElementById('updName').value, p = document.getElementById('updPhone').value;
         if(!n || !p) return showToast("নাম এবং ফোন নম্বর দিতেই হবে!", "error");
+        
+        let fileInput = document.getElementById('updPhoto');
+        if (fileInput.files && fileInput.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function(e) { user.photo = e.target.result; finishProfileSave(n, p); };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else { finishProfileSave(n, p); }
+    }
+    
+    function finishProfileSave(n, p) {
         user.name = n; user.phone = p; user.prof = document.getElementById('updProf').value || "নাগরিক"; user.extra = document.getElementById('updExtra').value;
         save(); document.getElementById('editProfileModal').style.display = "none";
         showToast("প্রোফাইল আপডেট হয়েছে!"); updateDashboard();
     }
-    
+
     function addBal(amt, note, xpGain = 10) { user.bal += amt; user.xp += xpGain; checkLevel(); save(); updateDashboard(); }
     function subBal(amt, note) { if(user.bal >= amt) { user.bal -= amt; save(); updateDashboard(); return true; } return false; }
     function checkLevel() {
@@ -185,6 +224,7 @@
 
     function updateDashboard() {
         document.getElementById('dashName').innerText = user.name; document.getElementById('dashID').innerText = "ID: " + user.id;
+        document.getElementById('dashPic').src = user.photo || "https://via.placeholder.com/60?text=Me";
         document.getElementById('mainBal').innerText = user.bal.toLocaleString('en-IN'); document.getElementById('hdrLevel').innerText = user.level;
         let limit = user.level * 150; document.getElementById('xpText').innerText = `${user.xp} / ${limit}`; document.getElementById('xpBar').style.width = `${(user.xp / limit) * 100}%`;
     }
@@ -197,7 +237,10 @@
                 let badges = user.inventory.length ? user.inventory.map(i => `<span class="badge">${i.icon} ${i.name}</span>`).join('') : '<small>কোনো ব্যাজ নেই</small>';
                 renderModal("রেডিকা ই-পাসপোর্ট", `
                     <div class="id-pass">
-                        <h2 style="margin-top:0;">${user.name} <span style="float:right;">🪪</span></h2>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.3); padding-bottom:10px;">
+                            <img src="${user.photo || 'https://via.placeholder.com/60?text=Me'}" style="width:50px; height:50px; border-radius:50%; border:2px solid #fff; object-fit:cover;">
+                            <h2 style="margin:0;">${user.name} 🪪</h2>
+                        </div>
                         <div class="id-row"><span>আইডি:</span> <b>${user.id}</b></div>
                         <div class="id-row"><span>ফোন:</span> <b>${user.phone || 'নেই'}</b></div>
                         <div class="id-row"><span>জেলা:</span> <b>${user.district}</b></div>
@@ -214,7 +257,7 @@
                 let prof = user.prof.toLowerCase(), perkHTML = "", badge = "নাগরিক";
                 if (prof.includes("ছাত্র") || prof.includes("student")) { badge = "🎓 স্কলার"; perkHTML = `<div class="list-card text-center"><p>ছাত্র হিসেবে অতিরিক্ত সুবিধা!</p><button class="btn btn-primary" onclick="window.open('https://bn.khanacademy.org/')">খান একাডেমি খুলুন</button></div>`; }
                 else if (prof.includes("শিক্ষক") || prof.includes("teacher")) { badge = "📖 জ্ঞানদাতা"; perkHTML = `<div class="list-card text-center"><p>শিক্ষক হিসেবে বিশেষ সম্মান।</p><button class="btn btn-success" onclick="if(!user.tb){ showToast('১০০ Q ভাতা পেলেন!'); addBal(100, '', 50); user.tb=true; save(); }else{ showToast('ভাতা নেওয়া হয়েছে', 'error'); }">ভাতা নিন</button></div>`; }
-                else if (prof.includes("কৃষক") || prof.includes("বাগান") || prof.includes("গার্ডেনার")) { badge = "🌱 সবুজ-যোদ্ধা"; perkHTML = `<div class="list-card text-center"><p>বিনামূল্যে বীজ দেওয়া হচ্ছে!</p><button class="btn btn-success" onclick="if(!user.sb){ showToast('বীজ সংগ্রহ করা হলো!'); user.inventory.push({name:'বিরল বীজ', icon:'🌰'}); user.sb=true; save(); }else{ showToast('বীজ নেওয়া হয়েছে', 'error'); }">বীজ নিন</button></div>`; }
+                else if (prof.includes("কৃষক") || prof.includes("বাগান")) { badge = "🌱 সবুজ-যোদ্ধা"; perkHTML = `<div class="list-card text-center"><p>বিনামূল্যে বীজ দেওয়া হচ্ছে!</p><button class="btn btn-success" onclick="if(!user.sb){ showToast('বীজ সংগ্রহ করা হলো!'); user.inventory.push({name:'বিরল বীজ', icon:'🌰'}); user.sb=true; save(); }else{ showToast('বীজ নেওয়া হয়েছে', 'error'); }">বীজ নিন</button></div>`; }
                 else { perkHTML = `<div class="list-card text-center"><p>আপনার পেশা: <b>${user.prof}</b>। আপনার কাজের জন্য আমরা গর্বিত!</p></div>`; }
                 renderModal("পেশাগত সুবিধা 💼", `<div class="text-center mb-3"><span style="background:var(--border-col); padding:5px 15px; border-radius:15px; font-weight:bold;">উপাধি: ${badge}</span></div>${perkHTML}`);
             }
@@ -222,17 +265,104 @@
         bank: { open: () => { renderModal("সেন্ট্রাল ব্যাংক", `<div class="list-card text-center"><h3>মানি ট্রান্সফার</h3><input type="text" id="trID" class="form-control mb-2" placeholder="প্রাপকের আইডি"><input type="number" id="trAmt" class="form-control mb-2" placeholder="পরিমাণ"><button class="btn btn-primary" onclick="apps.transfer()">টাকা পাঠান</button></div>`); } },
         store: { open: () => { renderModal("কোয়ান্ট স্টোর", `<div class="list-card"><b>🌱 অ্যাডেনিয়াম (৩০০ Q)</b> <button class="btn btn-success" style="width:auto; padding:5px 10px;" onclick="apps.buy('অ্যাডেনিয়াম',300,'🌱')">কিনুন</button></div><div class="list-card"><b>🛡️ শিল্ড (৫০০ Q)</b> <button class="btn btn-primary" style="width:auto; padding:5px 10px;" onclick="apps.buy('শিল্ড',500,'🛡️')">কিনুন</button></div>`); } },
         health: { open: () => { renderModal("হেলথ হাব", `<div class="list-card text-center"><input type="number" id="hh" class="form-control mb-2" placeholder="উচ্চতা (cm)"><input type="number" id="hw" class="form-control mb-2" placeholder="ওজন (kg)"><button class="btn btn-danger" onclick="apps.bmi()">BMI চেক</button><h3 id="bres"></h3></div>`); } },
-        games: { open: () => { renderModal("গেম জোন", `<div class="list-card text-center"><h3>➕ দ্রুত গণিত</h3><button class="btn btn-primary" onclick="apps.math()">খেলুন</button></div><div id="gArea"></div>`); } },
+        games: { 
+            open: () => { 
+                renderModal("গেম জোন (৫টি গেম) 🎮", `
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <button class="btn btn-primary" onclick="apps.gMath()">১. দ্রুত গণিত ➕</button>
+                        <button class="btn btn-success" onclick="apps.gScramble()">২. শব্দ-ধাঁধা 🧩</button>
+                        <button class="btn btn-warning" onclick="apps.gRPS()">৩. RPS 🤖</button>
+                        <button class="btn btn-primary" style="background:#8e44ad;" onclick="apps.gGuess()">৪. লাকি ড্র 🔢</button>
+                        <button class="btn btn-danger" style="grid-column: span 2;" onclick="chess.start()">৫. রেডিকা মিনি-দাবা ♟️ (নতুন নিয়ম)</button>
+                    </div>
+                    <div id="gArea" style="margin-top:20px; text-align:center;"></div>
+                `); 
+            } 
+        },
         map: { open: () => renderModal("মানচিত্র", `<img src="./map.png.jpg" style="width:100%; border-radius:15px;" onerror="this.src='https://via.placeholder.com/400'">`) },
         const: { open: () => renderModal("সংবিধান", `<img src="./poster.png" style="width:100%; border-radius:15px;" onerror="this.src='https://via.placeholder.com/400'"><p>১. সবার উপরে মনুষ্যত্ব।<br>২. সকলের সমান অধিকার।</p>`) },
         edu: { open: () => renderModal("মেধাভূমি", `<button class="btn btn-primary" onclick="window.open('https://openlibrary.org/')">লাইব্রেরি খুলুন</button>`) }
     };
-
+        
+    // --- BASIC GAMES & APPS LOGIC ---
     const apps = {
         transfer: () => { let id=document.getElementById('trID').value, amt=parseInt(document.getElementById('trAmt').value); if(id.length>4 && amt>0 && subBal(amt)) { showToast("সফল!"); document.getElementById('dynamicModal').style.display='none'; } else showToast("ভুল তথ্য বা ব্যালেন্স নেই!", 'error'); },
         buy: (n, p, i) => { if(user.inventory.find(x=>x.name===n)) return showToast("আগেই কেনা আছে!", 'error'); if(subBal(p)) { user.inventory.push({name:n, icon:i}); save(); showToast("কেনা সফল!"); } else showToast("ব্যালেন্স নেই!", 'error'); },
         bmi: () => { let h=parseFloat(document.getElementById('hh').value)/100, w=parseFloat(document.getElementById('hw').value); if(h>0&&w>0) document.getElementById('bres').innerText="আপনার BMI: "+(w/(h*h)).toFixed(1); else showToast("সঠিক তথ্য দিন", 'error'); },
-        math: () => { let a=Math.floor(Math.random()*50)+10, b=Math.floor(Math.random()*50)+10; document.getElementById('gArea').innerHTML=`<div class="list-card text-center"><h2>${a} + ${b} = ?</h2><input type="number" id="mAns" class="form-control"><button class="btn btn-success" onclick="if(document.getElementById('mAns').value==${a+b}){ showToast('সঠিক! +15 Q'); addBal(15,'',20); apps.math(); }else showToast('ভুল!', 'error');">উত্তর দিন</button></div>`; }
+        
+        gMath: () => { let a=Math.floor(Math.random()*50)+10, b=Math.floor(Math.random()*50)+10; document.getElementById('gArea').innerHTML=`<div class="list-card"><h3>${a} + ${b} = ?</h3><input type="number" id="mAns" class="form-control"><button class="btn btn-success" onclick="if(document.getElementById('mAns').value==${a+b}){ showToast('সঠিক! +15 Q'); addBal(15,'',20); apps.gMath(); }else showToast('ভুল!', 'error');">উত্তর দিন</button></div>`; },
+        gScramble: () => { let w="RADICA", s=w.split('').sort(()=>Math.random()-0.5).join(''); document.getElementById('gArea').innerHTML=`<div class="list-card"><h2 style="letter-spacing:5px">${s}</h2><input type="text" id="sAns" class="form-control" placeholder="সঠিক বানান (English)"><button class="btn btn-primary" onclick="if(document.getElementById('sAns').value.toUpperCase()=='${w}'){ showToast('সঠিক! +30 Q'); addBal(30,'',25); apps.gScramble(); }else showToast('ভুল!', 'error');">চেক</button></div>`; },
+        gRPS: () => { document.getElementById('gArea').innerHTML=`<div class="list-card"><p>AI এর সাথে খেলুন (জয়ে 20 Q)</p><div style="display:flex;gap:5px;"><button class="btn btn-primary" onclick="apps.rpsC('🪨')">🪨</button><button class="btn btn-primary" onclick="apps.rpsC('📄')">📄</button><button class="btn btn-primary" onclick="apps.rpsC('✂️')">✂️</button></div><h3 id="rRes"></h3></div>`; },
+        rpsC: (u) => { let a=['🪨','📄','✂️'][Math.floor(Math.random()*3)], r=document.getElementById('rRes'); if(u===a) r.innerText="ড্র!"; else if((u=='🪨'&&a=='✂️')||(u=='📄'&&a=='🪨')||(u=='✂️'&&a=='📄')){ r.innerText="জিতেছেন! (AI: "+a+")"; addBal(20,'',10); }else r.innerText="হেরেছেন! (AI: "+a+")"; },
+        gGuess: () => { document.getElementById('gArea').innerHTML=`<div class="list-card"><p>১ থেকে ১০ এর মধ্যে সংখ্যা ভাবুন</p><input type="number" id="gNum" class="form-control"><button class="btn btn-warning" onclick="let a=Math.floor(Math.random()*10)+1, u=document.getElementById('gNum').value; if(u==a){showToast('জ্যাকপট! +100 Q'); addBal(100,'',50);}else showToast('ভুল! সঠিক: '+a, 'error'); apps.gGuess();">ভাগ্য পরীক্ষা</button></div>`; }
+    };
+
+    // --- GAME 5: RADICA CUSTOM CHESS (PAWN WARS) ---
+    const chess = {
+        board: [], selected: null,
+        start: () => {
+            document.getElementById('chessRulesModal').style.display = 'flex'; // Show rules first
+            chess.reset();
+        },
+        reset: () => {
+            // 0,1,2 = AI (Red), 6,7,8 = Player (Blue)
+            chess.board = ['🔴','🔴','🔴', '','','', '🔵','🔵','🔵'];
+            chess.selected = null;
+            chess.render();
+        },
+        render: () => {
+            let html = `<div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>রেডিকা দাবা</b><button class="btn btn-warning" style="width:auto; padding:5px 10px; margin:0;" onclick="document.getElementById('chessRulesModal').style.display='flex'">⏸️ রুলস</button></div>`;
+            html += `<div class="chess-board">`;
+            for(let i=0; i<9; i++) {
+                let bg = (Math.floor(i/3) + i%3) % 2 === 0 ? 'dark' : '';
+                let sel = chess.selected === i ? 'selected' : '';
+                html += `<div class="chess-cell ${bg} ${sel}" onclick="chess.click(${i})">${chess.board[i]}</div>`;
+            }
+            html += `</div><button class="btn btn-danger" onclick="chess.reset()">রিসেট করুন</button>`;
+            document.getElementById('gArea').innerHTML = html;
+            chess.checkWin();
+        },
+        click: (i) => {
+            if(chess.selected !== null) {
+                // Try to move
+                let s = chess.selected;
+                // Move logic for Blue (Player): Moves up (-3), attacks diag (-2, -4)
+                if(chess.board[s] === '🔵') {
+                    if((i === s-3 && chess.board[i] === '') || // Move forward
+                       (i === s-4 && chess.board[i] === '🔴' && s%3 !== 0) || // Attack left diag
+                       (i === s-2 && chess.board[i] === '🔴' && s%3 !== 2)) { // Attack right diag
+                        chess.board[i] = '🔵'; chess.board[s] = '';
+                        chess.selected = null; chess.render();
+                        setTimeout(chess.aiTurn, 500); return;
+                    }
+                }
+                chess.selected = null; chess.render(); // Invalid move
+            } else {
+                if(chess.board[i] === '🔵') { chess.selected = i; chess.render(); } // Select
+            }
+        },
+        aiTurn: () => {
+            if(chess.checkWin()) return;
+            let moves = [];
+            for(let i=0; i<9; i++) {
+                if(chess.board[i] === '🔴') {
+                    // AI logic (Red): Moves down (+3), attacks diag (+2, +4)
+                    if(i+3 < 9 && chess.board[i+3] === '') moves.push({f:i, t:i+3});
+                    if(i+2 < 9 && chess.board[i+2] === '🔵' && i%3 !== 0) moves.push({f:i, t:i+2});
+                    if(i+4 < 9 && chess.board[i+4] === '🔵' && i%3 !== 2) moves.push({f:i, t:i+4});
+                }
+            }
+            if(moves.length > 0) {
+                let m = moves[Math.floor(Math.random() * moves.length)]; // Random AI move
+                chess.board[m.t] = '🔴'; chess.board[m.f] = '';
+                chess.render();
+            } else { showToast("AI এর কোনো চাল নেই! আপনি জিতেছেন!", 'success'); addBal(100,'দাবা জয়',50); }
+        },
+        checkWin: () => {
+            if(chess.board[0]==='🔵'||chess.board[1]==='🔵'||chess.board[2]==='🔵' || !chess.board.includes('🔴')) { showToast("অসাধারণ! আপনি জিতেছেন! +100 Q", 'success'); addBal(100,'দাবা জয়',50); return true; }
+            if(chess.board[6]==='🔴'||chess.board[7]==='🔴'||chess.board[8]==='🔴' || !chess.board.includes('🔵')) { showToast("AI জিতেছে! আবার চেষ্টা করুন।", 'error'); return true; }
+            return false;
+        }
     };
 </script>
 </body>
