@@ -457,7 +457,43 @@
        APP LOGIC (Bank, Store, Health, Basic Games)
     ========================================================= */
     const apps = {
-        transfer: () => { let id=document.getElementById('trID').value, amt=parseInt(document.getElementById('trAmt').value); if(id.length>4 && amt>0 && subBal(amt, `ট্রান্সফার: ${id}`)) { showToast("সফল!"); document.getElementById('dynamicModal').style.display='none'; } else showToast("ভুল তথ্য বা ব্যালেন্স নেই!", 'error'); },
+        transfer: async () => {
+            let id = document.getElementById('trID').value;
+            let amt = parseInt(document.getElementById('trAmt').value);
+            
+            if (!id || amt <= 0) return showToast("সঠিক আইডি ও পরিমাণ দিন!", 'error');
+            if (id === user.id) return showToast("নিজেকে টাকা পাঠানো যাবে না!", 'error');
+            if (user.bal < amt) return showToast("পর্যাপ্ত ব্যালেন্স নেই!", 'error');
+
+            showToast("অ্যাকাউন্ট খোঁজা হচ্ছে...", "info");
+
+            try {
+                let res = await fetch("https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/" + id + ".json");
+                let receiver = await res.json();
+
+                if (receiver) {
+                    let newBal = (receiver.bal || 0) + amt;
+                    let newHistory = receiver.history || [];
+                    newHistory.unshift({ date: new Date().toLocaleDateString('bn-IN'), note: "টাকা প্রাপ্তি (" + user.name + ")", amt: amt });
+                    if(newHistory.length > 20) newHistory.pop();
+
+                    await fetch("https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/" + id + ".json", {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ bal: newBal, history: newHistory })
+                    });
+
+                    subBal(amt, "মানি ট্রান্সফার: " + receiver.name);
+                    showToast(receiver.name + " কে সফলভাবে টাকা পাঠানো হয়েছে!");
+                    document.getElementById('dynamicModal').style.display = 'none';
+
+                } else {
+                    showToast("ভুল আইডি! এই আইডি সার্ভারে নেই।", 'error');
+                }
+            } catch (e) {
+                showToast("সার্ভার সমস্যা! আবার চেষ্টা করুন।", 'error');
+            }
+        },
         buy: (n, p, i) => { if(user.inventory.find(x=>x.name===n)) return showToast("আগেই কেনা আছে!", 'error'); if(subBal(p, `স্টোর ক্রয়: ${n}`)) { user.inventory.push({name:n, icon:i}); save(); showToast("কেনা সফল! পাসপোর্ট চেক করুন।"); } else showToast("ব্যালেন্স নেই!", 'error'); },
         bmi: () => { let h=parseFloat(document.getElementById('hh').value)/100, w=parseFloat(document.getElementById('hw').value); if(h>0&&w>0) { let b=(w/(h*h)).toFixed(1); document.getElementById('bres').innerHTML=`আপনার BMI: ${b} <br><small style="color:${b>25?'var(--danger)':'var(--success)'}">${b>25?'ওজন কমান':'ফিট আছেন'}</small>`; } else showToast("সঠিক তথ্য দিন", 'error'); },
         
