@@ -984,10 +984,9 @@ function feedFish(btn) {
     }, 2500);
 }
 // =========================================================
-// ✈️ ULTIMATE VIRTUAL TRAVEL AGENCY (Full Version)
+// ✈️ ULTIMATE VIRTUAL TRAVEL AGENCY (Visa System Included)
 // =========================================================
 
-// ১. মেনুতে অটোমেটিক ট্রাভেল এজেন্সি বাটন অ্যাড করা
 setTimeout(() => {
     let menuGrid = document.querySelector('.menu-grid');
     if(menuGrid && !document.getElementById('travel-btn')) {
@@ -1000,7 +999,7 @@ setTimeout(() => {
     }
 }, 1000);
 
-// ২. ২০টি দেশ ও তাদের ছবি, দাম, বিবরণ
+// ২০টি দেশ 
 const destinations = [
     { name: 'Darjeeling', price: 5000, type: 'Domestic', desc: 'পাহাড়ের রানী ও চা বাগান', imgs: ['https://images.unsplash.com/photo-1544735716-392fe2489ffa', 'https://images.unsplash.com/photo-1626082896492-766af4eb6501', 'https://images.unsplash.com/photo-1582236535496-e2003501977e', 'https://images.unsplash.com/photo-1626697556651-67f0aba1678a'] },
     { name: 'Puri', price: 4000, type: 'Domestic', desc: 'সমুদ্র সৈকত ও জগন্নাথ মন্দির', imgs: ['https://images.unsplash.com/photo-1590513904036-7c98e1699745', 'https://images.unsplash.com/photo-1621353841530-58c03998b368', 'https://images.unsplash.com/photo-1632508107767-c20894086e11', 'https://images.unsplash.com/photo-1624467041539-7566f12e1ec7'] },
@@ -1024,41 +1023,84 @@ const destinations = [
     { name: 'Bangkok', price: 20000, type: 'International', desc: 'শপিং ও নাইট লাইফ', imgs: ['https://images.unsplash.com/photo-1508009603885-50cf7c579367', 'https://images.unsplash.com/photo-1563492065599-3520f775eeed', 'https://images.unsplash.com/photo-1555400038-63f5ba517a47', 'https://images.unsplash.com/photo-1583491323464-7fe5ec209df2'] }
 ];
 
-// ৩. ট্রাভেল এজেন্সি খোলার মেইন ফাংশন
-function openTravelAgency() {
+// গ্লোবাল ভেরিয়েবল
+let myVisas = {};
+
+async function openTravelAgency() {
+    // ভিসা ডেটা লোড করা
+    try {
+        const vRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/visas.json`);
+        myVisas = await vRes.json() || {};
+    } catch(e) {}
+
     let html = `
     <div style="display:flex; gap:10px; margin-bottom:15px;">
-        <button onclick="showTicketList()" id="btn-tickets" style="flex:1; padding:10px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">🎟️ টিকেট কিনুন</button>
-        <button onclick="showPassportSection()" id="btn-passport" style="flex:1; padding:10px; border-radius:10px; border:none; background:#333; color:white; font-weight:bold;">🛂 পাসপোর্ট ও ভিসা</button>
+        <button onclick="showTicketList()" id="btn-tickets" style="flex:1; padding:10px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">🎟️ টিকেট ও ভিসা</button>
+        <button onclick="showPassportSection()" id="btn-passport" style="flex:1; padding:10px; border-radius:10px; border:none; background:#333; color:white; font-weight:bold;">🛂 পাসপোর্ট</button>
     </div>
     <div id="travel-content"></div>`;
 
     renderModal("✈️ রেডিকা ট্রাভেল এজেন্সি", html);
-    showTicketList(); // ডিফল্ট ভিউ
+    showTicketList(); 
 }
 
-// ৪. টিকিটের তালিকা (একবার টিকিট কাটলে সাথে সাথে ট্যুর)
-async function showTicketList() {
+// টিকিটের তালিকা ও ভিসা চেক
+function showTicketList() {
     document.getElementById('btn-tickets').style.background = 'var(--primary)';
     document.getElementById('btn-passport').style.background = '#333';
     
+    let now = new Date().getTime();
     let html = `<div style="display:flex; flex-direction:column; gap:12px; max-height:350px; overflow-y:auto; padding:5px;">`;
+    
     destinations.forEach(dest => {
+        let isIntl = dest.type === 'International';
+        let visa = myVisas[dest.name];
+        let hasValidVisa = (visa && visa.status === 'approved' && visa.expiry > now);
+        
+        let buttonHtml = '';
+        if (isIntl) {
+            if (hasValidVisa) {
+                // ভিসা আছে এবং মেয়াদ আছে
+                buttonHtml = `<button onclick="buyTravelTicket(${dest.price}, '${dest.name}')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px;">কিনুন ও ঘুরুন ✈️</button>`;
+            } else if (visa && visa.status === 'pending') {
+                // ভিসা প্রসেসিং এ আছে
+                buttonHtml = `<button disabled style="background:#f59e0b; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; font-size:12px;">⏳ ভিসা পেন্ডিং</button>`;
+            } else {
+                // ভিসা নেই বা মেয়াদ শেষ
+                buttonHtml = `<button onclick="applyForVisa('${dest.name}')" style="background:#e11d48; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px;">📝 ভিসা আবেদন</button>`;
+            }
+        } else {
+            // দেশীয় (Domestic) জায়গায় সরাসরি টিকিট
+            buttonHtml = `<button onclick="buyTravelTicket(${dest.price}, '${dest.name}')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px;">কিনুন ও ঘুরুন ✈️</button>`;
+        }
+
         html += `
         <div style="background:var(--bg-main); border:1px solid var(--border-col); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
             <div>
-                <div style="font-weight:bold; color:var(--primary);">${dest.name} <small style="font-size:9px; color:gray;">(${dest.type})</small></div>
+                <div style="font-weight:bold; color:var(--primary);">${dest.name} <small style="font-size:9px; color:${isIntl ? '#e11d48' : 'gray'};">(${dest.type})</small></div>
                 <div style="font-size:11px; color:var(--text-muted);">${dest.desc}</div>
                 <div style="font-weight:bold; color:var(--accent); margin-top:3px;">৳ ${dest.price.toLocaleString()}</div>
             </div>
-            <button onclick="buyTravelTicket(${dest.price}, '${dest.name}')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px;">কিনুন ও ঘুরুন ✈️</button>
+            ${buttonHtml}
         </div>`;
     });
     html += `</div>`;
     document.getElementById('travel-content').innerHTML = html;
 }
 
-// ৫. পাসপোর্ট ও ভিসা সেকশন (হিস্ট্রি সহ)
+// ভিসার জন্য আবেদন করার ফাংশন
+async function applyForVisa(destName) {
+    if(confirm(`${destName}-এর ভিসার জন্য অ্যাডমিনের কাছে আবেদন করতে চান?`)) {
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/visas/${destName}.json`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: 'pending', appliedAt: new Date().getTime() })
+        });
+        alert(`✅ ভিসার আবেদন সফলভাবে জমা হয়েছে! অ্যাডমিন অ্যাপ্রুভ করলে আপনি টিকিট কাটতে পারবেন।`);
+        openTravelAgency(); // রিফ্রেশ
+    }
+}
+
+// পাসপোর্ট ও ভিসা সেকশন
 async function showPassportSection() {
     document.getElementById('btn-tickets').style.background = '#333';
     document.getElementById('btn-passport').style.background = 'var(--primary)';
@@ -1073,6 +1115,8 @@ async function showPassportSection() {
     let visitCounts = {};
     historyList.forEach(h => { visitCounts[h.name] = (visitCounts[h.name] || 0) + 1; });
 
+    let now = new Date().getTime();
+
     let html = `
     <div style="background: linear-gradient(135deg, #001f3f, #004a99); color: white; border-radius: 15px; padding: 20px; border: 2px solid var(--accent); margin-bottom:15px; position:relative;">
         <div style="font-size:12px; opacity:0.7; letter-spacing:2px; font-weight:bold; margin-bottom:10px;">RADICA REPUBLIC PASSPORT</div>
@@ -1085,21 +1129,35 @@ async function showPassportSection() {
             </div>
         </div>
     </div>
-    <h3 style="font-size:14px; margin-bottom:10px; border-bottom:1px solid var(--border-col); padding-bottom:5px;">ভিসা ও ভ্রমণ ইতিহাস:</h3>
+    
+    <h3 style="font-size:14px; margin-bottom:10px; border-bottom:1px solid var(--border-col); padding-bottom:5px;">অ্যাক্টিভ ভিসা ও ভ্রমণ ইতিহাস:</h3>
     <div style="max-height:180px; overflow-y:auto; padding-right:5px;">`;
+
+    // অ্যাক্টিভ ভিসা দেখানো
+    Object.keys(myVisas).forEach(vName => {
+        let vData = myVisas[vName];
+        if(vData.status === 'approved' && vData.expiry > now) {
+            let expDate = new Date(vData.expiry).toLocaleDateString('bn-BD');
+            html += `
+            <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 8px 12px; margin-bottom: 8px; border-radius: 4px;">
+                <div style="font-weight:bold; font-size:13px; color:#10b981;">✅ ${vName} - VISA APPROVED</div>
+                <div style="font-size:11px; color:var(--text-muted);">মেয়াদ আছে: ${expDate} পর্যন্ত</div>
+            </div>`;
+        } else if (vData.status === 'pending') {
+            html += `
+            <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 8px 12px; margin-bottom: 8px; border-radius: 4px;">
+                <div style="font-weight:bold; font-size:13px; color:#f59e0b;">⏳ ${vName} - VISA PENDING</div>
+            </div>`;
+        }
+    });
 
     if(historyList.length === 0) {
         html += `<p style="text-align:center; color:gray; font-size:12px; margin-top:20px;">আপনি এখনও কোনো সফর করেননি!</p>`;
     } else {
         Object.keys(visitCounts).forEach(place => {
-            let destInfo = destinations.find(d => d.name === place);
-            let isInternational = destInfo?.type === 'International';
             html += `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px dashed var(--border-col);">
-                <div>
-                    <span style="font-weight:bold; font-size:14px;">${place}</span> 
-                    ${isInternational ? `<br><span style="font-size:9px; background:#10b981; color:white; padding:2px 5px; border-radius:4px; display:inline-block; margin-top:3px;">VISA APPROVED</span>` : ''}
-                </div>
+                <div><span style="font-weight:bold; font-size:14px;">${place}</span></div>
                 <div style="font-size:12px; font-weight:bold; color:var(--primary); background:rgba(0,74,153,0.1); padding:4px 8px; border-radius:5px;">সফর সংখ্যা: ${visitCounts[place]} বার</div>
             </div>`;
         });
@@ -1109,7 +1167,7 @@ async function showPassportSection() {
     document.getElementById('travel-content').innerHTML = html;
 }
 
-// ৬. টিকিট কেনা এবং টাকা কাটার লজিক
+// টিকিট কেনা
 async function buyTravelTicket(price, destName) {
     if(user.bal < price) {
         alert("❌ পর্যাপ্ত ব্যালেন্স নেই!");
@@ -1123,20 +1181,17 @@ async function buyTravelTicket(price, destName) {
         });
         
         if(balRes.ok) {
-            user.bal = newBal; // ব্যালেন্স আপডেট
-            // হিস্ট্রিতে সেভ করা
+            user.bal = newBal;
             await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/travel_history.json`, {
                 method: 'POST',
                 body: JSON.stringify({ name: destName, time: new Date().getTime() })
             });
-            
-            // টিকিট কাটার সাথে সাথেই ট্যুর শুরু হয়ে যাবে
             showTour(destName); 
         }
     }
 }
 
-// ৭. ভার্চুয়াল ট্যুর গ্যালারি
+// ভার্চুয়াল ট্যুর গ্যালারি
 function showTour(destName) {
     let dest = destinations.find(d => d.name === destName);
     if(!dest) return;
