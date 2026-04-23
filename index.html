@@ -702,6 +702,62 @@ function loadMessages() {
         });
     }, 2000);
 }
+// --- 💎 প্রিমিয়াম এক্সপেন্সিভ শপ লজিক ---
+const premiumItems = [
+    { name: 'Elite VIP Badge', icon: '🛡️', price: 1000000, desc: '১ মিলিয়ন কোয়ান্ট দিয়ে কিনুন' },
+    { name: 'Golden Name Tag', icon: '🏷️', price: 5000000, desc: 'আপনার নাম সোনালী হয়ে যাবে' },
+    { name: 'Royal Crown', icon: '👑', price: 50000000, desc: '৫০ মিলিয়ন কোয়ান্ট মুকুট' },
+    { name: 'Private Jet', icon: '🛩️', price: 500000000, desc: '৫০০ মিলিয়ন কোয়ান্ট জেত' },
+    { name: 'Full City Ownership', icon: '🏙️', price: 1000000000, desc: '১ বিলিয়ন কোয়ান্ট সিটি' },
+    { name: 'Time Machine', icon: '⏳', price: 5000000000, desc: '৫ বিলিয়ন কোয়ান্ট টাইম মেশিন' }
+];
+
+function openPremiumShop() {
+    let mainBal = (typeof user !== 'undefined' && user.balance) ? user.balance : 0;
+    let html = `
+    <div style="text-align:center; margin-bottom:15px; background: linear-gradient(45deg, #1e1b4b, #312e81); padding:15px; border-radius:15px; border: 2px solid #fbbf24;">
+        <h2 style="color:#fbbf24; margin:0; font-size:22px;">৳ ${mainBal.toLocaleString()}</h2>
+        <p style="color:#e0e7ff; font-size:12px; margin-top:5px;">আপনার মেইন ব্যালেন্স</p>
+    </div>
+    <div style="max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; padding:5px;">`;
+
+    premiumItems.forEach(item => {
+        html += `
+        <div style="background:#111827; border:1px solid #374151; border-radius:12px; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="font-size:30px;">${item.icon}</div>
+                <div>
+                    <div style="color:#f9fafb; font-weight:bold; font-size:15px;">${item.name}</div>
+                    <div style="color:#9ca3af; font-size:11px;">${item.desc}</div>
+                </div>
+            </div>
+            <button onclick="buyPremiumItem(${item.price}, '${item.name}')" style="background:#ef4444; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px;">
+                ৳ ${(item.price >= 1000000) ? (item.price/1000000).toFixed(0)+'M' : item.price.toLocaleString()}
+            </button>
+        </div>`;
+    });
+    html += `</div>`;
+    renderModal("💎 প্রিমিয়াম ভিআইপি স্টোর", html);
+}
+
+async function buyPremiumItem(price, name) {
+    if(user.balance < price) {
+        alert("❌ আপনার মেইন ব্যালেন্স কম!");
+        return;
+    }
+    if(confirm(`আপনি কি সত্যিই ৳${price.toLocaleString()} দিয়ে '${name}' কিনতে চান?`)) {
+        let newBalance = user.balance - price;
+        const response = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/balance.json`, {
+            method: 'PUT',
+            body: JSON.stringify(newBalance)
+        });
+        if(response.ok) {
+            user.balance = newBalance;
+            alert(`✅ কেনা সফল! আপনার নতুন ব্যালেন্স: ৳${newBalance.toLocaleString()}`);
+            openPremiumShop();
+        }
+    }
+}
     
 </script>
 </body>
