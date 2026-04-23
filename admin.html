@@ -69,7 +69,18 @@
             if(phone.length < 10) return phone;
             return phone.substring(0, 3) + "XXXXX" + phone.substring(phone.length - 2);
         }
-
+function getOnlineStatus(lastSeen) {
+    if (!lastSeen) return '<span style="color:gray;">কখনো আসেনি</span>';
+    let now = new Date().getTime();
+    let diff = (now - lastSeen) / 1000;
+    if (diff < 60) {
+        return '<span style="color:#10b981; font-weight:bold;">● অনলাইন</span>';
+    } else {
+        let date = new Date(lastSeen);
+        return `<span style="color:#ef4444;">অফলাইন (${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')})</span>`;
+    }
+}
+        
         async function loadAdminData() {
             try {
                 let response = await fetch(firebaseUrl);
@@ -97,6 +108,8 @@
                         <td style="font-weight:bold; display:flex; align-items:center; gap:10px;">
                             <img src="${user.photo || 'https://via.placeholder.com/30'}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
                             ${user.name || 'অজানা'}
+                            <div style="font-size:11px; margin-top:2px;">${getOnlineStatus(user.lastSeen)}</div>
+                            
                         </td>
                         <td class="hidden-info">${maskPhone(user.phone)}</td>
                         <td>${user.district || 'N/A'}</td>
