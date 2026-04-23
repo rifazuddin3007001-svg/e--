@@ -800,7 +800,79 @@ function openMyInventory() {
         box.innerHTML = itemsHtml;
     });
 }
+// =========================================================
+// 🏏 ULTIMATE PREMIUM IPL LIVE SCORE (Auto Injector)
+// =========================================================
 
+// ১. মেনুতে প্রফেশনাল IPL বাটন অ্যাড করা (লাইভ রেড ডট সহ)
+setTimeout(() => {
+    let menuGrid = document.querySelector('.menu-grid');
+    if(menuGrid) {
+        // বাটনের জন্য স্পেশাল CSS
+        const iplStyles = `
+        <style>
+            .live-dot { height: 10px; width: 10px; background-color: #ef4444; border-radius: 50%; display: inline-block; position: absolute; top: 0; right: -10px; animation: blink-red 1s infinite; box-shadow: 0 0 8px #ef4444; }
+            @keyframes blink-red { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+            .ipl-highlight { border-color: #f59e0b !important; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), transparent) !important; }
+        </style>`;
+        document.head.insertAdjacentHTML('beforeend', iplStyles);
+
+        // বাটন তৈরি
+        let iplBtn = `
+        <div class="menu-item ipl-highlight" onclick="openPremiumIPL()">
+            <span class="icon" style="position:relative;">🏏 <span class="live-dot"></span></span>
+            <h3 style="color:#f59e0b;">IPL লাইভ</h3>
+        </div>`;
+        menuGrid.insertAdjacentHTML('beforeend', iplBtn);
+    }
+}, 1000);
+
+// ২. প্রিমিয়াম লাইভ স্কোর উইন্ডো
+function openPremiumIPL() {
+    let html = `
+    <style>
+        .ipl-modal-header { text-align:center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px dashed rgba(255, 180, 0, 0.3); }
+        .ipl-modal-header h2 { margin:0; color: #f59e0b; font-size: 24px; font-weight: 900; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .live-pulse-text { color: #ef4444; font-weight: bold; font-size: 14px; margin-top: 5px; display: flex; justify-content: center; align-items: center; gap: 5px; animation: pulse-text 1.5s infinite; }
+        @keyframes pulse-text { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        .ipl-frame-box { background: #ffffff; border-radius: 16px; overflow: hidden; height: 400px; position: relative; border: 3px solid #1e293b; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #f59e0b; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .ipl-footer { margin-top:15px; display:flex; justify-content:space-between; align-items:center; background: rgba(0,0,0,0.05); padding: 12px; border-radius: 12px; }
+    </style>
+
+    <div class="ipl-modal-header">
+        <h2>TATA IPL 2026</h2>
+        <div class="live-pulse-text"><span style="font-size:10px;">🔴</span> লাইভ ম্যাচ স্কোর</div>
+    </div>
+
+    <div class="ipl-frame-box">
+        <div class="loading-overlay" id="ipl-loader">
+            <div class="spinner"></div>
+            <div style="color: #94a3b8; font-size: 13px; font-weight: bold;">স্কোরবোর্ড কানেক্ট হচ্ছে...</div>
+        </div>
+        
+        <iframe src="https://bwidget.cricwaves.com/widget/liveScore" 
+                style="width:100%; height:100%; border:none; position:relative; z-index:2;" 
+                scrolling="yes" 
+                onload="document.getElementById('ipl-loader').style.display='none'">
+        </iframe>
+    </div>
+
+    <div class="ipl-footer">
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: bold;">⚡ অটোমেটিক আপডেট</span>
+        <button onclick="openPremiumIPL()" style="background: linear-gradient(45deg, #0284c7, #2563eb); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);">
+            🔄 রিফ্রেশ করুন
+        </button>
+    </div>
+    `;
+    
+    renderModal("🏏 স্পোর্টস জোন", html);
+}
+    
 </script>
 </body>
 </html>
