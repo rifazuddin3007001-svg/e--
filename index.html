@@ -716,136 +716,121 @@ const shopItems = [
     // --- ব্যাজ এবং টাইটেল ---
     { id: 'item1', name: 'VIP ব্যাজ', icon: '💎', price: 500, desc: 'প্রোফাইলে ভিআইপি দেখানোর জন্য' },
     { id: 'item2', name: 'প্রো প্লেয়ার ট্যাগ', icon: '🎮', price: 800, desc: 'সবার থেকে আলাদা দেখান' },
-    { id: 'item3', name: 'লেজেন্ডারি ব্যাজ', icon: '🎖️', price: 5000, desc: 'অ্যাপের সেরা ইউজারদের জন্য' },
-    { id: 'item4', name: 'হিরো মেডেল', icon: '🏅', price: 1000, desc: 'সাহসীদের স্পেশাল মেডেল' },
-    { id: 'item5', name: 'ভেরিফায়েড টিক', icon: '✅', price: 10000, desc: 'অফিসিয়াল ব্লু টিক ব্যাজ' },
+// --- 🛒 EXTREME SUPER SHOP (High Price & Main Balance Sync) ---
 
-    // --- রাজকীয় সাজসজ্জা ---
-    { id: 'item6', name: 'সোনার মুকুট', icon: '👑', price: 1500, desc: 'রাজাদের মতো সাজুন' },
-    { id: 'item7', name: 'হীরের মুকুট', icon: '💠', price: 8000, desc: 'সবচেয়ে দামি রাজমুকুট' },
-    { id: 'item8', name: 'রাজকীয় সিংহাসন', icon: '🪑', price: 3000, desc: 'আপনার বসার জন্য স্পেশাল সিট' },
-    { id: 'item9', name: 'কিংস কেপ', icon: '🧥', price: 1200, desc: 'রাজকীয় লাল চাদর' },
-    { id: 'item10', name: 'সোনার চশমা', icon: '🕶️', price: 700, desc: 'স্টাইলিশ গোল্ডেন সানগ্লাস' },
+// Floating Shop Button
+document.body.insertAdjacentHTML('beforeend', `
+    <div onclick="openShop()" style="position:fixed; bottom:90px; left:20px; background:#059669; color:white; width:55px; height:55px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:25px; box-shadow:0 4px 15px rgba(0,0,0,0.5); cursor:pointer; z-index:9999; border: 2px solid #fff;">
+        🛒
+    </div>
+`);
 
-    // --- অস্ত্র এবং গ্যাজেট ---
-    { id: 'item11', name: 'ম্যাজিক তলোয়ার', icon: '🗡️', price: 2000, desc: 'যোদ্ধাদের স্পেশাল অস্ত্র' },
-    { id: 'item12', name: 'সোনার তরোয়াল', icon: '🤺', price: 4000, desc: 'খাঁটি সোনার তৈরি তরোয়াল' },
-    { id: 'item13', name: 'ড্রাগন শিল্ড', icon: '🛡️', price: 2500, desc: 'আগুনের হাত থেকে বাঁচার ঢাল' },
-    { id: 'item14', name: 'নিনজা স্টার', icon: '🥷', price: 600, desc: 'গোপন নিনজা অস্ত্র' },
-    { id: 'item15', name: 'লেজার গান', icon: '🔫', price: 3500, desc: 'ভবিষ্যতের সাই-ফাই অস্ত্র' },
-    { id: 'item16', name: 'হ্যাকার ল্যাপটপ', icon: '💻', price: 6000, desc: 'সুপার ফাস্ট গেমিং পিসি' },
-    { id: 'item17', name: 'সোনার ঘড়ি', icon: '⌚', price: 1500, desc: '২৪ ক্যারেট সোনার ঘড়ি' },
-
-    // --- জাদুর জিনিসপত্র ---
-    { id: 'item18', name: 'জাদুকরের লাঠি', icon: '🪄', price: 1800, desc: 'ম্যাজিক করার স্পেশাল লাঠি' },
-    { id: 'item19', name: 'ক্রিস্টাল বল', icon: '🔮', price: 2200, desc: 'ভবিষ্যৎ দেখার জাদুর বল' },
-    { id: 'item20', name: 'রহস্যময় বাক্স', icon: '🎁', price: 1000, desc: 'ভাগ্যের পরীক্ষা করুন' },
-    { id: 'item21', name: 'অদৃশ্য হওয়ার চাদর', icon: '👻', price: 5000, desc: 'এটা পরলে কেউ দেখতে পাবে না' },
-    { id: 'item22', name: 'লাভ পোশন', icon: '🧪', price: 800, desc: 'ভালোবাসার জাদুর পানীয়' },
-    { id: 'item23', name: 'ম্যাজিক আংটি', icon: '💍', price: 4500, desc: 'অসীম ক্ষমতার আংটি' },
-
-    // --- যানবাহন ---
-    { id: 'item24', name: 'উড়ন্ত কার্পেট', icon: '🧞‍♂️', price: 4000, desc: 'আকাশে ওড়ার ম্যাজিক কার্পেট' },
-    { id: 'item25', name: 'স্পোর্টস কার', icon: '🏎️', price: 15000, desc: 'সুপার ফাস্ট লাল রেসিং কার' },
-    { id: 'item26', name: 'সুপার বাইক', icon: '🏍️', price: 8000, desc: '২ চাকার দানব' },
-    { id: 'item27', name: 'স্পেসশিপ', icon: '🚀', price: 25000, desc: 'মঙ্গলে যাওয়ার রকেট' },
-    { id: 'item28', name: 'ম্যাজিক ঝাড়ু', icon: '🧹', price: 2000, desc: 'হ্যারি পটারের ওড়ার ঝাড়ু' },
-    { id: 'item29', name: 'রকেট বুট', icon: '👢', price: 3000, desc: 'পায়ে পরলেই আকাশে উড়বেন' },
-
-    // --- ভার্চুয়াল পেট (পোষা প্রাণী) ---
-    { id: 'item30', name: 'ফায়ার ড্রাগন', icon: '🐉', price: 20000, desc: 'আপনার পার্সোনাল ড্রাগন' },
-    { id: 'item31', name: 'কিউট বিড়াল', icon: '🐈', price: 1200, desc: 'খুব মিষ্টি একটা পোষা বিড়াল' },
-    { id: 'item32', name: 'ম্যাজিক পেঁচা', icon: '🦉', price: 1500, desc: 'চিঠি আদান-প্রদানের জন্য' },
-    { id: 'item33', name: 'গরিলা পেট', icon: '🦍', price: 3500, desc: 'বডিগার্ড হিসেবে রাখুন' },
-    { id: 'item34', name: 'এলিয়েন পেট', icon: '👽', price: 10000, desc: 'ভিনগ্রহের অদ্ভুত প্রাণী' },
-    { id: 'item35', name: 'ফিনিক্স পাখি', icon: '🦅', price: 12000, desc: 'আগুনের তৈরি অমর পাখি' },
-    { id: 'item36', name: 'ডাইনোসর ডিম', icon: '🥚', price: 5000, desc: 'কবে ফাটবে কেউ জানে না' },
-
-    // --- খাবার ও ড্রিংকস ---
-    { id: 'item37', name: 'গোল্ডেন অ্যাপল', icon: '🍏', price: 500, desc: 'খাওয়ার পর হেলথ ফুল হয়ে যাবে' },
-    { id: 'item38', name: 'এনার্জি ড্রিংক', icon: '🧃', price: 150, desc: 'কাজের স্পিড বাড়ানোর জন্য' },
-    { id: 'item39', name: 'স্পেশাল কফি', icon: '☕', price: 100, desc: 'ঘুম কাটানোর ম্যাজিক কফি' },
-
-    // --- রেয়ার ও স্পেশাল আইটেম ---
-    { id: 'item40', name: 'টাইম মেশিন', icon: '⏳', price: 50000, desc: 'অতীত বা ভবিষ্যতে যাওয়ার যন্ত্র' },
-    { id: 'item41', name: 'ট্রেজার চেস্ট', icon: '🧰', price: 3000, desc: 'গুপ্তধনের বাক্স' },
-    { id: 'item42', name: 'লাকি কয়েন', icon: '🪙', price: 250, desc: 'টসে সবসময় জেতার জন্য' },
-    { id: 'item43', name: 'ভিআইপি টিকিট', icon: '🎫', price: 400, desc: 'যেকোনো কনসার্টে ঢোকার পাস' },
-    { id: 'item44', name: 'ব্ল্যাক হোল', icon: '🌌', price: 100000, desc: 'সবকিছু গিলে খাওয়ার ক্ষমতা' },
-    { id: 'item45', name: 'মেগা রোবট', icon: '🤖', price: 30000, desc: 'আপনার পার্সোনাল ফাইটার রোবট' },
-    { id: 'item46', name: 'গোল্ডেন গিটার', icon: '🎸', price: 2500, desc: 'মিউজিক লাভারদের জন্য' },
-    { id: 'item47', name: 'ডায়মন্ড প্লে বাটন', icon: '▶️', price: 15000, desc: '১০ মিলিয়ন সাবস্ক্রাইবার অ্যাওয়ার্ড' },
-    { id: 'item48', name: 'সুপারহিরো স্যুট', icon: '🦸', price: 6000, desc: 'মার্ভেল হিরোদের মতো শক্তি' },
-    { id: 'item49', name: 'রেনবো ক্লাউড', icon: '🌈', price: 3500, desc: 'রঙিন মেঘের ওপর ঘুরে বেড়ান' },
-    { id: 'item50', name: 'গোল্ডেন মাইক', icon: '🎙️', price: 1800, desc: 'পাবলিক স্পিকারদের জন্য' }
+// 50+ Extremely Expensive Items List
+const shopItems = [
+    { id: 'ex1', name: 'Elite VIP Badge', icon: '🛡️', price: 50000, desc: 'Pro users-der jonno Pro badge' },
+    { id: 'ex2', name: 'Golden Name Tag', icon: '🏷️', price: 100000, desc: 'Sobar theke alada dekhan' },
+    { id: 'ex3', name: 'Royal Crown', icon: '👑', price: 500000, desc: 'Khub e expensive raj-mukt' },
+    { id: 'ex4', name: 'Personal Bodyguard', icon: '🕴️', price: 800000, desc: 'Security-r jonno protector' },
+    { id: 'ex5', name: 'Luxury Penthouse', icon: '🏢', price: 2000000, desc: 'Shohorer top floor-e thakun' },
+    { id: 'ex6', name: 'Sports Car (Ferrari)', icon: '🏎️', price: 5000000, desc: 'Super fast racing car' },
+    { id: 'ex7', name: 'Private Island', icon: '🏝️', price: 15000000, desc: 'Nijer ekta puron dip' },
+    { id: 'ex8', name: 'Golden Helicopter', icon: '🚁', price: 30000000, desc: 'Akashe olar shokhin biman' },
+    { id: 'ex9', name: 'Diamond Palace', icon: '🏰', price: 70000000, desc: 'Hires diye toiri raj-prashad' },
+    { id: 'ex10', name: 'Cyber Truck', icon: '🛻', price: 10000000, desc: 'Future-er electric truck' },
+    { id: 'ex11', name: 'Private Jet', icon: '🛩️', price: 150000000, desc: 'Duniya bhromon-er jonno' },
+    { id: 'ex12', name: 'Space Rocket', icon: '🚀', price: 500000000, desc: 'Moon mission-er jonno proyojon' },
+    { id: 'ex13', name: 'Full City Ownership', icon: '🏙️', price: 1000000000, desc: 'Puro shohorer malikana (1 Billion)' },
+    { id: 'ex14', name: 'Time Machine', icon: '⏳', price: 5000000000, desc: 'Otit-e jawar jontro (5 Billion)' },
+    { id: 'ex15', name: 'Galaxy Access Pass', icon: '🌌', price: 10000000000, desc: 'Mohakashe oshim khomota (10 Billion)' },
+    { id: 'ex16', name: 'Golden Visa', icon: '💳', price: 250000, desc: 'Global access pass' },
+    { id: 'ex17', name: 'Pet Phoenix', icon: '🦅', price: 4500000, desc: 'Agreer obinshwor pakhi' },
+    { id: 'ex18', name: 'Master AI Bot', icon: '🤖', price: 9000000, desc: 'Sobtaki automate korar jonno' },
+    { id: 'ex19', name: 'Ancient Sword', icon: '⚔️', price: 350000, desc: 'Old historic weapon' },
+    { id: 'ex20', name: 'Black Hole Engine', icon: '🕳️', price: 2000000000, desc: 'Ultimate energy source' },
+    { id: 'ex21', name: 'Sovereign Flag', icon: '🚩', price: 150000, desc: 'Nijer doler potaka' },
+    { id: 'ex22', name: 'Super Computer', icon: '🖥️', price: 1200000, desc: 'Fastest calculation pisi' },
+    { id: 'ex23', name: 'Gold Mine', icon: '⛏️', price: 85000000, desc: 'Sona uttolon-er khoni' },
+    { id: 'ex24', name: 'Ocean Ship', icon: '🚢', price: 120000000, desc: 'Somudre bhromon-er jahaj' },
+    { id: 'ex25', name: 'Magic Portal', icon: '🌀', price: 350000000, desc: 'Ek jagah theke onno jagay teleport' }
+    // ... Evabe dami dami item bariye nite parben
 ];
 
 function openShop() {
-    // বর্তমান ব্যালেন্স চেক করা
-    let currentBal = (typeof user !== 'undefined' && user.balance) ? user.balance : 0; 
+    // Current main balance verify
+    let mainBal = (typeof user !== 'undefined' && user.balance) ? user.balance : 0;
     
     let html = `
-    <div style="text-align:center; margin-bottom:15px; background:#1e293b; padding:10px; border-radius:10px; border:1px solid #3b82f6;">
-        <h3 style="color:#fbbf24; margin:0; font-size:18px;">আপনার ব্যালেন্স: ৳${currentBal}</h3>
-        <p style="color:#94a3b8; font-size:11px; margin-top:5px; margin-bottom:0;">পছন্দের জিনিস কিনে টাকা খরচ করুন!</p>
+    <div style="text-align:center; margin-bottom:15px; background: linear-gradient(45deg, #1e293b, #0f172a); padding:15px; border-radius:15px; border: 2px solid #fbbf24;">
+        <h2 style="color:#fbbf24; margin:0; font-size:22px;">৳ ${mainBal.toLocaleString()}</h2>
+        <p style="color:#94a3b8; font-size:12px; margin-top:5px;">Main Balance</p>
     </div>
-    <div style="max-height:350px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:5px;">`;
+    <div style="max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; padding:5px;">`;
 
-    // দোকানের জিনিসগুলো সাজানো
     shopItems.forEach(item => {
         html += `
-        <div style="background:#111; border:1px solid #333; border-radius:10px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div style="font-size:30px;">${item.icon}</div>
+        <div style="background:#111827; border:1px solid #374151; border-radius:12px; padding:15px; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="font-size:35px;">${item.icon}</div>
                 <div>
-                    <div style="color:white; font-weight:bold; font-size:14px;">${item.name}</div>
-                    <div style="color:#aaa; font-size:10px;">${item.desc}</div>
+                    <div style="color:#f9fafb; font-weight:bold; font-size:15px;">${item.name}</div>
+                    <div style="color:#9ca3af; font-size:11px;">${item.desc}</div>
                 </div>
             </div>
-            <button onclick="buyItem('${item.id}', ${item.price}, '${item.name}')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px; min-width:80px;">
-                ৳ ${item.price}
+            <button onclick="processPurchase('${item.id}', ${item.price}, '${item.name}')" style="background:#059669; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                ৳ ${item.price >= 1000000 ? (item.price/1000000).toFixed(1)+'M' : item.price.toLocaleString()}
             </button>
         </div>`;
     });
 
     html += `</div>`;
-    
-    renderModal("🛒 সুপার শপ", html); 
+    renderModal("🛒 LUXURY SUPER SHOP", html);
 }
 
-function buyItem(id, price, name) {
+async function processPurchase(id, price, name) {
     if(user.balance < price) {
-        alert("❌ আপনার পর্যাপ্ত ব্যালেন্স নেই! আরও টাকা ইনকাম করুন।");
+        alert("❌ Apnar Main Balance kom! Aro income korun.");
         return;
     }
 
-    if(confirm(`আপনি কি সত্যিই ৳${price} দিয়ে '${name}' কিনতে চান?`)) {
-        // ১. ব্যালেন্স থেকে টাকা কাটা
-        let newBalance = user.balance - price;
-        user.balance = newBalance; 
+    if(confirm(`Apni ki sotti ৳${price.toLocaleString()} diye '${name}' kinte chan?`)) {
+        try {
+            // 1. Calculate New Balance
+            let newBalance = user.balance - price;
+            
+            // 2. Update Firebase Immediately (Main Balance Path)
+            const response = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/balance.json`, {
+                method: 'PUT',
+                body: JSON.stringify(newBalance)
+            });
 
-        // ২. Firebase-এ আপডেট করা
-        fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/balance.json`, {
-            method: 'PUT',
-            body: JSON.stringify(newBalance)
-        });
+            if(response.ok) {
+                // 3. Update Local Variable
+                user.balance = newBalance;
 
-        // ৩. ইনভেন্টরিতে সেভ করা (ইউজার কী কিনেছে)
-        let purchaseData = {
-            itemName: name,
-            price: price,
-            time: new Date().getTime()
-        };
-        fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/inventory.json`, {
-            method: 'POST',
-            body: JSON.stringify(purchaseData)
-        });
+                // 4. Record the Purchase in Inventory
+                await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/purchases.json`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        itemName: name,
+                        spent: price,
+                        date: new Date().toISOString()
+                    })
+                });
 
-        // ৪. মেসেজ দেখানো
-        alert(`🎉 অভিনন্দন! আপনি সফলভাবে '${name}' কিনেছেন। \nআপনার নতুন ব্যালেন্স: ৳${newBalance}`);
-        
-        // ৫. দোকান রিফ্রেশ করা
-        openShop(); 
+                alert(`✅ Successful! '${name}' kena hoyeche.\nNew Balance: ৳${newBalance.toLocaleString()}`);
+                
+                // 5. Global UI Refresh (Jodi apnar app-e thake)
+                if(typeof loadUserData === 'function') loadUserData(); 
+                
+                // Refresh Shop View
+                openShop();
+            } else {
+                alert("❌ Server error! Balance update hoyni.");
+            }
+        } catch (error) {
+            console.error("Purchase failed:", error);
+            alert("❌ Connection error! Abar chesta korun.");
+        }
     }
 }
     
