@@ -857,6 +857,132 @@ function openPremiumIPL() {
     
     renderModal("🏏 স্পোর্টস জোন", html);
 }
+// =========================================================
+// 🐠 VIRTUAL AQUARIUM (Relaxation Zone)
+// =========================================================
+
+// ১. মেনুতে অটোমেটিকভাবে অ্যাকোয়ারিয়াম বাটন অ্যাড করা
+setTimeout(() => {
+    let menuGrid = document.querySelector('.menu-grid');
+    if(menuGrid && !document.getElementById('aqua-btn')) {
+        let aquaBtn = `
+        <div id="aqua-btn" class="menu-item" onclick="openAquarium()" style="border-color:#0ea5e9; background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), transparent);">
+            <span class="icon" style="font-size:35px;">🐠</span>
+            <h3 style="color:#0ea5e9;">অ্যাকোয়ারিয়াম</h3>
+        </div>`;
+        menuGrid.insertAdjacentHTML('beforeend', aquaBtn);
+    }
+}, 1000);
+
+// ২. অ্যাকোয়ারিয়াম উইন্ডো খোলার লজিক ও অ্যানিমেশন
+function openAquarium() {
+    let html = `
+    <style>
+        .aqua-box { position: relative; width: 100%; height: 350px; background: linear-gradient(to bottom, #00b4db, #0083b0, #021B79); border-radius: 16px; border: 4px solid #1e293b; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 25px rgba(0,0,0,0.3); }
+        
+        /* জলের বুদবুদ (Bubbles) */
+        .bubble { position: absolute; background: rgba(255, 255, 255, 0.4); border-radius: 50%; bottom: -20px; animation: bubbleUp linear infinite; }
+        @keyframes bubbleUp { 0% { bottom: -20px; opacity: 1; transform: translateX(0px) scale(1); } 100% { bottom: 400px; opacity: 0; transform: translateX(-20px) scale(1.5); } }
+        
+        /* মাছের অ্যানিমেশন */
+        .fish { position: absolute; animation: swim 15s linear infinite; z-index: 2; display:flex; flex-direction:column; align-items:center; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); }
+        .fish span { font-size:9px; background:rgba(0,0,0,0.6); color:white; padding:2px 6px; border-radius:5px; margin-top:2px; font-weight:bold; letter-spacing: 0.5px; }
+        
+        /* আলাদা আলাদা মাছের স্পিড ও সাইজ */
+        .f1 { top: 40px; animation-duration: 14s; animation-delay: 0s; font-size: 35px; }
+        .f2 { top: 120px; animation-duration: 18s; animation-delay: -5s; font-size: 40px; }
+        .f3 { top: 200px; animation-duration: 16s; animation-delay: -2s; font-size: 30px; }
+        .f4 { top: 260px; animation-duration: 22s; animation-delay: -10s; font-size: 45px; }
+
+        @keyframes swim {
+            0% { left: -60px; transform: scaleX(1) translateY(0); }
+            49% { left: 100%; transform: scaleX(1) translateY(15px); }
+            50% { left: 100%; transform: scaleX(-1) translateY(15px); }
+            99% { left: -60px; transform: scaleX(-1) translateY(0); }
+            100% { left: -60px; transform: scaleX(1) translateY(0); }
+        }
+        
+        /* অ্যাকোয়ারিয়ামের গাছপালা */
+        .grass { position: absolute; bottom: -10px; font-size: 50px; z-index: 1; filter: hue-rotate(90deg) brightness(0.8); }
+    </style>
+
+    <div style="text-align:center; margin-bottom: 15px;">
+        <h2 style="margin:0; color: #0ea5e9; font-size: 24px; font-weight: 800;">রিল্যাক্সিং অ্যাকোয়ারিয়াম 🌿</h2>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:5px;">একটু বিরতি নিন এবং মাছগুলোর সাঁতার কাটুন দেখুন</p>
+    </div>
+
+    <div class="aqua-box" id="aquaContainer">
+        <div class="fish f1">🐠<span>টেট্রা</span></div>
+        <div class="fish f2">🐟<span>মলি</span></div>
+        <div class="fish f3">🐡<span>গোল্ডফিশ</span></div>
+        <div class="fish f4">🐬<span>অ্যাঞ্জেল ফিশ</span></div>
+
+        <div class="grass" style="left: 10px;">🌿</div>
+        <div class="grass" style="left: 80px; font-size:35px;">🪴</div>
+        <div class="grass" style="right: 30px; font-size:65px;">🌿</div>
+        <div class="grass" style="right: 110px; font-size:40px;">🌱</div>
+    </div>
+
+    <div style="margin-top:20px; display:flex; justify-content:center;">
+        <button onclick="feedFish(this)" style="background: linear-gradient(45deg, #10b981, #059669); color:white; border:none; padding:12px 25px; border-radius:12px; cursor:pointer; font-weight:bold; font-size:14px; box-shadow: 0 4px 10px rgba(16,185,129,0.4); display:flex; align-items:center; gap:8px; transition:0.3s;">
+            🥨 মাছকে খাবার দিন
+        </button>
+    </div>
+    `;
+    
+    renderModal("🐠 ভার্চুয়াল অ্যাকোয়ারিয়াম", html);
+    
+    // জল থেকে বুদবুদ ওঠার ম্যাজিক
+    setTimeout(() => {
+        let container = document.getElementById('aquaContainer');
+        if(container) {
+            for(let i=0; i<15; i++) {
+                let bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.width = Math.random() * 8 + 4 + 'px';
+                bubble.style.height = bubble.style.width;
+                bubble.style.animationDuration = Math.random() * 3 + 2 + 's';
+                bubble.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(bubble);
+            }
+        }
+    }, 100);
+}
+
+// মাছকে খাবার দেওয়ার ফাংশন
+function feedFish(btn) {
+    let originalText = btn.innerHTML;
+    btn.innerHTML = "✨ মাছগুলো খুব খুশি হয়েছে!";
+    btn.style.background = "linear-gradient(45deg, #0ea5e9, #0284c7)";
+    
+    let container = document.getElementById('aquaContainer');
+    if(container) {
+        // ওপর থেকে খাবার পড়বে
+        for(let i=0; i<8; i++) {
+            let food = document.createElement('div');
+            food.style.position = 'absolute';
+            food.style.width = '8px';
+            food.style.height = '8px';
+            food.style.background = '#8B4513';
+            food.style.borderRadius = '50%';
+            food.style.left = (Math.random() * 80 + 10) + '%';
+            food.style.top = '-10px';
+            food.style.zIndex = '3';
+            food.style.transition = 'top 3s linear';
+            container.appendChild(food);
+            
+            setTimeout(() => { food.style.top = '95%'; }, 50);
+            setTimeout(() => { food.remove(); }, 3000); // ৩ সেকেন্ড পর খাবার উধাও
+        }
+    }
+    
+    // বাটন আবার আগের অবস্থায় ফিরে যাবে
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.style.background = "linear-gradient(45deg, #10b981, #059669)";
+    }, 2500);
+}
     
 </script>
 </body>
