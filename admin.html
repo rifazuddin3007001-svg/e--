@@ -202,6 +202,64 @@ function getOnlineStatus(lastSeen) {
                 alert("সার্ভার সমস্যা! আবার চেষ্টা করুন।");
             }
         }
+        // --- অ্যাডমিন চ্যাট ম্যানেজমেন্ট (অটোমেটিক তৈরি হবে) ---
+document.body.insertAdjacentHTML('beforeend', `
+    <div style="background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; margin: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <h3 style="margin-top:0; color: #ef4444;">💬 পাবলিক চ্যাট কন্ট্রোল</h3>
+        <p style="font-size: 13px; color: #94a3b8;">এখান থেকে যেকোনো ইউজারের মেসেজ ডিলিট করতে পারবেন।</p>
+        <div id="admin-chat-list" style="max-height: 350px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 8px;">
+            লোড হচ্ছে...
+        </div>
+    </div>
+`);
+
+function loadAdminChats() {
+    fetch('https://radica-super-app-18cb3-default-rtdb.firebaseio.com/chats.json')
+    .then(res => res.json())
+    .then(data => {
+        let chatBox = document.getElementById('admin-chat-list');
+        if(!chatBox) return;
+        
+        if(!data) {
+            chatBox.innerHTML = "<p style='color:gray; text-align:center; margin-top:20px;'>কোনো মেসেজ নেই!</p>";
+            return;
+        }
+
+        let html = "";
+        let keys = Object.keys(data).reverse(); // নতুন মেসেজগুলো সবার ওপরে দেখানোর জন্য
+        
+        keys.forEach(key => {
+            let m = data[key];
+            let time = new Date(m.time);
+            let timeStr = time.getHours() + ':' + time.getMinutes().toString().padStart(2, '0');
+            
+            html += `
+            <div style="background:#1e293b; padding:10px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-left: 3px solid #3b82f6;">
+                <div>
+                    <small style="color:#94a3b8; font-size:11px; font-weight:bold;">${m.sender} <span style="font-weight:normal;">• ${timeStr}</span></small><br>
+                    <span style="color:white; font-size:14px;">${m.text}</span>
+                </div>
+                <button onclick="deleteChatMsg('${key}')" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; font-size:12px; font-weight:bold;">ডিলিট</button>
+            </div>`;
+        });
+        chatBox.innerHTML = html;
+    });
+}
+
+function deleteChatMsg(msgId) {
+    if(confirm("আপনি কি সত্যিই এই মেসেজটি ডিলিট করতে চান?")) {
+        fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/chats/${msgId}.json`, {
+            method: 'DELETE'
+        }).then(() => {
+            loadAdminChats(); // ডিলিট হওয়ার সাথে সাথে লিস্ট অটো-আপডেট হবে
+        });
+    }
+}
+
+// চ্যাট লোড করা এবং প্রতি ৫ সেকেন্ডে আপডেট করা
+setTimeout(loadAdminChats, 1000);
+setInterval(loadAdminChats, 5000);
+        
     </script>
 </body>
 </html>
