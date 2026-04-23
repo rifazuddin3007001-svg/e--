@@ -703,7 +703,7 @@ function loadMessages() {
         });
     }, 2000);
 }
-// --- 💎 প্রিমিয়াম এক্সপেন্সিভ শপ লজিক ---
+// --- 💎 প্রিমিয়াম এক্সপেন্সিভ শপ লজিক (Corrected Balance) ---
 const premiumItems = [
     { name: 'Elite VIP Badge', icon: '🛡️', price: 1000000, desc: '১ মিলিয়ন কোয়ান্ট দিয়ে কিনুন' },
     { name: 'Golden Name Tag', icon: '🏷️', price: 5000000, desc: 'আপনার নাম সোনালী হয়ে যাবে' },
@@ -714,7 +714,8 @@ const premiumItems = [
 ];
 
 function openPremiumShop() {
-    let mainBal = (typeof user !== 'undefined' && user.balance) ? user.balance : 0;
+    // এখানে user.bal ব্যবহার করা হয়েছে যাতে আসল ব্যালেন্স দেখায়
+    let mainBal = (typeof user !== 'undefined' && user.bal) ? user.bal : 0;
     let html = `
     <div style="text-align:center; margin-bottom:15px; background: linear-gradient(45deg, #1e1b4b, #312e81); padding:15px; border-radius:15px; border: 2px solid #fbbf24;">
         <h2 style="color:#fbbf24; margin:0; font-size:22px;">৳ ${mainBal.toLocaleString()}</h2>
@@ -742,20 +743,23 @@ function openPremiumShop() {
 }
 
 async function buyPremiumItem(price, name) {
-    if(user.balance < price) {
+    if(user.bal < price) {
         alert("❌ আপনার মেইন ব্যালেন্স কম!");
         return;
     }
     if(confirm(`আপনি কি সত্যিই ৳${price.toLocaleString()} দিয়ে '${name}' কিনতে চান?`)) {
-        let newBalance = user.balance - price;
-        const response = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/balance.json`, {
+        let newBalance = user.bal - price;
+        
+        // ফায়ারবেসে bal.json আপডেট করা হচ্ছে
+        const response = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/bal.json`, {
             method: 'PUT',
             body: JSON.stringify(newBalance)
         });
+        
         if(response.ok) {
-            user.balance = newBalance;
+            user.bal = newBalance;
             alert(`✅ কেনা সফল! আপনার নতুন ব্যালেন্স: ৳${newBalance.toLocaleString()}`);
-            openPremiumShop();
+            openPremiumShop(); // স্টোর রিফ্রেশ
         }
     }
 }
