@@ -261,5 +261,37 @@ setTimeout(loadAdminChats, 1000);
 setInterval(loadAdminChats, 5000);
         
     </script>
+<div style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <h2 style="color: #e11d48; margin-top: 0;">🛂 ভিসা কন্ট্রোল প্যানেল</h2>
+    <input type="text" id="visa-uid" placeholder="ইউজারের ID লিখুন (e.g. RD-000000)" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; color: black;">
+    <input type="text" id="visa-dest" placeholder="দেশের নাম (e.g. Dubai)" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; color: black;">
+    
+    <div style="display: flex; gap: 10px;">
+        <button onclick="approveVisa(7)" style="flex:1; background: #f59e0b; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold;">৭ দিনের ভিসা দিন</button>
+        <button onclick="approveVisa(30)" style="flex:1; background: #10b981; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold;">১ মাসের ভিসা দিন</button>
+    </div>
+</div>
+
+<script>
+function approveVisa(days) {
+    let uid = document.getElementById('visa-uid').value.trim();
+    let dest = document.getElementById('visa-dest').value.trim();
+    
+    if(!uid || !dest) {
+        alert("ইউজার আইডি এবং দেশের নাম দিন!");
+        return;
+    }
+
+    let expiryTime = new Date().getTime() + (days * 24 * 60 * 60 * 1000); 
+    
+    fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${uid}/visas/${dest}.json`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'approved', expiry: expiryTime })
+    }).then(res => {
+        if(res.ok) alert(`✅ সফল! ${uid}-কে ${dest}-এর জন্য ${days} দিনের ভিসা দেওয়া হয়েছে।`);
+    });
+}
+</script>
+    
 </body>
 </html>
