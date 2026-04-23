@@ -610,6 +610,98 @@ setTimeout(sendPresence, 2000);
 
 // প্রতি ৩০ সেকেন্ড অন্তর আপডেট পাঠাতে থাকবে
 setInterval(sendPresence, 30000);
+// --- ফ্লোটিং চ্যাট বাটন তৈরি ---
+document.body.insertAdjacentHTML('beforeend', `
+    <div onclick="openChat()" style="position:fixed; bottom:20px; right:20px; background:#2563eb; color:white; width:55px; height:55px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:25px; box-shadow:0 4px 10px rgba(0,0,0,0.4); cursor:pointer; z-index:9999;">
+        💬
+    </div>
+`);
+
+// --- চ্যাট রুমের লজিক ---
+let lastMsgTime = 0;
+let sessionJoinTime = new Date().getTime(); // ইউজার যখন জয়েন করলো
+
+function openChat() {
+    let chatHtml = `
+    <div style="height:350px; display:flex; flex-direction:column; background:#111; border-radius:15px; padding:10px; border:1px solid #333;">
+        <div id="msg-area" style="flex-grow:1; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:8px;">
+            <p style="color:gray; font-size:11px; text-align:center;">স্বাগতম! জয়েন করার পর থেকে আসা মেসেজগুলো এখানে দেখা যাবে।</p>
+        </div>
+        <div style="display:flex; gap:5px;">
+            <input type="text" id="msg-input" placeholder="মেসেজ লিখুন..." style="flex-grow:1; background:#222; color:white; border:1px solid #444; padding:10px; border-radius:8px; outline:none;">
+            <button onclick="sendMsg()" style="background:#2563eb; border:none; color:white; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">পাঠান</button>
+        </div>
+        <div id="msg-error" style="color:#ef4444; font-size:10px; margin-top:5px; display:none; text-align:center;">১ মিনিট পর আবার মেসেজ করা যাবে!</div>
+    </div>`;
+    
+    openModal("💬 পাবলিক চ্যাট রুম", chatHtml);
+    loadMessages(); // মেসেজ লোড শুরু
+}
+
+function sendMsg() {
+    let now = new Date().getTime();
+    let input = document.getElementById('msg-input');
+    let error = document.getElementById('msg-error');
+    
+    // ১ মিনিটের গ্যাপ চেক
+    if (now - lastMsgTime < 60000) {
+        error.style.display = 'block';
+        return;
+    }
+
+    if (!input.value.trim()) return;
+
+    let data = {
+        sender: typeof user !== 'undefined' ? user.name : 'অজানা',
+        text: input.value,
+        time: now,
+        uid: typeof user !== 'undefined' ? user.id : 'unknown'
+    };
+
+    // Firebase-এ পাঠানো
+    fetch('https://radica-super-app-18cb3-default-rtdb.firebaseio.com/chats.json', {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+
+    input.value = "";
+    lastMsgTime = now;
+    error.style.display = 'none';
+}
+
+let chatInterval;
+function loadMessages() {
+    const area = document.getElementById('msg-area');
+    if(chatInterval) clearInterval(chatInterval); // ডাবল লুপ আটকানোর জন্য
+    
+    chatInterval = setInterval(() => {
+        fetch('https://radica-super-app-18cb3-default-rtdb.firebaseio.com/chats.json')
+        .then(res => res.json())
+        .then(data => {
+            let currentArea = document.getElementById('msg-area');
+            if(!data || !currentArea) return;
+            
+            let finalHtml = "";
+            Object.keys(data).forEach(key => {
+                let m = data[key];
+                // শুধুমাত্র জয়েন করার পরের মেসেজ দেখানো
+                if (m.time >= sessionJoinTime) {
+                    let isMe = (typeof user !== 'undefined' && m.uid === user.id);
+                    finalHtml += `
+                    <div style="align-self: ${isMe ? 'flex-end' : 'flex-start'}; background: ${isMe ? '#2563eb' : '#333'}; padding:8px 12px; border-radius:12px; max-width:85%; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+                        <small style="font-size:9px; color:#aaa; display:block; margin-bottom:2px;">${m.sender}</small>
+                        <span style="font-size:13px; color:white; word-break:break-all;">${m.text}</span>
+                    </div>`;
+                }
+            });
+            
+            if(currentArea.innerHTML !== finalHtml && finalHtml !== "") {
+                currentArea.innerHTML = finalHtml;
+                currentArea.scrollTop = currentArea.scrollHeight;
+            }
+        });
+    }, 2000);
+}
     
 </script>
 </body>
