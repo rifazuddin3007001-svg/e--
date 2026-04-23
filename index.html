@@ -447,7 +447,8 @@
             open: () => { 
                 const items = [{n:'অ্যাডেনিয়াম চারা', p:300, i:'🌱'}, {n:'বোগেনভিলিয়া', p:250, i:'🌸'}, {n:'শৌর্যপুর শিল্ড', p:800, i:'🛡️'}, {n:'ভিআইপি মুকুট', p:5000, i:'👑'}];
                 let h = items.map(itm => `<div class="list-card" style="display:flex; justify-content:space-between; align-items:center;"><div><b style="font-size:16px;">${itm.i} ${itm.n}</b><br><small style="color:var(--accent); font-weight:bold;">${itm.p} Q</small></div><button class="btn btn-success" style="width:auto; margin:0; padding:8px 15px;" onclick="apps.buy('${itm.n}',${itm.p},'${itm.i}')">কিনুন</button></div>`).join('');
-                renderModal("কোয়ান্ট স্টোর 🛍️", `<p style="margin-bottom:15px; color:var(--text-muted);">কোয়ান্ট খরচ করে ব্যাজ কিনুন এবং প্রোফাইল সাজান।</p>${h}`); 
+                renderModal("কোয়ান্ট স্টোর 🛍️", '<button onclick="openPremiumShop()" style="background: linear-gradient(45deg, #fbbf24, #f59e0b); color: #000; font-weight: bold; padding: 12px; border-radius: 8px; border: none; width: 100%; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-size: 14px;">💎 এক্সপেন্সিভ ভিআইপি স্টোর (Premium)</button><p style="margin-bottom:15px; color:var(--text-muted);">কোয়ান্ট খরচ করে পছন্দের জিনিস কিনুন:</p>' + h);
+
             } 
         },
         health: { open: () => { renderModal("হেলথ হাব 🏥", `<div class="list-card text-center"><h3 style="margin-bottom:10px;">BMI ক্যালকুলেটর</h3><div style="display:flex; gap:10px;"><input type="number" id="hh" class="form-control" placeholder="উচ্চতা (cm)"><input type="number" id="hw" class="form-control" placeholder="ওজন (kg)"></div><button class="btn btn-danger" onclick="apps.bmi()">BMI চেক করুন</button><h2 id="bres" style="margin-top:15px; color:var(--primary);"></h2></div>`); } },
