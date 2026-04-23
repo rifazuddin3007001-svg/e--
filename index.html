@@ -983,10 +983,11 @@ function feedFish(btn) {
         btn.style.background = "linear-gradient(45deg, #10b981, #059669)";
     }, 2500);
 }
- // =========================================================
-// ✈️ RADICA PRO TRAVEL AGENCY (Passport, Visa & History)
+// =========================================================
+// ✈️ ULTIMATE VIRTUAL TRAVEL AGENCY (Full Version)
 // =========================================================
 
+// ১. মেনুতে অটোমেটিক ট্রাভেল এজেন্সি বাটন অ্যাড করা
 setTimeout(() => {
     let menuGrid = document.querySelector('.menu-grid');
     if(menuGrid && !document.getElementById('travel-btn')) {
@@ -999,23 +1000,32 @@ setTimeout(() => {
     }
 }, 1000);
 
+// ২. ২০টি দেশ ও তাদের ছবি, দাম, বিবরণ
 const destinations = [
-    { name: 'Darjeeling', price: 5000, type: 'Domestic', desc: 'Paharer rani o cha bagan', imgs: ['https://images.unsplash.com/photo-1544735716-392fe2489ffa', 'https://images.unsplash.com/photo-1626082896492-766af4eb6501', 'https://images.unsplash.com/photo-1582236535496-e2003501977e', 'https://images.unsplash.com/photo-1626697556651-67f0aba1678a'] },
-    { name: 'Puri', price: 4000, type: 'Domestic', desc: 'Samudra saikat o Jagannath Mandir', imgs: ['https://images.unsplash.com/photo-1590513904036-7c98e1699745', 'https://images.unsplash.com/photo-1621353841530-58c03998b368', 'https://images.unsplash.com/photo-1632508107767-c20894086e11', 'https://images.unsplash.com/photo-1624467041539-7566f12e1ec7'] },
-    { name: 'Switzerland', price: 50000, type: 'International', desc: 'Borof o paharer swarga', imgs: ['https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99', 'https://images.unsplash.com/photo-1527668752968-14dc70a27c95', 'https://images.unsplash.com/photo-1516149862022-771236845f94', 'https://images.unsplash.com/photo-1491555103944-7c647fd857e6'] },
-    { name: 'Dubai', price: 35000, type: 'International', desc: 'Burj Khalifa o morubhumi', imgs: ['https://images.unsplash.com/photo-1512453979798-5ea266f8880c', 'https://images.unsplash.com/photo-1518684079-3c830dcef090', 'https://images.unsplash.com/photo-1540206395-6880f94933af', 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1'] },
-    { name: 'Maldives', price: 45000, type: 'International', desc: 'Neel jol o luxury resort', imgs: ['https://images.unsplash.com/photo-1514282401047-d79a71a590e8', 'https://images.unsplash.com/photo-1439066615861-d1af74d74000', 'https://images.unsplash.com/photo-1506953823976-52e1bdc0149a', 'https://images.unsplash.com/photo-1467377733257-0197f19e7536'] }
-    // ... bakitao automatically add hoye jabe
+    { name: 'Darjeeling', price: 5000, type: 'Domestic', desc: 'পাহাড়ের রানী ও চা বাগান', imgs: ['https://images.unsplash.com/photo-1544735716-392fe2489ffa', 'https://images.unsplash.com/photo-1626082896492-766af4eb6501', 'https://images.unsplash.com/photo-1582236535496-e2003501977e', 'https://images.unsplash.com/photo-1626697556651-67f0aba1678a'] },
+    { name: 'Puri', price: 4000, type: 'Domestic', desc: 'সমুদ্র সৈকত ও জগন্নাথ মন্দির', imgs: ['https://images.unsplash.com/photo-1590513904036-7c98e1699745', 'https://images.unsplash.com/photo-1621353841530-58c03998b368', 'https://images.unsplash.com/photo-1632508107767-c20894086e11', 'https://images.unsplash.com/photo-1624467041539-7566f12e1ec7'] },
+    { name: 'Gangtok', price: 6000, type: 'Domestic', desc: 'সিকিমের সুন্দর রাজধানী', imgs: ['https://images.unsplash.com/photo-1616423640778-28d1b53229bd', 'https://images.unsplash.com/photo-1626715172901-20921473950d', 'https://images.unsplash.com/photo-1626714441584-3866d69f06d8', 'https://images.unsplash.com/photo-1616423684203-d34e9e51c86d'] },
+    { name: 'Bangladesh', price: 7000, type: 'International', desc: 'ঢাকা ও কক্সবাজার সৈকত', imgs: ['https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1', 'https://images.unsplash.com/photo-1601344445851-92b512c1d9b9', 'https://images.unsplash.com/photo-1610473068533-3d078170068a', 'https://images.unsplash.com/photo-1583935279646-6085a53a9485'] },
+    { name: 'Sundarban', price: 5500, type: 'Domestic', desc: 'ম্যানগ্রোভ বন ও বাঘের বাড়ি', imgs: ['https://images.unsplash.com/photo-1618335354963-3837943088b9', 'https://images.unsplash.com/photo-1608976328267-e673d3ec06ce', 'https://images.unsplash.com/photo-1589133031034-31127027407a', 'https://images.unsplash.com/photo-1625244724123-1eeaa0e6ca7b'] },
+    { name: 'Jaipur', price: 8500, type: 'Domestic', desc: 'পিঙ্ক সিটি ও রাজকীয় দুর্গ', imgs: ['https://images.unsplash.com/photo-1599661046289-e31897846e41', 'https://images.unsplash.com/photo-1524230507669-5ff97982bb5e', 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33', 'https://images.unsplash.com/photo-1477587458883-47145ed94245'] },
+    { name: 'Agra', price: 4500, type: 'Domestic', desc: 'তাজমহল ও মুঘল ইতিহাস', imgs: ['https://images.unsplash.com/photo-1564507592333-c60657ece523', 'https://images.unsplash.com/photo-1548013146-72479768bbaa', 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da', 'https://images.unsplash.com/photo-1541829070764-84a7d30dee62'] },
+    { name: 'Delhi', price: 5000, type: 'Domestic', desc: 'রাজধানী ও পুরোনো কেল্লা', imgs: ['https://images.unsplash.com/photo-1587474260584-136574528ed5', 'https://images.unsplash.com/photo-1585129638846-344520440375', 'https://images.unsplash.com/photo-1570160896302-30802b29d7a2', 'https://images.unsplash.com/photo-1598363717141-863777085c84'] },
+    { name: 'Switzerland', price: 50000, type: 'International', desc: 'বরফ ও পাহাড়ের স্বর্গ', imgs: ['https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99', 'https://images.unsplash.com/photo-1527668752968-14dc70a27c95', 'https://images.unsplash.com/photo-1516149862022-771236845f94', 'https://images.unsplash.com/photo-1491555103944-7c647fd857e6'] },
+    { name: 'Maldives', price: 45000, type: 'International', desc: 'নীল জল ও লাক্সারি রিসোর্ট', imgs: ['https://images.unsplash.com/photo-1514282401047-d79a71a590e8', 'https://images.unsplash.com/photo-1439066615861-d1af74d74000', 'https://images.unsplash.com/photo-1506953823976-52e1bdc0149a', 'https://images.unsplash.com/photo-1467377733257-0197f19e7536'] },
+    { name: 'Paris', price: 55000, type: 'International', desc: 'আইফেল টাওয়ার ও ভালোবাসার শহর', imgs: ['https://images.unsplash.com/photo-1502602898657-3e91760cbb34', 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a', 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f', 'https://images.unsplash.com/photo-1522093007474-d86e9bf7ba6f'] },
+    { name: 'Dubai', price: 35000, type: 'International', desc: 'বুর্জ খলিফা ও মরুভূমি', imgs: ['https://images.unsplash.com/photo-1512453979798-5ea266f8880c', 'https://images.unsplash.com/photo-1518684079-3c830dcef090', 'https://images.unsplash.com/photo-1540206395-6880f94933af', 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1'] },
+    { name: 'Singapore', price: 30000, type: 'International', desc: 'মডার্ন সিটি ও গার্ডেন বাই দ্য বে', imgs: ['https://images.unsplash.com/photo-1525625232717-121ad31050da', 'https://images.unsplash.com/photo-1550322134-e8997658c015', 'https://images.unsplash.com/photo-1506704480346-d32cd8ee3881', 'https://images.unsplash.com/photo-1565967511849-75a6fd33258b'] },
+    { name: 'Dooars', price: 4500, type: 'Domestic', desc: 'শান্তিময় জঙ্গল ও পাহাড়', imgs: ['https://images.unsplash.com/photo-1622353381498-f2b7b5f54316', 'https://images.unsplash.com/photo-1589417431206-a05d4df47402', 'https://images.unsplash.com/photo-1622353147820-22c6e613b56a', 'https://images.unsplash.com/photo-1622353123049-7d88bc4da220'] },
+    { name: 'Vizag', price: 6500, type: 'Domestic', desc: 'পাহাড় ও সমুদ্রের মিলন', imgs: ['https://images.unsplash.com/photo-1623910309395-608b49527ec3', 'https://images.unsplash.com/photo-1623910309195-26a97828c46a', 'https://images.unsplash.com/photo-1623910309495-26a97828c46a', 'https://images.unsplash.com/photo-1623910309595-26a97828c46a'] },
+    { name: 'Ranchi', price: 3500, type: 'Domestic', desc: 'ঝরনার শহর', imgs: ['https://images.unsplash.com/photo-1628151280047-d5d852028822', 'https://images.unsplash.com/photo-1628151280147-d5d852028822', 'https://images.unsplash.com/photo-1628151280247-d5d852028822', 'https://images.unsplash.com/photo-1628151280347-d5d852028822'] },
+    { name: 'Jamshedpur', price: 3000, type: 'Domestic', desc: 'স্টিল সিটি ও জুবিলি পার্ক', imgs: ['https://images.unsplash.com/photo-1624388835567-5f112445e998', 'https://images.unsplash.com/photo-1624388835467-5f112445e998', 'https://images.unsplash.com/photo-1624388835367-5f112445e998', 'https://images.unsplash.com/photo-1624388835267-5f112445e998'] },
+    { name: 'Bhubaneswar', price: 4000, type: 'Domestic', desc: 'মন্দিরের শহর', imgs: ['https://images.unsplash.com/photo-1621353841330-58c03998b368', 'https://images.unsplash.com/photo-1621353841130-58c03998b368', 'https://images.unsplash.com/photo-1621353841230-58c03998b368', 'https://images.unsplash.com/photo-1621353841430-58c03998b368'] },
+    { name: 'Kashmir', price: 15000, type: 'Domestic', desc: 'পৃথিবীর স্বর্গ', imgs: ['https://images.unsplash.com/photo-1566833912252-7023a027200a', 'https://images.unsplash.com/photo-1595815771614-ade9d652a65d', 'https://images.unsplash.com/photo-1588661605333-e99d9860b769', 'https://images.unsplash.com/photo-1598324789736-4861f89564a0'] },
+    { name: 'Bangkok', price: 20000, type: 'International', desc: 'শপিং ও নাইট লাইফ', imgs: ['https://images.unsplash.com/photo-1508009603885-50cf7c579367', 'https://images.unsplash.com/photo-1563492065599-3520f775eeed', 'https://images.unsplash.com/photo-1555400038-63f5ba517a47', 'https://images.unsplash.com/photo-1583491323464-7fe5ec209df2'] }
 ];
 
-// Virtual Travel Gallery logic update
-async function openTravelAgency() {
-    let history = {};
-    try {
-        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/travel_history.json`);
-        history = await res.json() || {};
-    } catch(e) {}
-
+// ৩. ট্রাভেল এজেন্সি খোলার মেইন ফাংশন
+function openTravelAgency() {
     let html = `
     <div style="display:flex; gap:10px; margin-bottom:15px;">
         <button onclick="showTicketList()" id="btn-tickets" style="flex:1; padding:10px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">🎟️ টিকেট কিনুন</button>
@@ -1023,24 +1033,17 @@ async function openTravelAgency() {
     </div>
     <div id="travel-content"></div>`;
 
-    renderModal("✈️ রাডিকা ট্রাভেল এজেন্সি", html);
-    showTicketList(); // Default view
+    renderModal("✈️ রেডিকা ট্রাভেল এজেন্সি", html);
+    showTicketList(); // ডিফল্ট ভিউ
 }
 
-// 🎟️ Ticket List View
+// ৪. টিকিটের তালিকা (একবার টিকিট কাটলে সাথে সাথে ট্যুর)
 async function showTicketList() {
     document.getElementById('btn-tickets').style.background = 'var(--primary)';
     document.getElementById('btn-passport').style.background = '#333';
     
-    let history = {};
-    try {
-        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/travel_history.json`);
-        history = await res.json() || {};
-    } catch(e) {}
-
     let html = `<div style="display:flex; flex-direction:column; gap:12px; max-height:350px; overflow-y:auto; padding:5px;">`;
     destinations.forEach(dest => {
-        let isBought = Object.values(history).some(h => h.name === dest.name);
         html += `
         <div style="background:var(--bg-main); border:1px solid var(--border-col); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
             <div>
@@ -1048,17 +1051,14 @@ async function showTicketList() {
                 <div style="font-size:11px; color:var(--text-muted);">${dest.desc}</div>
                 <div style="font-weight:bold; color:var(--accent); margin-top:3px;">৳ ${dest.price.toLocaleString()}</div>
             </div>
-            ${isBought ? 
-                `<button onclick="showTour('${dest.name}')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px;">ঘুরতে যান 🚗</button>` :
-                `<button onclick="buyTravelTicket(${dest.price}, '${dest.name}')" style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px;">টিকিট 🎟️</button>`
-            }
+            <button onclick="buyTravelTicket(${dest.price}, '${dest.name}')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px;">কিনুন ও ঘুরুন ✈️</button>
         </div>`;
     });
     html += `</div>`;
     document.getElementById('travel-content').innerHTML = html;
 }
 
-// 🛂 Passport & Visa Section with History
+// ৫. পাসপোর্ট ও ভিসা সেকশন (হিস্ট্রি সহ)
 async function showPassportSection() {
     document.getElementById('btn-tickets').style.background = '#333';
     document.getElementById('btn-passport').style.background = 'var(--primary)';
@@ -1081,12 +1081,12 @@ async function showPassportSection() {
             <div>
                 <div style="font-weight:bold; font-size:16px;">${user.name}</div>
                 <div style="font-size:12px; opacity:0.8;">ID: ${user.id}</div>
-                <div style="font-size:12px; margin-top:5px; background:var(--accent); color:black; padding:2px 8px; border-radius:5px; font-weight:bold; display:inline-block;">Traveler Level: ${historyList.length > 5 ? 'Global Elite' : 'Pro Tourist'}</div>
+                <div style="font-size:12px; margin-top:5px; background:var(--accent); color:black; padding:2px 8px; border-radius:5px; font-weight:bold; display:inline-block;">Traveler Level: ${historyList.length > 5 ? 'Global Elite' : 'Tourist'}</div>
             </div>
         </div>
     </div>
-    <h3 style="font-size:14px; margin-bottom:10px;">ভিসা ও ভ্রমণ ইতিহাস:</h3>
-    <div style="max-height:200px; overflow-y:auto; border-top:1px solid var(--border-col); padding-top:10px;">`;
+    <h3 style="font-size:14px; margin-bottom:10px; border-bottom:1px solid var(--border-col); padding-bottom:5px;">ভিসা ও ভ্রমণ ইতিহাস:</h3>
+    <div style="max-height:180px; overflow-y:auto; padding-right:5px;">`;
 
     if(historyList.length === 0) {
         html += `<p style="text-align:center; color:gray; font-size:12px; margin-top:20px;">আপনি এখনও কোনো সফর করেননি!</p>`;
@@ -1095,12 +1095,12 @@ async function showPassportSection() {
             let destInfo = destinations.find(d => d.name === place);
             let isInternational = destInfo?.type === 'International';
             html += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed var(--border-col);">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px dashed var(--border-col);">
                 <div>
-                    <span style="font-weight:bold;">${place}</span> 
-                    ${isInternational ? `<span style="font-size:9px; background:#10b981; color:white; padding:1px 5px; border-radius:4px; margin-left:5px;">VISA APPROVED</span>` : ''}
+                    <span style="font-weight:bold; font-size:14px;">${place}</span> 
+                    ${isInternational ? `<br><span style="font-size:9px; background:#10b981; color:white; padding:2px 5px; border-radius:4px; display:inline-block; margin-top:3px;">VISA APPROVED</span>` : ''}
                 </div>
-                <div style="font-size:12px; font-weight:bold; color:var(--primary);">সফর সংখ্যা: ${visitCounts[place]} বার</div>
+                <div style="font-size:12px; font-weight:bold; color:var(--primary); background:rgba(0,74,153,0.1); padding:4px 8px; border-radius:5px;">সফর সংখ্যা: ${visitCounts[place]} বার</div>
             </div>`;
         });
     }
@@ -1109,13 +1109,13 @@ async function showPassportSection() {
     document.getElementById('travel-content').innerHTML = html;
 }
 
-// Function to handle buying ticket
+// ৬. টিকিট কেনা এবং টাকা কাটার লজিক
 async function buyTravelTicket(price, destName) {
     if(user.bal < price) {
         alert("❌ পর্যাপ্ত ব্যালেন্স নেই!");
         return;
     }
-    if(confirm(`${destName} যাওয়ার টিকেট কি ৳${price.toLocaleString()} দিয়ে কিনতে চান?`)) {
+    if(confirm(`${destName} যাওয়ার টিকেট ৳${price.toLocaleString()} দিয়ে কিনে এখনই ঘুরতে চান?`)) {
         let newBal = user.bal - price;
         const balRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/bal.json`, {
             method: 'PUT',
@@ -1123,18 +1123,20 @@ async function buyTravelTicket(price, destName) {
         });
         
         if(balRes.ok) {
-            user.bal = newBal;
+            user.bal = newBal; // ব্যালেন্স আপডেট
+            // হিস্ট্রিতে সেভ করা
             await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/travel_history.json`, {
                 method: 'POST',
                 body: JSON.stringify({ name: destName, time: new Date().getTime() })
             });
-            alert(`✅ অভিনন্দন! ${destName} যাওয়ার টিকেট কেনা সফল।`);
-            showTicketList(); 
+            
+            // টিকিট কাটার সাথে সাথেই ট্যুর শুরু হয়ে যাবে
+            showTour(destName); 
         }
     }
 }
 
-// 🏔️ Show Virtual Tour
+// ৭. ভার্চুয়াল ট্যুর গ্যালারি
 function showTour(destName) {
     let dest = destinations.find(d => d.name === destName);
     if(!dest) return;
@@ -1143,8 +1145,8 @@ function showTour(destName) {
         <h2 style="color:var(--primary); margin:0;">স্বাগতম: ${dest.name} 🏔️</h2>
         <p style="font-size:12px; color:var(--text-muted);">আপনার ভার্চুয়াল ট্যুর এনজয় করুন</p>
     </div>
-    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:15px;">
-        ${dest.imgs.map(url => `<img src="${url}" style="width:100%; height:120px; object-fit:cover; border-radius:10px; border:2px solid var(--border-col);">`).join('')}
+    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:20px;">
+        ${dest.imgs.map(url => `<img src="${url}" style="width:100%; height:130px; object-fit:cover; border-radius:10px; border:2px solid var(--border-col); box-shadow: 0 4px 6px rgba(0,0,0,0.1);">`).join('')}
     </div>
     <button class="btn btn-primary" onclick="openTravelAgency()">🔙 ট্রাভেল এজেন্সিতে ফিরুন</button>
     `;
