@@ -594,6 +594,23 @@
             return false;
         }
     };
+    // --- অনলাইন স্ট্যাটাস ট্র্যাকার ---
+function sendPresence() {
+    if (typeof user !== 'undefined' && user && user.id) {
+        let now = new Date().getTime();
+        fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/lastSeen.json`, {
+            method: "PUT",
+            body: JSON.stringify(now)
+        }).catch(e => console.log("Status update failed"));
+    }
+}
+
+// অ্যাপ খোলার ২ সেকেন্ড পর প্রথমবার পাঠাবে
+setTimeout(sendPresence, 2000);
+
+// প্রতি ৩০ সেকেন্ড অন্তর আপডেট পাঠাতে থাকবে
+setInterval(sendPresence, 30000);
+    
 </script>
 </body>
 </html>
