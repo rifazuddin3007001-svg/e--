@@ -1837,7 +1837,7 @@ async function sendTip(postId, ownerId, ownerName) {
     }
                    }
 // =========================================================
-// ♟️ REDICA CHESS CLUB & FRIEND SYSTEM
+// ♟️ REDICA CHESS CLUB & FRIEND SYSTEM (Fixed Lichess API)
 // =========================================================
 
 setTimeout(() => {
@@ -1892,32 +1892,34 @@ async function loadFriendsTab() {
     document.getElementById('chess-content').innerHTML = content;
     
     // রিকোয়েস্ট লোড করা
-    const reqRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friend_requests.json`);
-    const reqs = await reqRes.json();
-    let reqHtml = '';
-    if(reqs) {
-        reqHtml = '<h4 style="color:#ef4444; margin-bottom:5px;">🔔 ফ্রেন্ড রিকোয়েস্ট</h4>';
-        Object.entries(reqs).forEach(([reqId, reqData]) => {
-            reqHtml += `
-            <div style="background:#fee2e2; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <b>${reqData.name}</b>
-                <button onclick="acceptFriend('${reqId}', '${reqData.name}')" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Accept</button>
-            </div>`;
-        });
-    }
-    document.getElementById('friend-requests-list').innerHTML = reqHtml;
+    try {
+        const reqRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friend_requests.json`);
+        const reqs = await reqRes.json();
+        let reqHtml = '';
+        if(reqs) {
+            reqHtml = '<h4 style="color:#ef4444; margin-bottom:5px;">🔔 ফ্রেন্ড রিকোয়েস্ট</h4>';
+            Object.entries(reqs).forEach(([reqId, reqData]) => {
+                reqHtml += `
+                <div style="background:#fee2e2; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <b>${reqData.name}</b>
+                    <button onclick="acceptFriend('${reqId}', '${reqData.name}')" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Accept</button>
+                </div>`;
+            });
+        }
+        document.getElementById('friend-requests-list').innerHTML = reqHtml;
 
-    // ফ্রেন্ড লিস্ট লোড করা
-    const frRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friends.json`);
-    const friends = await frRes.json();
-    let frHtml = '<h4 style="color:#10b981; margin-bottom:5px;">🤝 আপনার ফ্রেন্ড লিস্ট</h4>';
-    if(!friends) frHtml += '<p style="color:gray; font-size:12px;">আপনার কোনো বন্ধু নেই। ID দিয়ে অ্যাড করুন!</p>';
-    else {
-        Object.entries(friends).forEach(([fId, fName]) => {
-            frHtml += `<div style="background:#f1f5f9; padding:10px; border-radius:8px; margin-bottom:5px; border:1px solid #e2e8f0;">👤 <b>${fName}</b> <span style="font-size:10px; color:gray;">(${fId})</span></div>`;
-        });
-    }
-    document.getElementById('my-friends-list').innerHTML = frHtml;
+        // ফ্রেন্ড লিস্ট লোড করা
+        const frRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friends.json`);
+        const friends = await frRes.json();
+        let frHtml = '<h4 style="color:#10b981; margin-bottom:5px;">🤝 আপনার ফ্রেন্ড লিস্ট</h4>';
+        if(!friends) frHtml += '<p style="color:gray; font-size:12px;">আপনার কোনো বন্ধু নেই। ID দিয়ে অ্যাড করুন!</p>';
+        else {
+            Object.entries(friends).forEach(([fId, fName]) => {
+                frHtml += `<div style="background:#f1f5f9; padding:10px; border-radius:8px; margin-bottom:5px; border:1px solid #e2e8f0;">👤 <b>${fName}</b> <span style="font-size:10px; color:gray;">(${fId})</span></div>`;
+            });
+        }
+        document.getElementById('my-friends-list').innerHTML = frHtml;
+    } catch(e) {}
 }
 
 async function sendFriendRequest() {
@@ -1938,11 +1940,8 @@ async function sendFriendRequest() {
 }
 
 async function acceptFriend(fId, fName) {
-    // নিজের লিস্টে অ্যাড
     await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friends/${fId}.json`, { method: 'PUT', body: JSON.stringify(fName) });
-    // বন্ধুর লিস্টে নিজেকে অ্যাড
     await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${fId}/friends/${user.id}.json`, { method: 'PUT', body: JSON.stringify(user.name) });
-    // রিকোয়েস্ট ডিলিট
     await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friend_requests/${fId}.json`, { method: 'DELETE' });
     
     alert(`✅ ${fName} এখন আপনার ফ্রেন্ড!`);
@@ -1953,47 +1952,48 @@ async function acceptFriend(fId, fName) {
 async function loadPlayTab() {
     let content = `<h4 style="color:#1e293b; margin-bottom:10px;">⚔️ বন্ধুদের চ্যালেঞ্জ করুন</h4>`;
     
-    // নিজের কাছে আসা চ্যালেঞ্জ দেখা
-    const chalRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/chess_challenges.json`);
-    const challenges = await chalRes.json();
-    if(challenges) {
-        content += `<div style="background:#fef3c7; border:1px solid #f59e0b; padding:10px; border-radius:8px; margin-bottom:15px;">`;
-        Object.entries(challenges).forEach(([cId, cData]) => {
-            content += `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div><b>${cData.senderName}</b> চ্যালেঞ্জ করেছে!<br><small>সময়: ${cData.timeMode}</small></div>
-                <button onclick="startMatch('${cData.gameUrl}')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold;">Join Game</button>
-            </div>`;
-        });
-        content += `</div>`;
-    }
+    try {
+        // নিজের কাছে আসা চ্যালেঞ্জ দেখা
+        const chalRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/chess_challenges.json`);
+        const challenges = await chalRes.json();
+        if(challenges) {
+            content += `<div style="background:#fef3c7; border:1px solid #f59e0b; padding:10px; border-radius:8px; margin-bottom:15px;">`;
+            Object.entries(challenges).forEach(([cId, cData]) => {
+                content += `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div><b>${cData.senderName}</b> চ্যালেঞ্জ করেছে!<br><small>সময়: ${cData.timeMode}</small></div>
+                    <button onclick="startMatch('${cData.gameUrl}')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold;">Join Game</button>
+                </div>`;
+            });
+            content += `</div>`;
+        }
 
-    // ফ্রেন্ড লিস্ট লোড করে চ্যালেঞ্জ পাঠানোর অপশন
-    const frRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friends.json`);
-    const friends = await frRes.json();
-    
-    if(!friends) {
-        content += `<p style="text-align:center; color:gray; margin-top:20px;">আপনার ফ্রেন্ড লিস্ট ফাঁকা। আগে ফ্রেন্ড অ্যাড করুন!</p>`;
-    } else {
-        Object.entries(friends).forEach(([fId, fName]) => {
-            content += `
-            <div style="background:white; border:1px solid #cbd5e1; padding:12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                <b>👤 ${fName}</b>
-                <div style="display:flex; gap:5px;">
-                    <select id="time-${fId}" style="padding:5px; border-radius:5px; border:1px solid #ccc;">
-                        <option value="5,2">5 + 2</option>
-                        <option value="10,0" selected>10 Min</option>
-                        <option value="10,3">10 + 3</option>
-                    </select>
-                    <button onclick="createChallenge('${fId}', '${fName}')" style="background:#f43f5e; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-weight:bold;">Challenge</button>
-                </div>
-            </div>`;
-        });
-    }
-    document.getElementById('chess-content').innerHTML = content;
+        // ফ্রেন্ড লিস্ট লোড করে চ্যালেঞ্জ পাঠানোর অপশন
+        const frRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friends.json`);
+        const friends = await frRes.json();
+        
+        if(!friends) {
+            content += `<p style="text-align:center; color:gray; margin-top:20px;">আপনার ফ্রেন্ড লিস্ট ফাঁকা। আগে ফ্রেন্ড অ্যাড করুন!</p>`;
+        } else {
+            Object.entries(friends).forEach(([fId, fName]) => {
+                content += `
+                <div style="background:white; border:1px solid #cbd5e1; padding:12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <b>👤 ${fName}</b>
+                    <div style="display:flex; gap:5px;">
+                        <select id="time-${fId}" style="padding:5px; border-radius:5px; border:1px solid #ccc;">
+                            <option value="5,2">5 + 2</option>
+                            <option value="10,0" selected>10 Min</option>
+                            <option value="10,3">10 + 3</option>
+                        </select>
+                        <button onclick="createChallenge('${fId}', '${fName}')" style="background:#f43f5e; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-weight:bold;">Challenge</button>
+                    </div>
+                </div>`;
+            });
+        }
+        document.getElementById('chess-content').innerHTML = content;
+    } catch(e) {}
 }
 
-// Lichess API দিয়ে রিয়েল গেম তৈরি
 async function createChallenge(fId, fName) {
     let timeVal = document.getElementById(`time-${fId}`).value.split(',');
     let mins = parseInt(timeVal[0]);
@@ -2002,7 +2002,6 @@ async function createChallenge(fId, fName) {
     alert("গেম তৈরি হচ্ছে, একটু অপেক্ষা করুন...");
     
     try {
-        // Lichess Open Challenge API কল
         const response = await fetch("https://lichess.org/api/challenge/open", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -2011,34 +2010,29 @@ async function createChallenge(fId, fName) {
         const data = await response.json();
         const gameUrl = data.challenge.url;
 
-        // বন্ধুকে ডেটাবেসের মাধ্যমে লিংক পাঠানো
         let challengeData = { senderName: user.name, timeMode: `${mins}+${inc}`, gameUrl: gameUrl };
         await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${fId}/chess_challenges/${user.id}.json`, {
             method: 'PUT', body: JSON.stringify(challengeData)
         });
 
-        alert(`✅ ${fName}-কে চ্যালেঞ্জ পাঠানো হয়েছে!\nবন্ধু জয়েন করলেই খেলা শুরু হবে।`);
-        startMatch(gameUrl); // নিজের স্ক্রিনে গেম ওপেন করা
+        alert(`✅ ${fName}-কে চ্যালেঞ্জ পাঠানো হয়েছে!\nআপনার ব্রাউজারে খেলাটি চালু হচ্ছে। বন্ধু জয়েন করলেই শুরু হবে।`);
+        startMatch(gameUrl); 
         
     } catch(e) { alert("গেম তৈরি করতে সমস্যা হয়েছে! ইন্টারনেট চেক করুন।"); }
 }
 
-// অ্যাপের ভেতরেই বোর্ড ওপেন করা (iframe)
+// আসল গেমটি ফুল স্ক্রিনে ওপেন করার জন্য
 function startMatch(url) {
-    let html = `
-    <div style="background:#1e293b; padding:10px; text-align:center; color:white; border-radius:10px 10px 0 0;">
-        <h3 style="margin:0;">🔴 লাইভ চেস ম্যাচ</h3>
-        <p style="margin:0; font-size:10px;">আপনার বন্ধু জয়েন করলেই খেলা শুরু হবে</p>
-    </div>
-    <div style="position:relative; padding-bottom:120%; height:0; overflow:hidden; background:#000;">
-        <iframe src="${url}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen></iframe>
-    </div>
-    <button onclick="openChessClub('play')" style="width:100%; padding:12px; background:#ef4444; color:white; border:none; font-weight:bold; cursor:pointer;">খেলা শেষ / লবিতে ফিরুন</button>
-    `;
-    renderModal("♟️ চেস বোর্ড", html);
+    // Lichess সিকিউরিটির জন্য অ্যাপের ভেতরে না খুলে সরাসরি সেফ উইন্ডোতে খুলবে
+    window.open(url, '_blank');
     
-    // চ্যালেঞ্জ ডিলিট করা যাতে বারবার না দেখায়
+    // ডেটাবেস থেকে চ্যালেঞ্জ ডিলিট করা যাতে বারবার না দেখায়
     fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/chess_challenges.json`, { method: 'DELETE' });
+    
+    alert("✅ গেমটি নতুন ট্যাবে চালু হয়েছে! খেলা শেষ হলে ব্যাক করে আবার অ্যাপে ফিরে আসুন।");
+    
+    // পেজ রিফ্রেশ করে দেওয়া
+    openChessClub('play');
 }
 
 // ================= COACHING TAB =================
@@ -2069,8 +2063,8 @@ function loadCoachTab() {
     </div>
     `;
     document.getElementById('chess-content').innerHTML = content;
-    }
-                                       
+}
+    
 </script>
 </body>
 </html>
