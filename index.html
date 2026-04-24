@@ -1666,7 +1666,142 @@ async function payTax() {
         openTaxDept();
     }
                                             }
-                                            
+// =========================================================
+// 📸 REDGRAM (Floating Photo Gallery & Tournament)
+// =========================================================
+
+// ১. ভাসমান বাটন (Floating Button) তৈরি করা
+setTimeout(() => {
+    if(!document.getElementById('gallery-fab')) {
+        let fab = `<div id="gallery-fab" onclick="openRedGram()" style="position:fixed; bottom:80px; right:20px; width:60px; height:60px; background:linear-gradient(135deg, #ec4899, #f43f5e); border-radius:50%; box-shadow:0 4px 15px rgba(236, 72, 153, 0.4); display:flex; justify-content:center; align-items:center; font-size:28px; z-index:1000; cursor:pointer; color:white; border:2px solid white; animation: bounce 2s infinite;">📸</div>`;
+        document.body.insertAdjacentHTML('beforeend', fab);
+    }
+}, 1500);
+
+let currentTournament = null;
+
+// ২. মেইন গ্যালারি ওপেন করা
+async function openRedGram() {
+    renderModal("📸 RedGram", `<div style="text-align:center; padding:20px;">লোড হচ্ছে... ⏳</div>`);
+    
+    try {
+        const tRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/gallery/tournament.json`);
+        currentTournament = await tRes.json();
+    } catch(e) {}
+
+    let tourneyHtml = '';
+    if (currentTournament && currentTournament.active) {
+        tourneyHtml = `
+        <div style="background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin:0; font-size:16px;">🏆 ফটোগ্র্যাফি টুর্নামেন্ট চলছে!</h3>
+            <p style="margin:3px 0 0 0; font-size:12px;">বিষয়: <b>${currentTournament.theme}</b> | পুরস্কার: <b>৳${currentTournament.prize}</b></p>
+        </div>`;
+    }
+
+    let html = `
+    ${tourneyHtml}
+    <div style="background: var(--bg-main); padding: 15px; border-radius: 12px; border: 2px dashed #ec4899; text-align: center; margin-bottom: 15px;">
+        <p style="margin:0 0 10px 0; font-size:13px; color:var(--text-muted); font-weight:bold;">RedGram-এ আপনার ছবি শেয়ার করুন!</p>
+        <input type="file" id="photo-upload" accept="image/*" style="display:none;" onchange="processAndUploadPhoto(event)">
+        <label for="photo-upload" style="background:#ec4899; color:white; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; display:inline-block;">+ নতুন ছবি দিন</label>
+        <p id="upload-status" style="color:#10b981; font-size:11px; margin-top:8px; display:none;">ছবি আপলোড হচ্ছে... ⏳</p>
+    </div>
+    <div id="photo-feed" style="max-height: 450px; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 15px;">
+        <p style="text-align:center; color:gray;">ছবি লোড হচ্ছে...</p>
+    </div>
+    `;
+    document.getElementById('modalBody').innerHTML = html;
+    loadPhotoFeed();
+}
+
+function processAndUploadPhoto(event) {
+    let file = event.target.files[0];
+    if(!file) return;
+    document.getElementById('upload-status').style.display = "block";
+    let reader = new FileReader();
+    reader.onload = function(e) {
+        let img = new Image();
+        img.onload = async function() {
+            let canvas = document.createElement('canvas');
+            let ctx = canvas.getContext('2d');
+            let MAX_WIDTH = 600; 
+            let scaleSize = MAX_WIDTH / img.width;
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scaleSize;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            let base64Image = canvas.toDataURL('image/jpeg', 0.6); 
+            let newPost = { uid: user.id, uname: user.name, img: base64Image, likes: 0, tips: 0, time: new Date().getTime() };
+            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/gallery/posts.json`, { method: 'POST', body: JSON.stringify(newPost) });
+            document.getElementById('upload-status').style.display = "none";
+            loadPhotoFeed();
+        }
+        img.src = e.target.result;
+    }
+    reader.readAsDataURL(file);
+}
+
+async function loadPhotoFeed() {
+    try {
+        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/gallery/posts.json`);
+        const data = await res.json();
+        const feedDiv = document.getElementById('photo-feed');
+        if(!data) { feedDiv.innerHTML = '<p style="text-align:center; color:gray;">RedGram-এ এখনও কোনো ছবি নেই। আপনিই প্রথম ছবি দিন!</p>'; return; }
+        let html = '';
+        let posts = Object.entries(data).reverse(); 
+        posts.forEach(([postId, post]) => {
+            let date = new Date(post.time).toLocaleString('bn-BD');
+            html += `
+            <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #fce7f3; margin-bottom:10px;">
+                <div style="padding: 10px; display: flex; align-items: center; gap: 10px; background: #fdf2f8;">
+                    <div style="width:30px; height:30px; background:#ec4899; color:white; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold;">${post.uname.charAt(0)}</div>
+                    <div style="text-align:left;">
+                        <div style="font-weight:bold; font-size:13px; color:#1e293b;">${post.uname}</div>
+                        <div style="font-size:10px; color:gray;">${date}</div>
+                    </div>
+                </div>
+                <img src="${post.img}" style="width:100%; max-height:400px; object-fit:contain; background:black;">
+                <div style="padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <button onclick="likePhoto('${postId}', ${post.likes})" style="background:none; border:none; font-size:22px; cursor:pointer; display:flex; align-items:center; gap:5px; color:#ec4899;">
+                        ❤️ <span style="font-size:16px; font-weight:bold;">${post.likes || 0}</span>
+                    </button>
+                    ${post.uid !== user.id ? `
+                    <button onclick="sendTip('${postId}', '${post.uid}', '${post.uname}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">
+                        💸 গিফট দিন <span style="background:white; color:#10b981; border-radius:10px; padding:2px 6px; font-size:10px;">${post.tips || 0}</span>
+                    </button>` : `<span style="font-size:11px; color:gray; font-weight:bold;">মোট গিফট: ৳${post.tips || 0}</span>`}
+                </div>
+            </div>`;
+        });
+        feedDiv.innerHTML = html;
+    } catch(e) {}
+}
+
+async function likePhoto(postId, currentLikes) {
+    let newLikes = (currentLikes || 0) + 1;
+    await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/gallery/posts/${postId}.json`, { method: 'PATCH', body: JSON.stringify({ likes: newLikes }) });
+    loadPhotoFeed();
+}
+
+async function sendTip(postId, ownerId, ownerName) {
+    let amtStr = prompt(`${ownerName}-কে কত টাকা গিফট পাঠাতে চান? (মিনিমাম ৳১০)`, "10");
+    if(!amtStr) return;
+    let amt = parseInt(amtStr);
+    if(isNaN(amt) || amt < 10) return alert("মিনিমাম ৳১০ গিফট করতে হবে!");
+    if(user.bal < amt) return alert("❌ পর্যাপ্ত টাকা নেই!");
+    if(confirm(`আপনি কি ${ownerName}-কে ৳${amt} গিফট করতে চান?`)) {
+        user.bal -= amt;
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/bal.json`, { method: 'PUT', body: JSON.stringify(user.bal) });
+        document.getElementById('mainBal').innerText = user.bal.toLocaleString();
+        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${ownerId}/bal.json`);
+        let ownerBal = await res.json() || 0;
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${ownerId}/bal.json`, { method: 'PUT', body: JSON.stringify(ownerBal + amt) });
+        const pRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/gallery/posts/${postId}/tips.json`);
+        let currentTips = await pRes.json() || 0;
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/gallery/posts/${postId}/tips.json`, { method: 'PUT', body: JSON.stringify(currentTips + amt) });
+        alert(`✅ সফল! ${ownerName} গিফট পেয়েছে।`);
+        loadPhotoFeed();
+    }
+    }
+    
 </script>
 </body>
 </html>
