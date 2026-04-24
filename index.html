@@ -1837,8 +1837,10 @@ async function sendTip(postId, ownerId, ownerName) {
     }
                    }
 // =========================================================
-// ♟️ REDICA CHESS CLUB & FRIEND SYSTEM (Fixed Lichess API)
+// ♟️ REDICA CHESS CLUB (Auto-Refresh & Fixed Challenges)
 // =========================================================
+
+let chessAutoRefresh = null; // অটো রিফ্রেশের জন্য
 
 setTimeout(() => {
     let menuGrid = document.querySelector('.menu-grid');
@@ -1853,6 +1855,9 @@ setTimeout(() => {
 }, 1000);
 
 async function openChessClub(tab = 'play') {
+    // আগের কোনো অটো-রিফ্রেশ চললে সেটা বন্ধ করা
+    if(chessAutoRefresh) clearInterval(chessAutoRefresh);
+
     let html = `
     <div style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; border: 2px solid #334155;">
         <h2 style="margin: 0; font-size: 20px;">♟️ রেডিকা চেস ক্লাব</h2>
@@ -1948,55 +1953,81 @@ async function acceptFriend(fId, fName) {
 
 // ================= PLAY TAB (CHALLENGE SYSTEM) =================
 async function loadPlayTab() {
-    let content = `<h4 style="color:#1e293b; margin-bottom:10px;">⚔️ বন্ধুদের চ্যালেঞ্জ করুন</h4>`;
+    let content = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h4 style="color:#1e293b; margin:0;">⚔️ বন্ধুদের চ্যালেঞ্জ করুন</h4>
+        <button onclick="loadPlayTab()" style="background:#3b82f6; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:11px; font-weight:bold;">🔄 রিফ্রেশ</button>
+    </div>
+    <div id="challenge-box">লোড হচ্ছে...</div>
+    <div id="friend-box"></div>
+    `;
+    document.getElementById('chess-content').innerHTML = content;
     
+    fetchChallengesAndFriends();
+
+    // ৫ সেকেন্ড পরপর নিজে থেকেই চ্যালেঞ্জ চেক করবে!
+    chessAutoRefresh = setInterval(fetchChallengesAndFriends, 5000);
+}
+
+async function fetchChallengesAndFriends() {
+    if(!document.getElementById('challenge-box')) {
+        clearInterval(chessAutoRefresh); // ট্যাব পালটে ফেললে অটো রিফ্রেশ বন্ধ হবে
+        return;
+    }
+
     try {
+        // নিজের কাছে আসা চ্যালেঞ্জ দেখা
         const chalRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/chess_challenges.json`);
         const challenges = await chalRes.json();
+        
+        let chalHtml = '';
         if(challenges) {
-            content += `<div style="background:#fef3c7; border:1px solid #f59e0b; padding:10px; border-radius:8px; margin-bottom:15px;">`;
+            chalHtml += `<div style="background:#fef3c7; border:1px solid #f59e0b; padding:10px; border-radius:8px; margin-bottom:15px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">`;
             Object.entries(challenges).forEach(([cId, cData]) => {
-                content += `
+                chalHtml += `
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><b>${cData.senderName}</b> চ্যালেঞ্জ করেছে!<br><small>সময়: ${cData.timeMode}</small></div>
-                    <button onclick="startMatch('${cData.gameUrl}')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold;">Join Game</button>
+                    <div><b style="color:#b45309;">${cData.senderName}</b> চ্যালেঞ্জ করেছে!<br><small>সময়: ${cData.timeMode}</small></div>
+                    <button onclick="startMatch('${cData.gameUrl}')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; animation: bounce 1s infinite;">Join Game</button>
                 </div>`;
             });
-            content += `</div>`;
+            chalHtml += `</div>`;
+        } else {
+            chalHtml = `<p style="font-size:11px; color:gray; text-align:center;">বর্তমানে কোনো চ্যালেঞ্জ নেই।</p>`;
         }
+        document.getElementById('challenge-box').innerHTML = chalHtml;
 
+        // ফ্রেন্ড লিস্ট লোড করা
         const frRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friends.json`);
         const friends = await frRes.json();
         
+        let frHtml = '';
         if(!friends) {
-            content += `<p style="text-align:center; color:gray; margin-top:20px;">আপনার ফ্রেন্ড লিস্ট ফাঁকা। আগে ফ্রেন্ড অ্যাড করুন!</p>`;
+            frHtml = `<p style="text-align:center; color:gray; margin-top:20px;">আপনার ফ্রেন্ড লিস্ট ফাঁকা। আগে ফ্রেন্ড অ্যাড করুন!</p>`;
         } else {
             Object.entries(friends).forEach(([fId, fName]) => {
-                content += `
+                frHtml += `
                 <div style="background:white; border:1px solid #cbd5e1; padding:12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                     <b>👤 ${fName}</b>
                     <div style="display:flex; gap:5px;">
-                        <select id="time-${fId}" style="padding:5px; border-radius:5px; border:1px solid #ccc;">
+                        <select id="time-${fId}" style="padding:5px; border-radius:5px; border:1px solid #ccc; font-size:11px;">
                             <option value="5,2">5 + 2</option>
                             <option value="10,0" selected>10 Min</option>
                             <option value="10,3">10 + 3</option>
                         </select>
-                        <button onclick="createChallenge('${fId}', '${fName}')" style="background:#f43f5e; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-weight:bold;">Challenge</button>
+                        <button onclick="createChallenge('${fId}', '${fName}')" style="background:#f43f5e; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:11px;">Challenge</button>
                     </div>
                 </div>`;
             });
         }
-        document.getElementById('chess-content').innerHTML = content;
+        document.getElementById('friend-box').innerHTML = frHtml;
     } catch(e) {}
 }
 
-// একদম ফিক্সড এবং সিকিউরড API কল
 async function createChallenge(fId, fName) {
     let timeVal = document.getElementById(`time-${fId}`).value.split(',');
     let mins = parseInt(timeVal[0]);
     let inc = parseInt(timeVal[1]);
     
-    // স্ক্রিনে সুন্দর করে লোডিং দেখানো
     document.getElementById('chess-content').innerHTML = `
         <div style="text-align:center; padding: 30px;">
             <div style="font-size: 40px; animation: bounce 1s infinite;">⏳</div>
@@ -2016,14 +2047,7 @@ async function createChallenge(fId, fName) {
             body: formData
         });
         
-        if(!response.ok) {
-            throw new Error("Lichess সার্ভার কানেকশন এরর: " + response.status);
-        }
-        
         const data = await response.json();
-        if(!data.challenge || !data.challenge.url) {
-            throw new Error("URL পাওয়া যায়নি");
-        }
         const gameUrl = data.challenge.url;
 
         let challengeData = { senderName: user.name, timeMode: `${mins}+${inc}`, gameUrl: gameUrl };
@@ -2035,12 +2059,11 @@ async function createChallenge(fId, fName) {
         startMatch(gameUrl); 
         
     } catch(e) { 
-        alert("❌ সমস্যা হয়েছে: " + e.message + "\n\nইন্টারনেট কানেকশন চেক করুন বা পেজ রিফ্রেশ করুন।"); 
-        openChessClub('play'); // সমস্যা হলে আবার আগের জায়গায় ফিরিয়ে আনা
+        alert("❌ গেম তৈরি করতে সমস্যা হয়েছে! ইন্টারনেট কানেকশন চেক করুন।"); 
+        openChessClub('play'); 
     }
 }
 
-// আসল গেমটি ফুল স্ক্রিনে ওপেন করার জন্য
 function startMatch(url) {
     window.open(url, '_blank');
     fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/chess_challenges.json`, { method: 'DELETE' });
@@ -2071,8 +2094,8 @@ function loadCoachTab() {
     </div>
     `;
     document.getElementById('chess-content').innerHTML = content;
-            }
-            
+                    }
+    
 </script>
 </body>
 </html>
