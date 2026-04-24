@@ -603,6 +603,97 @@ async function adminAction(actionType) {
     } catch(e) { alert("সমস্যা হয়েছে!"); }
 }
 </script>
+<div style="background: #ffffff; padding: 25px; border-radius: 15px; margin-top: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 2px solid #ef4444;">
+    <h2 style="color: #991b1b; margin-top: 0; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #fee2e2; padding-bottom: 10px;">
+        📊 নাগরিকদের ট্যাক্স স্ট্যাটাস
+        <button onclick="loadAllUserTaxes()" style="margin-left: auto; background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;">🔄 রিফ্রেশ লিস্ট</button>
+    </h2>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-family: sans-serif;">
+            <thead>
+                <tr style="background: #fee2e2; color: #991b1b; text-align: left;">
+                    <th style="padding: 12px; border-bottom: 2px solid #fca5a5;">ইউজার (ID)</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #fca5a5;">বকেয়া ট্যাক্স</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #fca5a5;">সময় বাকি</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #fca5a5;">অ্যাকশন</th>
+                </tr>
+            </thead>
+            <tbody id="tax-monitor-body">
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 20px; color: gray;">লোড হচ্ছে...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+async function loadAllUserTaxes() {
+    const tbody = document.getElementById('tax-monitor-body');
+    
+    try {
+        // ১. ট্যাক্স কনফিগ (সময়সীমা) আনা
+        const configRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/government/tax_config.json`);
+        const config = await configRes.json() || { end: "" };
+        
+        let remainingDays = "বন্ধ";
+        if(config.end) {
+            let now = new Date();
+            let end = new Date(config.end);
+            end.setHours(23, 59, 59);
+            let diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+            remainingDays = diff > 0 ? diff + " দিন" : "সময় শেষ";
+        }
+
+        // ২. সব ইউজার ডেটা আনা
+        const userRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users.json`);
+        const users = await userRes.json();
+        
+        let html = '';
+        let foundTaxDue = false;
+
+        for (let uid in users) {
+            let u = users[uid];
+            let due = u.taxDue || 0;
+
+            if (due > 0) {
+                foundTaxDue = true;
+                html += `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px;">
+                        <div style="font-weight: bold; color: #1e293b;">${u.name || 'অজানা'}</div>
+                        <div style="font-size: 11px; color: #64748b;">ID: ${uid}</div>
+                    </td>
+                    <td style="padding: 12px; font-weight: bold; color: #ef4444;">৳${due}</td>
+                    <td style="padding: 12px; color: #475569;">${remainingDays}</td>
+                    <td style="padding: 12px;">
+                        <button onclick="copyToPenalty('${uid}', ${due})" style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; color: #1e293b;">ID কপি করুন</button>
+                    </td>
+                </tr>`;
+            }
+        }
+
+        if (!foundTaxDue) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: gray;">বর্তমানে কারো ট্যাক্স বকেয়া নেই।</td></tr>';
+        } else {
+            tbody.innerHTML = html;
+        }
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: red;">ডেটা লোড করতে সমস্যা হয়েছে।</td></tr>';
+    }
+}
+
+// পেনাল্টি ইনপুটে আইডি সেট করার জন্য
+function copyToPenalty(uid, amt) {
+    document.getElementById('penalty-uid').value = uid;
+    document.getElementById('penalty-amount').value = amt;
+    window.scrollTo({ top: document.getElementById('penalty-uid').offsetTop - 50, behavior: 'smooth' });
+}
+
+// পেজ লোড হলে ফাংশনটি রান হবে
+loadAllUserTaxes();
+</script>
     
 </body>
 </html>
