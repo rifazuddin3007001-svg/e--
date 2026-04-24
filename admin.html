@@ -694,6 +694,28 @@ function copyToPenalty(uid, amt) {
 // পেজ লোড হলে ফাংশনটি রান হবে
 loadAllUserTaxes();
 </script>
+<div style="background: #ffffff; padding: 25px; border-radius: 15px; margin-top: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 2px solid #ec4899;">
+    <h2 style="color: #be185d; margin-top: 0; border-bottom: 2px solid #fce7f3; padding-bottom: 10px;">📸 RedGram টুর্নামেন্ট কন্ট্রোল</h2>
+    <div style="background: #fdf2f8; padding: 15px; border-radius: 10px; border: 1px solid #fbcfe8;">
+        <input type="text" id="tourney-theme" placeholder="টুর্নামেন্টের বিষয় (যেমন: প্রকৃতির ছবি, সেলফি)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 10px; color: black;">
+        <input type="number" id="tourney-prize" placeholder="পুরস্কারের পরিমাণ (৳)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 15px; color: black;">
+        <div style="display: flex; gap: 10px;">
+            <button onclick="manageTournament(true)" style="flex:1; background: #10b981; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">✅ চালু করুন</button>
+            <button onclick="manageTournament(false)" style="flex:1; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">❌ বন্ধ করুন</button>
+        </div>
+    </div>
+</div>
+
+<script>
+async function manageTournament(isActive) {
+    let theme = document.getElementById('tourney-theme').value;
+    let prize = document.getElementById('tourney-prize').value;
+    if(isActive && (!theme || !prize)) return alert("বিষয় এবং পুরস্কার দিন!");
+    let data = isActive ? { active: true, theme: theme, prize: parseInt(prize) } : { active: false };
+    await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/gallery/tournament.json`, { method: 'PUT', body: JSON.stringify(data) });
+    alert(isActive ? `✅ RedGram-এ টুর্নামেন্ট চালু হয়েছে!` : `🚨 বন্ধ করা হয়েছে।`);
+}
+</script>
     
 </body>
 </html>
