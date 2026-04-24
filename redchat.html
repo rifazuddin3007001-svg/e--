@@ -184,31 +184,34 @@
             <textarea id="status-text-input" placeholder="আপনার মনের কথা লিখুন..." style="width:100%; height:100px; border:1px solid #ddd; border-radius:8px; padding:10px; margin-bottom:10px; font-family:inherit;"></textarea>
             <div style="margin-bottom:15px;">
                 <p style="font-size:12px; margin-bottom:5px; color:#666;">কে কে দেখতে পাবে?</p>
-                <select id="status-privacy" style="width:100%; padding:8px; border-radius:5px; border:1px solid #ddd;">
-                    <option value="all">সবাই (Public)</option>
-                    <option value="friends">শুধু বন্ধুরা (Selected)</option>
-                </select>
+                            <div style="margin-top:10px;">
+                <label style="display:inline-block; padding:8px 12px; background:#fdf2f8; border:1px solid #be185d; color:#be185d; border-radius:8px; cursor:pointer; font-size:13px;">
+                    📷 ছবি যোগ করুন <input type="file" id="status-img-input" accept="image/*" style="display:none;">
+                </label>
+                <span id="file-name-display" style="font-size:11px; color:gray; margin-left:5px;"></span>
             </div>
-            <button onclick="postStatus()" style="width:100%; padding:12px; background:#be185d; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">পোস্ট করুন</button>
+            
+            <button onclick="postStatus()" style="width:100%; padding:12px; background:#be185d; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:15px;">পোস্ট করুন</button>
             <button onclick="closeStatusUploader()" style="width:100%; background:none; border:none; color:gray; margin-top:10px; cursor:pointer;">বাতিল</button>
         </div>
 
-        <div id="status-viewer" class="status-overlay">
-            <div class="status-top-bar" id="status-bars"></div>
-            <div style="padding: 10px; color: white; display: flex; justify-content: space-between; align-items: center; z-index:10;">
-                <b id="view-status-name" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);"></b>
-                <span onclick="closeStatusViewer()" style="font-size: 28px; cursor: pointer; padding: 5px;">✕</span>
+        <div id="status-viewer" class="status-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:9999; display:none; flex-direction:column;">
+            <div style="padding: 15px; color: white; display: flex; justify-content: space-between; align-items: center; z-index:10;">
+                <b id="view-status-name"></b>
+                <span onclick="closeStatusViewer()" style="font-size: 30px; cursor: pointer; padding: 5px;">✕</span>
             </div>
-            <div id="view-status-content" style="flex:1; display:flex; justify-content:center; align-items:center; color:white; font-size:24px; padding:40px; text-align:center; word-break:break-word; font-weight:bold;"></div>
+            
+            <div id="view-status-content" style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white; padding:20px; text-align:center;">
+            </div>
+
             <div style="padding: 30px; display: flex; justify-content: space-between; align-items: center; color: white; z-index:10;">
-                <div onclick="giveHeart()" style="cursor:pointer; display:flex; flex-direction:column; align-items:center; transition: 0.3s;" id="heart-btn-main">
+                <div onclick="giveHeart()" style="cursor:pointer; display:flex; flex-direction:column; align-items:center;">
                     <span style="font-size:45px;">❤️</span>
-                    <span id="view-status-hearts" style="font-size:14px; font-weight:bold;">0</span>
-                </div>
-                <div id="viewer-list-btn" style="font-size:12px; background:rgba(255,255,255,0.2); padding:8px 15px; border-radius:20px; display:none; backdrop-filter: blur(5px);">
-                    রিয়েক্ট করেছে: <span id="viewers-count">0</span>
+                    <span id="view-status-hearts" style="font-size:14px;">0</span>
                 </div>
             </div>
+        </div>
+            
         </div>
 
         <div id="tab-friends" class="content-area" style="display: none; padding: 20px;">
