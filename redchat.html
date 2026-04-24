@@ -463,14 +463,48 @@ async function loadMessages() {
 }
 
 async function viewOneTime(msgId, el, text, img) {
-    let contentHtml = img !== 'undefined' && img !== 'null' ? `<img src="${img}" style="width:100%; border-radius:10px;"><br>${text}` : text;
-    el.innerHTML = contentHtml + `<br><small style="color:red; font-weight:bold; display:block; margin-top:5px;">(এটি ব্যাক করলেই মুছে যাবে)</small>`;
-    el.style.background = 'white'; el.style.color = 'black'; el.style.border = '2px solid #ef4444';
+    let chatId = getChatId(currentUser.id, currentChatFriendId);
+    
+    // প্রথমে ডেটাবেসে 'viewed' করে দেওয়া, যাতে কেউ রিলোড করে আবার দেখতে না পায়
+    await fetch(`${DB_URL}/chats/${chatId}/${msgId}/viewed.json`, { method: 'PUT', body: true });
+
+    let timeLeft = 15; // ১৫ সেকেন্ডের টাইমার
+    let contentHtml = img !== 'undefined' && img !== 'null' ? `<img src="${img}" style="width:100%; border-radius:10px; margin-bottom:5px;"><br>${text}` : text;
+    
+    el.innerHTML = `
+        <div style="background:#ef4444; color:white; padding:5px; border-radius:5px; margin-bottom:10px; font-weight:bold; text-align:center;">
+            ⏳ আর মাত্র <span id="timer-${msgId}">${timeLeft}</span> সেকেন্ড দেখা যাবে
+        </div>
+        ${contentHtml}
+    `;
+    el.style.background = 'white'; 
+    el.style.color = 'black'; 
+    el.style.border = '2px solid #ef4444';
     el.onclick = null; 
 
-    let chatId = getChatId(currentUser.id, currentChatFriendId);
-    await fetch(`${DB_URL}/chats/${chatId}/${msgId}/viewed.json`, { method: 'PUT', body: true });
-}
+    // টাইমার শুরু
+    let countdown = setInterval(async () => {
+        timeLeft--;
+        let timerSpan = document.getElementById(`timer-${msgId}`);
+        if(timerSpan) {
+            timerSpan.innerText = timeLeft;
+        }
+
+        // সময় শেষ হলে মেসেজ গায়েব এবং ডেটাবেস থেকে চিরতরে ডিলিট!
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            el.innerHTML = `💣 ওয়ান-টাইম মেসেজটি চিরতরে মুছে গেছে।`;
+            el.style.background = 'transparent';
+            el.style.color = '#94a3b8';
+            el.style.border = '1px dashed #cbd5e1';
+            el.style.fontStyle = 'italic';
+            el.style.fontWeight = 'normal';
+
+            // ফায়ারবেস ডেটাবেস থেকে পার্মানেন্ট ডিলিট করার কমান্ড!
+            await fetch(`${DB_URL}/chats/${chatId}/${msgId}.json`, { method: 'DELETE' });
+        }
+    }, 1000); 
+                }
 
 async function deleteMsg(msgId) {
     if(confirm("মেসেজটি ডিলিট করতে চান? (সবার জন্য মুছে যাবে)")) {
