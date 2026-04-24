@@ -1468,20 +1468,22 @@ setTimeout(() => {
 }, 1000);
 
 const moviesList = [
-    // 🎬 বাংলা সিনেমা (৫টি)
-    { id: 'bn1', title: 'Aparajito', type: 'Bengali', price: 100, img: 'https://m.media-amazon.com/images/M/MV5BMDYyMmYyOTgtNWY3MC00Njg3LTk0YmYtNjdiMmJmMDQ3YzA1XkEyXkFqcGdeQXVyMTA3MDk2NDg2._V1_.jpg', yt: 'https://www.youtube.com/embed/P_mG69M9Qp4' },
-    { id: 'bn2', title: 'Belaseshe', type: 'Bengali', price: 80, img: 'https://m.media-amazon.com/images/M/MV5BMTEyNDI2MTE3NjZeQTJeQWpwZ15BbWU4MDk2OTM1MDIx._V1_.jpg', yt: 'https://www.youtube.com/embed/5U7zB1q2Fms' },
-    { id: 'bn3', title: 'Amazon Obhijaan', type: 'Bengali', price: 120, img: 'https://m.media-amazon.com/images/M/MV5BMmU1MGNlMjEtYzEyOC00MzU4LWIyMzUtMTAyY2M0YmQ0ZWIwXkEyXkFqcGdeQXVyMjg0MTU5Mjk@._V1_.jpg', yt: 'https://www.youtube.com/embed/Pj19E493b_k' },
-    { id: 'bn4', title: 'Golondaaj', type: 'Bengali', price: 110, img: 'https://m.media-amazon.com/images/M/MV5BZjU2Zjk2MGItYmQzNy00YmY0LWJiNjAtNWE0MDhmZGRiMjQ0XkEyXkFqcGdeQXVyMTE0MzE5Nzg0._V1_.jpg', yt: 'https://www.youtube.com/embed/6_fJ_n-8f5o' },
-    { id: 'bn5', title: 'Tonic', type: 'Bengali', price: 90, img: 'https://m.media-amazon.com/images/M/MV5BMmM2MTI0NDAtNjY0My00MGUzLTgyMDAtNWIzZjM3MzU5ZmZjXkEyXkFqcGdeQXVyMTE0MzE5Nzg0._V1_.jpg', yt: 'https://www.youtube.com/embed/V9B5Q09mD0o' },
+    // 🇮🇳 বাংলা সিনেমা (৫টি)
+    { id: 'bn1', title: 'Aparajito', type: 'Bengali', price: 100, img: 'https://m.media-amazon.com/images/M/MV5BMDYyMmYyOTgtNWY3MC00Njg3LTk0YmYtNjdiMmJmMDQ3YzA1XkEyXkFqcGdeQXVyMTA3MDk2NDg2._V1_.jpg', yt: 'https://www.youtube.com/embed/2-zXyYk4wB0' },
+    { id: 'bn2', title: 'Amazon Obhijaan', type: 'Bengali', price: 120, img: 'https://m.media-amazon.com/images/M/MV5BMmU1MGNlMjEtYzEyOC00MzU4LWIyMzUtMTAyY2M0YmQ0ZWIwXkEyXkFqcGdeQXVyMjg0MTU5Mjk@._V1_.jpg', yt: 'https://www.youtube.com/embed/UoIofB41bJ0' },
+    { id: 'bn3', title: 'Golondaaj', type: 'Bengali', price: 110, img: 'https://m.media-amazon.com/images/M/MV5BZjU2Zjk2MGItYmQzNy00YmY0LWJiNjAtNWE0MDhmZGRiMjQ0XkEyXkFqcGdeQXVyMTE0MzE5Nzg0._V1_.jpg', yt: 'https://www.youtube.com/embed/zH3PzT64Rxs' },
+    { id: 'bn4', title: 'Tonic', type: 'Bengali', price: 90, img: 'https://m.media-amazon.com/images/M/MV5BMmM2MTI0NDAtNjY0My00MGUzLTgyMDAtNWIzZjM3MzU5ZmZjXkEyXkFqcGdeQXVyMTE0MzE5Nzg0._V1_.jpg', yt: 'https://www.youtube.com/embed/kR22QJ0X5vQ' },
+    { id: 'bn5', title: 'Chander Pahar', type: 'Bengali', price: 100, img: 'https://m.media-amazon.com/images/M/MV5BMWI3ZWNmZTYtNzdkZi00NTdkLTg3MWItMTBlZWQ3NzYwMGNkXkEyXkFqcGdeQXVyMTA4NjE0NjEy._V1_.jpg', yt: 'https://www.youtube.com/embed/G8oYqW_j-8o' },
+    
     // 🇺🇸 ইংলিশ সিনেমা (২টি)
     { id: 'en1', title: 'Avengers: Endgame', type: 'English', price: 200, img: 'https://m.media-amazon.com/images/M/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzQ2NzM@._V1_.jpg', yt: 'https://www.youtube.com/embed/TcMBFSGVi1c' },
-    { id: 'en2', title: 'Inception', type: 'English', price: 180, img: 'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg', yt: 'https://www.youtube.com/embed/YoHD9XEInc0' },
+    { id: 'en2', title: 'Big Buck Bunny', type: 'English', price: 180, img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Big_buck_bunny_poster_big.jpg/640px-Big_buck_bunny_poster_big.jpg', yt: 'https://www.youtube.com/embed/aqz-KE-bpKQ' },
+    
     // 🇮🇳 হিন্দি সিনেমা (৫টি)
     { id: 'hi1', title: 'Pathaan', type: 'Hindi', price: 150, img: 'https://m.media-amazon.com/images/M/MV5BM2QzM2JiNTMtYjU4Ny00MDZkLTk3MjUtY2U0OTU3N2E3ZTIyXkEyXkFqcGdeQXVyMTUzNTgzNzM0._V1_.jpg', yt: 'https://www.youtube.com/embed/vqu4z34wENw' },
-    { id: 'hi2', title: 'Dangal', type: 'Hindi', price: 130, img: 'https://m.media-amazon.com/images/M/MV5BMTQ4MzQzMzM2Nl5BMl5BanBnXkFtZTgwMTQ1NzU3MDI@._V1_.jpg', yt: 'https://www.youtube.com/embed/x_7YlGv9u1g' },
-    { id: 'hi3', title: '3 Idiots', type: 'Hindi', price: 140, img: 'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg', yt: 'https://www.youtube.com/embed/K0eDlFX9Gmc' },
-    { id: 'hi4', title: 'RRR', type: 'Hindi', price: 160, img: 'https://m.media-amazon.com/images/M/MV5BODUwNDNjYzctZDdhNy00ZGE2LWIyM2ItY2Y2NjA4NzIyODc1XkEyXkFqcGdeQXVyODE5NzE3OTE@._V1_.jpg', yt: 'https://www.youtube.com/embed/OsU0CGZoV8E' },
+    { id: 'hi2', title: 'Jawan', type: 'Hindi', price: 160, img: 'https://m.media-amazon.com/images/M/MV5BODUwNDNjYzctZDdhNy00ZGE2LWIyM2ItY2Y2NjA4NzIyODc1XkEyXkFqcGdeQXVyODE5NzE3OTE@._V1_.jpg', yt: 'https://www.youtube.com/embed/COv52Qyctws' },
+    { id: 'hi3', title: '3 Idiots', type: 'Hindi', price: 140, img: 'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg', yt: 'https://www.youtube.com/embed/K0eDlFX9GMc' },
+    { id: 'hi4', title: 'RRR', type: 'Hindi', price: 160, img: 'https://m.media-amazon.com/images/M/MV5BODUwNDNjYzctZDdhNy00ZGE2LWIyM2ItY2Y2NjA4NzIyODc1XkEyXkFqcGdeQXVyODE5NzE3OTE@._V1_.jpg', yt: 'https://www.youtube.com/embed/NgBoQKHtIAA' },
     { id: 'hi5', title: 'Shershaah', type: 'Hindi', price: 120, img: 'https://m.media-amazon.com/images/M/MV5BMzkzMmU0YTYtOWM3My00Y2ExLTgyZTItZDA2ZTFkZWI0YjA3XkEyXkFqcGdeQXVyODE5NzE3OTE@._V1_.jpg', yt: 'https://www.youtube.com/embed/Q0FTXnefVBA' }
 ];
 
