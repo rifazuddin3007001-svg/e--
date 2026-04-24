@@ -56,6 +56,22 @@
         .btn-attach { background: none; border: none; font-size: 22px; cursor: pointer; color: #64748b; }
         .onetime-toggle { font-size: 20px; cursor: pointer; opacity: 0.5; transition: 0.3s; }
         .onetime-toggle.active { opacity: 1; transform: scale(1.2); text-shadow: 0 0 5px #facc15; }
+        /* Dark Mode Theme */
+        body.dark-mode { background-color: #0f172a; }
+        body.dark-mode #app-container { background: #1e293b; color: #f8fafc; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        body.dark-mode .auth-box { background: #1e293b; color: white; }
+        body.dark-mode .auth-box input, body.dark-mode .auth-box select { background: #0f172a; color: white; border-color: #334155; }
+        body.dark-mode .content-area { background: #0f172a; color: white; }
+        body.dark-mode .chat-list-item { background: #1e293b; border-bottom: 1px solid #334155; color: white; }
+        body.dark-mode .chat-list-item:hover { background: #334155; }
+        body.dark-mode #chat-room { background: #0f172a; background-image: radial-gradient(#334155 1px, transparent 1px); }
+        body.dark-mode .chat-input { background: #1e293b; border-top: 1px solid #334155; }
+        body.dark-mode .chat-input input { background: #0f172a; color: white; border-color: #334155; }
+        body.dark-mode .msg.received { background: #1e293b; color: white; border-color: #334155; }
+        
+        /* ID Footer */
+        .id-footer { background: #9d174d; color: #fbcfe8; text-align: center; padding: 10px; font-size: 13px; font-weight: bold; border-top: 1px solid #be185d; }
+        
     </style>
 </head>
 <body>
@@ -99,10 +115,13 @@
     </div>
 
     <div id="app-container">
-        <div class="header">
+                <div class="header">
             <h3 style="margin:0;">RedChat</h3>
-            <span id="user-name-display" style="font-size:14px; font-weight:bold;"></span>
-        </div>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <button onclick="toggleDarkMode()" style="background:none; border:none; color:white; font-size:18px; cursor:pointer;" title="Dark Mode">🌙</button>
+                <span id="user-name-display" style="font-size:14px; font-weight:bold;"></span>
+            </div>
+                </div>
         
         <div class="nav-tabs" id="main-nav">
             <div class="active" onclick="switchTab('chats')">চ্যাটস</div>
@@ -147,6 +166,7 @@
             </div>
         </div>
     </div>
+    
     <script>
 // ================= FIREBASE API =================
 const DB_URL = "https://radica-super-app-18cb3-default-rtdb.firebaseio.com/redchat";
