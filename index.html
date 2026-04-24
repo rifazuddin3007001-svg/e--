@@ -1550,6 +1550,149 @@ function watchMovie(movie) {
     `;
     renderModal("🔴 মাল্টিপ্লেক্স প্লেয়ার", html);
 }
+// =========================================================
+// 💼 JOB HUB & 🏛️ TAX DEPARTMENT (Full System)
+// =========================================================
+
+setTimeout(() => {
+    let menuGrid = document.querySelector('.menu-grid');
+    if(menuGrid && !document.getElementById('job-btn')) {
+        let newButtons = `
+        <div id="job-btn" class="menu-item" onclick="openJobHub()" style="border-color:#3b82f6; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), transparent);">
+            <span class="icon" style="font-size:35px;">💼</span>
+            <h3 style="color:#3b82f6;">কর্মসংস্থান</h3>
+        </div>
+        <div id="tax-btn" class="menu-item" onclick="openTaxDept()" style="border-color:#ef4444; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), transparent);">
+            <span class="icon" style="font-size:35px;">🏛️</span>
+            <h3 style="color:#ef4444;">আয়কর দপ্তর</h3>
+        </div>`;
+        menuGrid.insertAdjacentHTML('beforeend', newButtons);
+    }
+}, 1000);
+
+let taxDue = 0;
+let totalEarned = 0;
+
+// ইউজারের ট্যাক্স ডেটা লোড করা
+async function loadTaxData() {
+    try {
+        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}.json`);
+        const data = await res.json();
+        if(data) {
+            taxDue = data.taxDue || 0;
+            totalEarned = data.totalEarned || 0;
+        }
+    } catch(e) {}
+}
+
+// 💼 কর্মসংস্থান (কাজ করে আয় করা)
+async function openJobHub() {
+    await loadTaxData();
+    let html = `
+    <div style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 15px;">
+        <h2 style="margin:0;">অনলাইন কাজ</h2>
+        <p style="margin:5px 0 0 0; font-size:13px; color:#dbeafe;">কাজ করুন এবং কোয়ান্ট আয় করুন</p>
+    </div>
+    <div style="text-align: center; padding: 20px; background: var(--bg-main); border-radius: 12px; border: 2px dashed #3b82f6;">
+        <div style="font-size: 50px; margin-bottom: 10px;">💻</div>
+        <p style="color: var(--text-muted); font-size:14px;">"ডাটা এন্ট্রি এবং ফ্রিল্যান্সিং কাজ"</p>
+        <button onclick="doOnlineWork()" id="work-btn" style="background: #3b82f6; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; width:100%;">কাজ শুরু করুন</button>
+    </div>
+    <p style="text-align:center; font-size:11px; color:gray; margin-top:10px;">*আপনার আয়ের উপর ১০% সরকারি ট্যাক্স প্রযোজ্য</p>
+    `;
+    renderModal("💼 কর্মসংস্থান কেন্দ্র", html);
+}
+
+async function doOnlineWork() {
+    let btn = document.getElementById('work-btn');
+    btn.innerText = "কাজ চলছে... ⏳";
+    btn.disabled = true;
+    btn.style.background = "gray";
+
+    setTimeout(async () => {
+        let earned = Math.floor(Math.random() * 150) + 50; // ৫০-২০০ টাকার মধ্যে ইনকাম
+        let taxAmount = Math.round(earned * 0.10); // ১০% ট্যাক্স
+        
+        user.bal += earned;
+        totalEarned += earned;
+        taxDue += taxAmount;
+
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}.json`, {
+            method: 'PATCH',
+            body: JSON.stringify({ bal: user.bal, totalEarned: totalEarned, taxDue: taxDue })
+        });
+
+        document.getElementById('mainBal').innerText = user.bal.toLocaleString();
+        alert(`✅ কাজ সম্পন্ন হয়েছে!\n\nআপনি আয় করেছেন: ৳${earned}\nসরকারি ট্যাক্স তৈরি হয়েছে: ৳${taxAmount}`);
+        openJobHub();
+    }, 2000); 
+}
+
+// 🏛️ আয়কর দপ্তর (উইন্ডো সিস্টেম সহ)
+async function openTaxDept() {
+    await loadTaxData();
+    
+    // অ্যাডমিনের সেট করা তারিখ চেক করা
+    let taxConfig = { start: "", end: "" };
+    try {
+        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/government/tax_config.json`);
+        taxConfig = await res.json() || { start: "2000-01-01", end: "2000-01-01" };
+    } catch(e) {}
+
+    let now = new Date();
+    let startDate = new Date(taxConfig.start);
+    let endDate = new Date(taxConfig.end);
+    endDate.setHours(23, 59, 59); 
+
+    let isTaxOpen = (now >= startDate && now <= endDate);
+    let statusMsg = isTaxOpen 
+        ? `<b style="color:#10b981;">✅ ট্যাক্স জমা নেওয়া চলছে!</b> (শেষ তারিখ: ${taxConfig.end})` 
+        : `<b style="color:#ef4444;">❌ ট্যাক্স উইন্ডো এখন বন্ধ।</b><br><small>জমা দেওয়ার তারিখ ছিল: ${taxConfig.start} থেকে ${taxConfig.end}</small>`;
+
+    let html = `
+    <div style="background: linear-gradient(135deg, #991b1b, #ef4444); color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 15px;">
+        <h2 style="margin:0;">রেডিকা আয়কর দপ্তর</h2>
+        <p style="margin:5px 0 0 0; font-size:13px;">${statusMsg}</p>
+    </div>
+    
+    <div style="background: var(--bg-main); padding: 15px; border-radius: 12px; border: 1px solid var(--border-col); box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-col); padding-bottom: 10px; margin-bottom: 10px;">
+            <span style="color:var(--text-muted);">আপনার মোট আয়:</span>
+            <span style="font-weight:bold; color:var(--primary);">৳${totalEarned}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #fee2e2; padding: 15px; border-radius: 8px; border: 1px solid #fca5a5;">
+            <span style="color:#991b1b; font-weight:bold;">বকেয়া ট্যাক্স:</span>
+            <span style="font-size:20px; font-weight:bold; color:#ef4444;">৳${taxDue}</span>
+        </div>
+        
+        ${isTaxOpen && taxDue > 0 
+            ? `<button onclick="payTax()" style="margin-top: 15px; width: 100%; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">ট্যাক্স পরিশোধ করুন</button>`
+            : `<button disabled style="margin-top: 15px; width: 100%; background: #94a3b8; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: not-allowed;">এখন ট্যাক্স জমা দেওয়া যাবে না</button>`
+        }
+        <p style="text-align:center; font-size:11px; color:gray; margin-top:10px;">*সময় পেরিয়ে গেলে সরকার জরিমানা কাটতে পারে।</p>
+    </div>
+    `;
+    renderModal("🏛️ আয়কর দপ্তর", html);
+}
+
+async function payTax() {
+    if(taxDue <= 0) return alert("আপনার কোনো ট্যাক্স বকেয়া নেই!");
+    if(user.bal < taxDue) return alert("❌ ট্যাক্স দেওয়ার মতো পর্যাপ্ত ব্যালেন্স নেই!");
+
+    if(confirm(`আপনি কি ৳${taxDue} ট্যাক্স পরিশোধ করতে চান?`)) {
+        user.bal -= taxDue;
+        taxDue = 0;
+
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}.json`, {
+            method: 'PATCH',
+            body: JSON.stringify({ bal: user.bal, taxDue: 0 })
+        });
+
+        document.getElementById('mainBal').innerText = user.bal.toLocaleString();
+        alert("✅ সফলভাবে ট্যাক্স পরিশোধ করা হয়েছে। ধন্যবাদ!");
+        openTaxDept();
+    }
+}
     
 </script>
 </body>
