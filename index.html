@@ -1207,7 +1207,251 @@ function showTour(destName) {
     `;
     renderModal(`🏠 ভার্চুয়াল ট্যুর - ${destName}`, html);
 }
+// =========================================================
+// 📈 REDICA STOCK EXCHANGE (RSE) - Live Premium Market
+// =========================================================
+
+setTimeout(() => {
+    let menuGrid = document.querySelector('.menu-grid');
+    if(menuGrid && !document.getElementById('stock-btn')) {
+        let stockBtn = `
+        <div id="stock-btn" class="menu-item" onclick="openStockMarket()" style="border-color:#10b981; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent); position:relative;">
+            <span class="icon" style="font-size:35px; position:relative;">📈 <span class="live-dot" style="position:absolute; top:0; right:-5px; width:8px; height:8px; background:#10b981; border-radius:50%; box-shadow:0 0 8px #10b981; animation: blink-red 1s infinite;"></span></span>
+            <h3 style="color:#10b981;">শেয়ার বাজার</h3>
+        </div>`;
+        menuGrid.insertAdjacentHTML('beforeend', stockBtn);
+    }
+}, 1000);
+
+// রেডিকা স্টক এক্সচেঞ্জের অফিশিয়াল কোম্পানিগুলো
+const baseStocks = [
+    { id: 'R-GLD', name: 'Radica Gold', price: 5000, vol: 0.02, type: 'Commodity' },
+    { id: 'J-ALU', name: 'Janata Alu Co.', price: 150, vol: 0.08, type: 'Agri-Business' },
+    { id: 'STEP', name: 'STEP Education', price: 320, vol: 0.05, type: 'EdTech' },
+    { id: 'KUMAR', name: 'Kumar Tutorial', price: 180, vol: 0.04, type: 'Education' },
+    { id: 'R-TEL', name: 'Radica Telecom', price: 450, vol: 0.06, type: 'Technology' },
+    { id: 'R-BNK', name: 'Central Bank', price: 850, vol: 0.03, type: 'Finance' },
+    { id: 'ERA-P', name: 'ERA Power', price: 210, vol: 0.07, type: 'Energy' }
+];
+
+let currentMarket = [];
+let myPortfolio = {};
+
+// শেয়ার বাজার ওপেন করা
+async function openStockMarket() {
+    renderModal("📈 রেডিকা স্টক এক্সচেঞ্জ (RSE)", `<div style="text-align:center; padding:20px; color:var(--primary); font-weight:bold;">মার্কেট লোড হচ্ছে... ⏳</div>`);
+    await syncMarketData();
+    await loadPortfolio();
+    showMarketUI('market');
+}
+
+// ডেটাবেস থেকে লাইভ প্রাইস আপডেট করা (অ্যালগরিদম)
+async function syncMarketData() {
+    try {
+        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/market.json`);
+        let data = await res.json();
+        let now = new Date().getTime();
+        
+        // যদি ডেটা না থাকে বা ১ মিনিটের বেশি পুরোনো হয়, তাহলে নতুন প্রাইস তৈরি হবে
+        if (!data || !data.lastUpdate || now - data.lastUpdate > 60000) {
+            let stocksToUpdate = data && data.stocks ? data.stocks : baseStocks;
+            
+            currentMarket = stocksToUpdate.map(s => {
+                let changePercent = (Math.random() * s.vol * 2) - s.vol; 
+                let oldPrice = s.price;
+                let newPrice = Math.max(10, Math.round(oldPrice + (oldPrice * changePercent)));
+                return { ...s, price: newPrice, oldPrice: oldPrice, diff: newPrice - oldPrice };
+            });
+
+            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/market.json`, {
+                method: 'PUT',
+                body: JSON.stringify({ lastUpdate: now, stocks: currentMarket })
+            });
+        } else {
+            currentMarket = data.stocks;
+        }
+    } catch(e) { console.log(e); }
+}
+
+// ইউজারের কেনা শেয়ার লোড করা
+async function loadPortfolio() {
+    try {
+        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/portfolio.json`);
+        myPortfolio = await res.json() || {};
+    } catch(e) {}
+}
+
+// মেইন UI (মার্কেট এবং পোর্টফোলিও)
+function showMarketUI(tab) {
+    let html = `
+    <style>
+        .rse-tab { flex:1; padding:10px; text-align:center; cursor:pointer; font-weight:bold; border-radius:8px; transition:0.3s; }
+        .rse-tab.active { background: var(--primary); color: white; }
+        .rse-tab.inactive { background: #e2e8f0; color: #64748b; }
+        .stock-card { background: #1e293b; color: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border-left: 4px solid #3b82f6; }
+        .price-up { color: #10b981; }
+        .price-down { color: #ef4444; }
+    </style>
+
+    <div style="background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; border: 1px solid #334155;">
+        <div style="font-size:12px; color:#94a3b8;">আপনার ট্রেডিং ব্যালেন্স</div>
+        <div style="font-size:24px; font-weight:bold; color:#f59e0b;">৳ ${user.bal.toLocaleString()}</div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <div class="rse-tab ${tab==='market' ? 'active' : 'inactive'}" onclick="showMarketUI('market')">📊 লাইভ মার্কেট</div>
+        <div class="rse-tab ${tab==='portfolio' ? 'active' : 'inactive'}" onclick="showMarketUI('portfolio')">💼 পোর্টফোলিও</div>
+    </div>
     
+    <div style="max-height: 380px; overflow-y: auto; padding-right: 5px;">
+    `;
+
+    if (tab === 'market') {
+        currentMarket.forEach(stock => {
+            let isUp = stock.diff >= 0;
+            let diffText = isUp ? `+${stock.diff} 🟩` : `${stock.diff} 🟥`;
+            let colorClass = isUp ? 'price-up' : 'price-down';
+
+            html += `
+            <div class="stock-card">
+                <div>
+                    <div style="font-size:16px; font-weight:bold;">${stock.name}</div>
+                    <div style="font-size:11px; color:#94a3b8;">${stock.id} | ${stock.type}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:18px; font-weight:bold;">৳ ${stock.price}</div>
+                    <div class="${colorClass}" style="font-size:12px; font-weight:bold;">${diffText}</div>
+                </div>
+                <button onclick="buyStockPrompt('${stock.id}')" style="background:#3b82f6; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer; margin-left:10px;">কিনুন</button>
+            </div>`;
+        });
+    } else {
+        // পোর্টফোলিও লজিক
+        let totalInvested = 0;
+        let currentValue = 0;
+        let portfolioHtml = '';
+
+        Object.keys(myPortfolio).forEach(id => {
+            let pData = myPortfolio[id];
+            if(pData.qty > 0) {
+                let liveStock = currentMarket.find(s => s.id === id);
+                let currentPrice = liveStock ? liveStock.price : pData.avgPrice;
+                
+                let invested = pData.qty * pData.avgPrice;
+                let value = pData.qty * currentPrice;
+                let profitLoss = value - invested;
+                
+                totalInvested += invested;
+                currentValue += value;
+
+                let isUp = profitLoss >= 0;
+                let colorClass = isUp ? 'price-up' : 'price-down';
+                let sign = isUp ? '+' : '';
+
+                portfolioHtml += `
+                <div class="stock-card" style="border-left-color: ${isUp ? '#10b981' : '#ef4444'}">
+                    <div>
+                        <div style="font-size:15px; font-weight:bold;">${liveStock.name}</div>
+                        <div style="font-size:11px; color:#94a3b8;">পরিমাণ: ${pData.qty} টি | কেনা দাম: ৳${Math.round(pData.avgPrice)}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:16px; font-weight:bold;">বর্তমান: ৳ ${currentPrice}</div>
+                        <div class="${colorClass}" style="font-size:12px; font-weight:bold;">${sign}৳${Math.round(profitLoss)} লাভ/ক্ষতি</div>
+                    </div>
+                    <button onclick="sellStockPrompt('${id}')" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer; margin-left:10px;">বিক্রি</button>
+                </div>`;
+            }
+        });
+
+        if(portfolioHtml === '') {
+            html += `<div style="text-align:center; padding:30px; color:gray;">আপনার পোর্টফোলিও খালি। মার্কেট থেকে শেয়ার কিনুন!</div>`;
+        } else {
+            let totalProfit = currentValue - totalInvested;
+            let tColor = totalProfit >= 0 ? '#10b981' : '#ef4444';
+            html += `
+            <div style="background:#0f172a; padding:15px; border-radius:10px; margin-bottom:15px; text-align:center; border: 1px dashed #334155;">
+                <div style="color:white; font-size:14px;">মোট বিনিয়োগ: ৳${Math.round(totalInvested)}</div>
+                <div style="color:${tColor}; font-size:16px; font-weight:bold; margin-top:5px;">মোট লাভ/ক্ষতি: ${totalProfit >= 0 ? '+' : ''}৳${Math.round(totalProfit)}</div>
+            </div>
+            ${portfolioHtml}`;
+        }
+    }
+
+    html += `</div>`;
+    document.getElementById('modalBody').innerHTML = html;
+}
+
+// উন্নত কেনা লজিক (অ্যাডমিনের কাছে তথ্য পাঠাবে)
+async function buyStockPrompt(stockId) {
+    let stock = currentMarket.find(s => s.id === stockId);
+    let qtyStr = prompt(`কোম্পানি: ${stock.name}\nবর্তমান দাম: ৳${stock.price}\n\nআপনি কয়টি শেয়ার কিনতে চান? (নম্বর লিখুন)`, "1");
+    if(!qtyStr) return;
+    
+    let qty = parseInt(qtyStr);
+    if(isNaN(qty) || qty <= 0) return alert("ভুল পরিমাণ দিয়েছেন!");
+
+    let cost = stock.price * qty;
+    if(user.bal < cost) return alert(`❌ আপনার ব্যালেন্সে ৳${cost} নেই!`);
+
+    if(confirm(`আপনি কি ৳${cost} দিয়ে ${stock.name}-এর ${qty}টি শেয়ার কিনতে চান?`)) {
+        user.bal -= cost;
+        
+        let pData = myPortfolio[stockId] || { qty: 0, avgPrice: 0 };
+        let totalCostOld = pData.qty * pData.avgPrice;
+        pData.qty += qty;
+        pData.avgPrice = (totalCostOld + cost) / pData.qty;
+        myPortfolio[stockId] = pData;
+
+        // সরকার বা অ্যাডমিনের জন্য ডেটা পাঠানো
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/transactions.json`, {
+            method: 'POST',
+            body: JSON.stringify({ uid: user.id, uname: user.name, type: 'BUY', stock: stock.name, qty: qty, amount: cost, time: new Date().getTime() })
+        });
+
+        await saveStockData();
+        alert(`✅ সফল! আপনি ${qty}টি শেয়ার কিনেছেন।`);
+        showMarketUI('market');
+    }
+}
+
+// উন্নত বিক্রি লজিক (অ্যাডমিনের কাছে তথ্য পাঠাবে)
+async function sellStockPrompt(stockId) {
+    let stock = currentMarket.find(s => s.id === stockId);
+    let pData = myPortfolio[stockId];
+    
+    let qtyStr = prompt(`আপনার কাছে ${stock.name}-এর ${pData.qty}টি শেয়ার আছে।\nবর্তমান দাম: ৳${stock.price}\n\nআপনি কয়টি বিক্রি করতে চান?`, pData.qty);
+    if(!qtyStr) return;
+
+    let qty = parseInt(qtyStr);
+    if(isNaN(qty) || qty <= 0 || qty > pData.qty) return alert("ভুল পরিমাণ দিয়েছেন!");
+
+    let revenue = stock.price * qty;
+    
+    if(confirm(`আপনি কি ${qty}টি শেয়ার ৳${revenue} দিয়ে বিক্রি করতে চান?`)) {
+        user.bal += revenue;
+        pData.qty -= qty;
+        
+        if(pData.qty === 0) delete myPortfolio[stockId]; // সব বিক্রি হলে মুছে যাবে
+
+        // সরকার বা অ্যাডমিনের জন্য ডেটা পাঠানো
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/transactions.json`, {
+            method: 'POST',
+            body: JSON.stringify({ uid: user.id, uname: user.name, type: 'SELL', stock: stock.name, qty: qty, amount: revenue, time: new Date().getTime() })
+        });
+
+        await saveStockData();
+        alert(`✅ সফল! শেয়ার বিক্রি করে আপনি ৳${revenue} পেয়েছেন।`);
+        showMarketUI('portfolio');
+    }
+}
+
+// ডেটাবেসে আপডেট সেভ করা
+async function saveStockData() {
+    await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/bal.json`, { method: 'PUT', body: JSON.stringify(user.bal) });
+    await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/portfolio.json`, { method: 'PUT', body: JSON.stringify(myPortfolio) });
+    document.getElementById('mainBal').innerText = user.bal.toLocaleString();
+     }
+                                                                    
 </script>
 </body>
 </html>
