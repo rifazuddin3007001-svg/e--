@@ -608,6 +608,83 @@ async function deleteMsg(msgId) {
         loadMessages();
     }
 }
+// --- Status & Story Logic ---
+let currentViewingStatusId = null;
+function openStatusUploader() { document.getElementById('status-modal').style.display = 'block'; }
+function closeStatusUploader() { document.getElementById('status-modal').style.display = 'none'; }
+
+async function postStatus() {
+    let txt = document.getElementById('status-text-input').value.trim();
+    let privacy = document.getElementById('status-privacy').value;
+    if(!txt) return alert("কিছু লিখুন!");
+    let sData = { userId: currentUser.id, userName: currentUser.name, text: txt, time: Date.now(), privacy: privacy, hearts: {} };
+    
+    try {
+        await fetch(`${DB_URL}/status/${Date.now()}.json`, { method: 'PUT', body: JSON.stringify(sData) });
+        alert("✅ স্ট্যাটাস পোস্ট করা হয়েছে!");
+        document.getElementById('status-text-input').value = "";
+        closeStatusUploader(); 
+        loadStatuses();
+    } catch(e) { alert("ভুল হয়েছে: " + e.message); }
+}
+
+async function loadStatuses() {
+    try {
+        const res = await fetch(`${DB_URL}/status.json`);
+        const data = await res.json();
+        const listArea = document.getElementById('status-list-area');
+        if(!listArea) return;
+        listArea.innerHTML = '<div class="add-status-btn" onclick="openStatusUploader()">+</div>';
+        if(!data) return;
+        let now = Date.now();
+        Object.entries(data).forEach(([id, s]) => {
+            if (now - s.time > 24 * 60 * 60 * 1000) return; // ২৪ ঘণ্টা পর অদৃশ্য
+            if (s.userId === currentUser.id || s.privacy === 'all') {
+                document.getElementById('status-empty-msg').style.display = 'none';
+                let circle = document.createElement('div');
+                circle.className = 'status-circle';
+                circle.innerHTML = `<div>${s.userName.substring(0, 2)}</div>`;
+                circle.onclick = () => showStatus(id, s);
+                listArea.appendChild(circle);
+            }
+        });
+    } catch(e) {}
+}
+
+function showStatus(id, s) {
+    currentViewingStatusId = id;
+    document.getElementById('status-viewer').style.display = 'flex';
+    document.getElementById('view-status-name').innerText = s.userName;
+    document.getElementById('view-status-content').innerText = s.text;
+    document.getElementById('view-status-hearts').innerText = s.hearts ? Object.keys(s.hearts).length : 0;
+    
+    // যার স্ট্যাটাস সে দেখতে পাবে কে কে হার্ট দিয়েছে
+    if(s.userId === currentUser.id) {
+        document.getElementById('viewer-list-btn').style.display = 'block';
+        document.getElementById('viewers-count').innerText = s.hearts ? Object.keys(s.hearts).join(', ') : "কেউ না";
+    } else { 
+        document.getElementById('viewer-list-btn').style.display = 'none'; 
+    }
+}
+
+async function giveHeart() {
+    if(!currentViewingStatusId) return;
+    await fetch(`${DB_URL}/status/${currentViewingStatusId}/hearts/${currentUser.name}.json`, { method: 'PUT', body: JSON.stringify(true) });
+    document.getElementById('view-status-hearts').innerText = "❤️";
+    setTimeout(() => {
+        loadStatuses();
+        closeStatusViewer(); 
+    }, 500);
+}
+
+function closeStatusViewer() { 
+    document.getElementById('status-viewer').style.display = 'none'; 
+    currentViewingStatusId = null; 
+}
+
+// প্রতি ১৫ সেকেন্ড পর পর স্ট্যাটাস আপডেট চেক করবে
+setInterval(loadStatuses, 15000);
+        
 </script>
 </body>
 </html>
