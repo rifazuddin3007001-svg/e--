@@ -1451,7 +1451,104 @@ async function saveStockData() {
     await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/portfolio.json`, { method: 'PUT', body: JSON.stringify(myPortfolio) });
     document.getElementById('mainBal').innerText = user.bal.toLocaleString();
      }
-                                                                    
+// =========================================================
+// 🎬 RADICA MULTIPLEX (12 Movies & Single-Watch System)
+// =========================================================
+
+setTimeout(() => {
+    let menuGrid = document.querySelector('.menu-grid');
+    if(menuGrid && !document.getElementById('cinema-btn')) {
+        let cinemaBtn = `
+        <div id="cinema-btn" class="menu-item" onclick="openCinemaHall()" style="border-color:#8b5cf6; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent);">
+            <span class="icon" style="font-size:35px;">🍿</span>
+            <h3 style="color:#8b5cf6;">সিনেমা হল</h3>
+        </div>`;
+        menuGrid.insertAdjacentHTML('beforeend', cinemaBtn);
+    }
+}, 1000);
+
+const moviesList = [
+    // 🎬 বাংলা সিনেমা (৫টি)
+    { id: 'bn1', title: 'Aparajito', type: 'Bengali', price: 100, img: 'https://m.media-amazon.com/images/M/MV5BMDYyMmYyOTgtNWY3MC00Njg3LTk0YmYtNjdiMmJmMDQ3YzA1XkEyXkFqcGdeQXVyMTA3MDk2NDg2._V1_.jpg', yt: 'https://www.youtube.com/embed/P_mG69M9Qp4' },
+    { id: 'bn2', title: 'Belaseshe', type: 'Bengali', price: 80, img: 'https://m.media-amazon.com/images/M/MV5BMTEyNDI2MTE3NjZeQTJeQWpwZ15BbWU4MDk2OTM1MDIx._V1_.jpg', yt: 'https://www.youtube.com/embed/5U7zB1q2Fms' },
+    { id: 'bn3', title: 'Amazon Obhijaan', type: 'Bengali', price: 120, img: 'https://m.media-amazon.com/images/M/MV5BMmU1MGNlMjEtYzEyOC00MzU4LWIyMzUtMTAyY2M0YmQ0ZWIwXkEyXkFqcGdeQXVyMjg0MTU5Mjk@._V1_.jpg', yt: 'https://www.youtube.com/embed/Pj19E493b_k' },
+    { id: 'bn4', title: 'Golondaaj', type: 'Bengali', price: 110, img: 'https://m.media-amazon.com/images/M/MV5BZjU2Zjk2MGItYmQzNy00YmY0LWJiNjAtNWE0MDhmZGRiMjQ0XkEyXkFqcGdeQXVyMTE0MzE5Nzg0._V1_.jpg', yt: 'https://www.youtube.com/embed/6_fJ_n-8f5o' },
+    { id: 'bn5', title: 'Tonic', type: 'Bengali', price: 90, img: 'https://m.media-amazon.com/images/M/MV5BMmM2MTI0NDAtNjY0My00MGUzLTgyMDAtNWIzZjM3MzU5ZmZjXkEyXkFqcGdeQXVyMTE0MzE5Nzg0._V1_.jpg', yt: 'https://www.youtube.com/embed/V9B5Q09mD0o' },
+    // 🇺🇸 ইংলিশ সিনেমা (২টি)
+    { id: 'en1', title: 'Avengers: Endgame', type: 'English', price: 200, img: 'https://m.media-amazon.com/images/M/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzQ2NzM@._V1_.jpg', yt: 'https://www.youtube.com/embed/TcMBFSGVi1c' },
+    { id: 'en2', title: 'Inception', type: 'English', price: 180, img: 'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg', yt: 'https://www.youtube.com/embed/YoHD9XEInc0' },
+    // 🇮🇳 হিন্দি সিনেমা (৫টি)
+    { id: 'hi1', title: 'Pathaan', type: 'Hindi', price: 150, img: 'https://m.media-amazon.com/images/M/MV5BM2QzM2JiNTMtYjU4Ny00MDZkLTk3MjUtY2U0OTU3N2E3ZTIyXkEyXkFqcGdeQXVyMTUzNTgzNzM0._V1_.jpg', yt: 'https://www.youtube.com/embed/vqu4z34wENw' },
+    { id: 'hi2', title: 'Dangal', type: 'Hindi', price: 130, img: 'https://m.media-amazon.com/images/M/MV5BMTQ4MzQzMzM2Nl5BMl5BanBnXkFtZTgwMTQ1NzU3MDI@._V1_.jpg', yt: 'https://www.youtube.com/embed/x_7YlGv9u1g' },
+    { id: 'hi3', title: '3 Idiots', type: 'Hindi', price: 140, img: 'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg', yt: 'https://www.youtube.com/embed/K0eDlFX9Gmc' },
+    { id: 'hi4', title: 'RRR', type: 'Hindi', price: 160, img: 'https://m.media-amazon.com/images/M/MV5BODUwNDNjYzctZDdhNy00ZGE2LWIyM2ItY2Y2NjA4NzIyODc1XkEyXkFqcGdeQXVyODE5NzE3OTE@._V1_.jpg', yt: 'https://www.youtube.com/embed/OsU0CGZoV8E' },
+    { id: 'hi5', title: 'Shershaah', type: 'Hindi', price: 120, img: 'https://m.media-amazon.com/images/M/MV5BMzkzMmU0YTYtOWM3My00Y2ExLTgyZTItZDA2ZTFkZWI0YjA3XkEyXkFqcGdeQXVyODE5NzE3OTE@._V1_.jpg', yt: 'https://www.youtube.com/embed/Q0FTXnefVBA' }
+];
+
+function openCinemaHall() {
+    let html = `
+    <div style="background: linear-gradient(135deg, #1e1b4b, #2e1065); color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; border: 2px solid #8b5cf6;">
+        <h2 style="margin: 0; font-size: 20px; color: #c4b5fd;">🍿 রেডিকা মাল্টিপ্লেক্স 🎬</h2>
+        <p style="margin: 5px 0 0 0; font-size: 12px; color: #a78bfa;">আপনার ব্যালেন্স: ৳${user.bal.toLocaleString()}</p>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 400px; overflow-y: auto; padding: 5px;">`;
+
+    moviesList.forEach(movie => {
+        html += `
+        <div style="background: var(--bg-main); border: 1px solid var(--border-col); border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+            <img src="${movie.img}" style="width: 100%; height: 110px; object-fit: cover;">
+            <div style="padding: 8px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                <div style="font-weight: bold; font-size: 13px; color: var(--primary); line-height: 1.2;">${movie.title}</div>
+                <div style="font-size: 10px; color: var(--text-muted);">${movie.type}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                    <div style="font-weight: bold; color: #8b5cf6; font-size: 12px;">৳${movie.price}</div>
+                    <button onclick="buyMovieTicket('${movie.id}')" style="background: #8b5cf6; color: white; border: none; padding: 5px 8px; border-radius: 5px; cursor: pointer; font-size: 10px; font-weight: bold;">টিকিট 🎟️</button>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    html += `</div>`;
+    renderModal("🎬 মাল্টিপ্লেক্স", html);
+}
+
+async function buyMovieTicket(movieId) {
+    let movie = moviesList.find(m => m.id === movieId);
+    if (user.bal < movie.price) return alert("❌ পর্যাপ্ত ব্যালেন্স নেই!");
+
+    if (confirm(`${movie.title}-এর জন্য ৳${movie.price} টিকিট কাটবেন? একবার টিকিট কাটলে একবারই দেখা যাবে।`)) {
+        let newBal = user.bal - movie.price;
+        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/bal.json`, { method: 'PUT', body: JSON.stringify(newBal) });
+        
+        if (res.ok) {
+            user.bal = newBal;
+            document.getElementById('mainBal').innerText = user.bal.toLocaleString();
+            
+            // অ্যাডমিন প্যানেলে বিক্রির ডেটা পাঠানো
+            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/cinema_sales.json`, {
+                method: 'POST',
+                body: JSON.stringify({ uid: user.id, uname: user.name, movie: movie.title, price: movie.price, time: new Date().getTime() })
+            });
+
+            watchMovie(movie); 
+        }
+    }
+}
+
+function watchMovie(movie) {
+    let html = `
+    <div style="text-align: center; margin-bottom: 10px;">
+        <h3 style="color: #8b5cf6; margin: 0;">🎥 শো চলছে: ${movie.title}</h3>
+        <p style="font-size: 10px; color: gray;">হল থেকে বের হলে পুনরায় টিকিট কাটতে হবে</p>
+    </div>
+    <div style="position: relative; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 10px; border: 2px solid #8b5cf6;">
+        <iframe src="${movie.yt}?autoplay=1" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    </div>
+    <button onclick="openCinemaHall()" style="margin-top: 15px; width: 100%; background: #e11d48; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">🚪 হল থেকে বের হন</button>
+    `;
+    renderModal("🔴 মাল্টিপ্লেক্স প্লেয়ার", html);
+}
+    
 </script>
 </body>
 </html>
