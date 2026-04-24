@@ -1837,10 +1837,24 @@ async function sendTip(postId, ownerId, ownerName) {
     }
                    }
 // =========================================================
-// ♟️ REDICA CHESS CLUB (Auto-Refresh & Fixed Challenges)
+// ♟️ REDICA CHESS CLUB (100% Native Custom Multiplayer)
 // =========================================================
 
-let chessAutoRefresh = null; // অটো রিফ্রেশের জন্য
+let chessSyncInterval = null;
+let currentMatchId = null;
+let myPlayerColor = null; // 'w' বা 'b'
+let selectedSquare = -1;
+
+const initialBoard = [
+    '♜','♞','♝','♛','♚','♝','♞','♜',
+    '♟','♟','♟','♟','♟','♟','♟','♟',
+    '','','','','','','','',
+    '','','','','','','','',
+    '','','','','','','','',
+    '','','','','','','','',
+    '♙','♙','♙','♙','♙','♙','♙','♙',
+    '♖','♘','♗','♕','♔','♗','♘','♖'
+];
 
 setTimeout(() => {
     let menuGrid = document.querySelector('.menu-grid');
@@ -1855,13 +1869,13 @@ setTimeout(() => {
 }, 1000);
 
 async function openChessClub(tab = 'play') {
-    // আগের কোনো অটো-রিফ্রেশ চললে সেটা বন্ধ করা
-    if(chessAutoRefresh) clearInterval(chessAutoRefresh);
+    if(chessSyncInterval) clearInterval(chessSyncInterval);
+    currentMatchId = null;
 
     let html = `
     <div style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; border: 2px solid #334155;">
         <h2 style="margin: 0; font-size: 20px;">♟️ রেডিকা চেস ক্লাব</h2>
-        <p style="margin: 5px 0 0 0; font-size: 11px; color: #94a3b8;">আপনার পাসপোর্ট ID: <b>${user.id}</b> <button onclick="navigator.clipboard.writeText('${user.id}'); alert('ID কপি হয়েছে!')" style="background:#3b82f6; border:none; color:white; border-radius:4px; font-size:10px; cursor:pointer;">কপি</button></p>
+        <p style="margin: 5px 0 0 0; font-size: 11px; color: #94a3b8;">আপনার পাসপোর্ট ID: <b>${user.id}</b> <button onclick="navigator.clipboard.writeText('${user.id}')" style="background:#3b82f6; border:none; color:white; border-radius:4px; font-size:10px; cursor:pointer;">কপি</button></p>
     </div>
     
     <div style="display:flex; gap:5px; margin-bottom:15px; background:#f1f5f9; padding:5px; border-radius:8px;">
@@ -1870,7 +1884,7 @@ async function openChessClub(tab = 'play') {
         <button onclick="openChessClub('coach')" style="flex:1; padding:8px; border-radius:6px; border:none; font-weight:bold; cursor:pointer; background:${tab==='coach'?'#1e293b':'transparent'}; color:${tab==='coach'?'white':'#64748b'};">📖 কোচিং</button>
     </div>
     
-    <div id="chess-content" style="min-height: 300px; max-height: 450px; overflow-y: auto;">
+    <div id="chess-content" style="min-height: 300px; max-height: 500px; overflow-y: auto;">
         <p style="text-align:center; color:gray;">লোড হচ্ছে...</p>
     </div>
     `;
@@ -1881,7 +1895,7 @@ async function openChessClub(tab = 'play') {
     else loadCoachTab();
 }
 
-// ================= FRIENDS TAB =================
+// ================= 1. ফ্রেন্ডস ট্যাব (একই আছে) =================
 async function loadFriendsTab() {
     let content = `
     <div style="background: white; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom:15px;">
@@ -1915,7 +1929,7 @@ async function loadFriendsTab() {
         const frRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friends.json`);
         const friends = await frRes.json();
         let frHtml = '<h4 style="color:#10b981; margin-bottom:5px;">🤝 আপনার ফ্রেন্ড লিস্ট</h4>';
-        if(!friends) frHtml += '<p style="color:gray; font-size:12px;">আপনার কোনো বন্ধু নেই। ID দিয়ে অ্যাড করুন!</p>';
+        if(!friends) frHtml += '<p style="color:gray; font-size:12px;">আপনার কোনো বন্ধু নেই।</p>';
         else {
             Object.entries(friends).forEach(([fId, fName]) => {
                 frHtml += `<div style="background:#f1f5f9; padding:10px; border-radius:8px; margin-bottom:5px; border:1px solid #e2e8f0;">👤 <b>${fName}</b> <span style="font-size:10px; color:gray;">(${fId})</span></div>`;
@@ -1927,31 +1941,24 @@ async function loadFriendsTab() {
 
 async function sendFriendRequest() {
     let targetId = document.getElementById('friend-id-input').value.trim();
-    if(!targetId || targetId === user.id) return alert("সঠিক ID দিন!");
-    
+    if(!targetId || targetId === user.id) return;
     try {
         const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${targetId}.json`);
         const targetData = await res.json();
-        if(!targetData) return alert("এই ID-র কোনো নাগরিক নেই!");
-
-        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${targetId}/friend_requests/${user.id}.json`, {
-            method: 'PUT', body: JSON.stringify({ name: user.name })
-        });
-        alert(`✅ ${targetData.name}-কে ফ্রেন্ড রিকোয়েস্ট পাঠানো হয়েছে!`);
-        document.getElementById('friend-id-input').value = '';
-    } catch(e) { alert("সমস্যা হয়েছে!"); }
+        if(!targetData) return alert("এই ID-র কেউ নেই!");
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${targetId}/friend_requests/${user.id}.json`, { method: 'PUT', body: JSON.stringify({ name: user.name }) });
+        alert("✅ রিকোয়েস্ট পাঠানো হয়েছে!");
+    } catch(e) {}
 }
 
 async function acceptFriend(fId, fName) {
     await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friends/${fId}.json`, { method: 'PUT', body: JSON.stringify(fName) });
     await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${fId}/friends/${user.id}.json`, { method: 'PUT', body: JSON.stringify(user.name) });
     await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friend_requests/${fId}.json`, { method: 'DELETE' });
-    
-    alert(`✅ ${fName} এখন আপনার ফ্রেন্ড!`);
-    loadFriendsTab();
+    alert("✅ ফ্রেন্ড অ্যাড হয়েছে!"); loadFriendsTab();
 }
 
-// ================= PLAY TAB (CHALLENGE SYSTEM) =================
+// ================= 2. প্লে ট্যাব (নিজস্ব চ্যালেঞ্জ সিস্টেম) =================
 async function loadPlayTab() {
     let content = `
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -1964,58 +1971,43 @@ async function loadPlayTab() {
     document.getElementById('chess-content').innerHTML = content;
     
     fetchChallengesAndFriends();
-
-    // ৫ সেকেন্ড পরপর নিজে থেকেই চ্যালেঞ্জ চেক করবে!
-    chessAutoRefresh = setInterval(fetchChallengesAndFriends, 5000);
+    if(chessSyncInterval) clearInterval(chessSyncInterval);
+    chessSyncInterval = setInterval(fetchChallengesAndFriends, 5000); // অটো রিফ্রেশ
 }
 
 async function fetchChallengesAndFriends() {
-    if(!document.getElementById('challenge-box')) {
-        clearInterval(chessAutoRefresh); // ট্যাব পালটে ফেললে অটো রিফ্রেশ বন্ধ হবে
-        return;
-    }
+    if(!document.getElementById('challenge-box')) { clearInterval(chessSyncInterval); return; }
 
     try {
-        // নিজের কাছে আসা চ্যালেঞ্জ দেখা
         const chalRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/chess_challenges.json`);
         const challenges = await chalRes.json();
         
         let chalHtml = '';
         if(challenges) {
-            chalHtml += `<div style="background:#fef3c7; border:1px solid #f59e0b; padding:10px; border-radius:8px; margin-bottom:15px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">`;
+            chalHtml += `<div style="background:#fef3c7; border:1px solid #f59e0b; padding:10px; border-radius:8px; margin-bottom:15px;">`;
             Object.entries(challenges).forEach(([cId, cData]) => {
                 chalHtml += `
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><b style="color:#b45309;">${cData.senderName}</b> চ্যালেঞ্জ করেছে!<br><small>সময়: ${cData.timeMode}</small></div>
-                    <button onclick="startMatch('${cData.gameUrl}')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; animation: bounce 1s infinite;">Join Game</button>
+                    <div><b style="color:#b45309;">${cData.senderName}</b> খেলবে!<br><small>সময়: আনলিমিটেড</small></div>
+                    <button onclick="joinNativeMatch('${cData.matchId}', 'b')" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; animation: bounce 1s infinite;">Start</button>
                 </div>`;
             });
             chalHtml += `</div>`;
         } else {
-            chalHtml = `<p style="font-size:11px; color:gray; text-align:center;">বর্তমানে কোনো চ্যালেঞ্জ নেই।</p>`;
+            chalHtml = `<p style="font-size:11px; color:gray; text-align:center;">কোনো চ্যালেঞ্জ নেই।</p>`;
         }
         document.getElementById('challenge-box').innerHTML = chalHtml;
 
-        // ফ্রেন্ড লিস্ট লোড করা
         const frRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friends.json`);
         const friends = await frRes.json();
         
         let frHtml = '';
-        if(!friends) {
-            frHtml = `<p style="text-align:center; color:gray; margin-top:20px;">আপনার ফ্রেন্ড লিস্ট ফাঁকা। আগে ফ্রেন্ড অ্যাড করুন!</p>`;
-        } else {
+        if(friends) {
             Object.entries(friends).forEach(([fId, fName]) => {
                 frHtml += `
                 <div style="background:white; border:1px solid #cbd5e1; padding:12px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                     <b>👤 ${fName}</b>
-                    <div style="display:flex; gap:5px;">
-                        <select id="time-${fId}" style="padding:5px; border-radius:5px; border:1px solid #ccc; font-size:11px;">
-                            <option value="5,2">5 + 2</option>
-                            <option value="10,0" selected>10 Min</option>
-                            <option value="10,3">10 + 3</option>
-                        </select>
-                        <button onclick="createChallenge('${fId}', '${fName}')" style="background:#f43f5e; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:11px;">Challenge</button>
-                    </div>
+                    <button onclick="createNativeChallenge('${fId}', '${fName}')" style="background:#f43f5e; color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">খেলুন (White)</button>
                 </div>`;
             });
         }
@@ -2023,59 +2015,143 @@ async function fetchChallengesAndFriends() {
     } catch(e) {}
 }
 
-async function createChallenge(fId, fName) {
-    let timeVal = document.getElementById(`time-${fId}`).value.split(',');
-    let mins = parseInt(timeVal[0]);
-    let inc = parseInt(timeVal[1]);
+async function createNativeChallenge(fId, fName) {
+    let matchId = 'match_' + Date.now() + '_' + user.id;
+    let matchData = { white: user.id, black: fId, turn: 'w', board: initialBoard };
     
+    // ডেটাবেসে ম্যাচ তৈরি
+    await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/chess_matches/${matchId}.json`, { method: 'PUT', body: JSON.stringify(matchData) });
+    // বন্ধুকে ইনভাইট পাঠানো
+    let challengeData = { senderName: user.name, matchId: matchId };
+    await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${fId}/chess_challenges/${user.id}.json`, { method: 'PUT', body: JSON.stringify(challengeData) });
+
+    alert(`✅ ${fName}-কে চ্যালেঞ্জ পাঠানো হয়েছে!`);
+    joinNativeMatch(matchId, 'w');
+}
+
+// ================= 3. অরিজিনাল চেস বোর্ড রেন্ডারিং =================
+async function joinNativeMatch(matchId, color) {
+    if(chessSyncInterval) clearInterval(chessSyncInterval);
+    currentMatchId = matchId;
+    myPlayerColor = color;
+    
+    // নিজের চ্যালেঞ্জ লিস্ট ক্লিয়ার করা
+    fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/chess_challenges.json`, { method: 'DELETE' });
+
     document.getElementById('chess-content').innerHTML = `
-        <div style="text-align:center; padding: 30px;">
-            <div style="font-size: 40px; animation: bounce 1s infinite;">⏳</div>
-            <h4 style="color:#f59e0b; margin-top:10px;">গেম তৈরি হচ্ছে... দয়া করে অপেক্ষা করুন।</h4>
-        </div>
-    `;
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; background:#1e293b; padding:10px; border-radius:8px; color:white;">
+        <span id="turn-indicator" style="font-weight:bold; color:#f59e0b;">লোড হচ্ছে...</span>
+        <span style="font-size:12px;">আপনি: <b>${color === 'w' ? 'সাদা (White)' : 'কালো (Black)'}</b></span>
+    </div>
     
+    <div id="native-board" style="display:grid; grid-template-columns:repeat(8, 1fr); width:100%; max-width:350px; margin:auto; border:4px solid #1e293b; border-radius:4px; box-shadow:0 10px 20px rgba(0,0,0,0.2);">
+        </div>
+    
+    <button onclick="openChessClub('play')" style="width:100%; padding:10px; margin-top:15px; background:#ef4444; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">খেলা শেষ / লবিতে ফিরুন</button>
+    `;
+
+    fetchMatchState();
+    chessSyncInterval = setInterval(fetchMatchState, 2000); // ২ সেকেন্ড পরপর বোর্ড আপডেট
+}
+
+async function fetchMatchState() {
+    if(!currentMatchId) return;
     try {
-        let formData = 'clock.limit=' + (mins * 60) + '&clock.increment=' + inc;
-        
-        const response = await fetch("https://lichess.org/api/challenge/open", {
-            method: "POST",
-            headers: { 
-                "Accept": "application/json",
-                "Content-Type": "application/x-www-form-urlencoded" 
-            },
-            body: formData
-        });
-        
-        const data = await response.json();
-        const gameUrl = data.challenge.url;
+        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/chess_matches/${currentMatchId}.json`);
+        const matchData = await res.json();
+        if(matchData) renderBoard(matchData.board, matchData.turn);
+    } catch(e) {}
+}
 
-        let challengeData = { senderName: user.name, timeMode: `${mins}+${inc}`, gameUrl: gameUrl };
-        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${fId}/chess_challenges/${user.id}.json`, {
-            method: 'PUT', body: JSON.stringify(challengeData)
-        });
+function renderBoard(boardArray, turn) {
+    let boardDiv = document.getElementById('native-board');
+    if(!boardDiv) return;
 
-        alert(`✅ ${fName}-কে চ্যালেঞ্জ পাঠানো হয়েছে!\nনতুন উইন্ডোতে খেলাটি চালু হচ্ছে। বন্ধু জয়েন করলেই শুরু হবে।`);
-        startMatch(gameUrl); 
+    // চাল কার সেটা দেখানো
+    let turnInd = document.getElementById('turn-indicator');
+    if(turn === myPlayerColor) turnInd.innerHTML = "🟢 আপনার চাল দিন";
+    else turnInd.innerHTML = "🔴 বন্ধুর চালের অপেক্ষা...";
+
+    boardDiv.innerHTML = '';
+    
+    // বোর্ড ফ্লিপ করা (কালো প্লেয়ার নিচ থেকে দেখবে)
+    let renderIndices = [];
+    for(let i=0; i<64; i++) renderIndices.push(i);
+    if(myPlayerColor === 'b') renderIndices.reverse();
+
+    for(let i=0; i<64; i++) {
+        let actualIndex = renderIndices[i];
+        let piece = boardArray[actualIndex];
         
-    } catch(e) { 
-        alert("❌ গেম তৈরি করতে সমস্যা হয়েছে! ইন্টারনেট কানেকশন চেক করুন।"); 
-        openChessClub('play'); 
+        // সাদাকালো ছক
+        let row = Math.floor(actualIndex / 8);
+        let col = actualIndex % 8;
+        let isLight = (row + col) % 2 === 0;
+        let bgColor = isLight ? '#eeeed2' : '#769656';
+        
+        if(selectedSquare === actualIndex) bgColor = '#f59e0b'; // সিলেক্ট করলে হলুদ হবে
+
+        boardDiv.innerHTML += `
+        <div onclick="handleSquareClick(${actualIndex}, '${turn}', '${boardArray.join(',')}')" 
+             style="background:${bgColor}; aspect-ratio:1; display:flex; justify-content:center; align-items:center; font-size:28px; cursor:pointer; user-select:none; color:black; text-shadow: ${getPieceColor(piece) === 'w' ? '0 0 2px white' : 'none'};">
+            ${piece}
+        </div>`;
     }
 }
 
-function startMatch(url) {
-    window.open(url, '_blank');
-    fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/chess_challenges.json`, { method: 'DELETE' });
-    openChessClub('play');
+function getPieceColor(p) {
+    if(['♙','♖','♘','♗','♕','♔'].includes(p)) return 'w';
+    if(['♟','♜','♞','♝','♛','♚'].includes(p)) return 'b';
+    return null;
 }
 
-// ================= COACHING TAB =================
+async function handleSquareClick(index, turn, boardStr) {
+    let boardArray = boardStr.split(',');
+
+    if(turn !== myPlayerColor) {
+        alert("এখন আপনার চালের সময় নয়! বন্ধুর চালের অপেক্ষা করুন।");
+        return;
+    }
+
+    let clickedPieceColor = getPieceColor(boardArray[index]);
+
+    // যদি কোনো গুটি সিলেক্ট করা না থাকে
+    if(selectedSquare === -1) {
+        if(clickedPieceColor === myPlayerColor) {
+            selectedSquare = index; // নিজের গুটি সিলেক্ট করা
+            renderBoard(boardArray, turn);
+        }
+    } 
+    // যদি গুটি আগে থেকে সিলেক্ট করা থাকে এবং গন্তব্যে ক্লিক করে
+    else {
+        if(clickedPieceColor === myPlayerColor) {
+            selectedSquare = index; // সিলেক্ট পালটানো
+            renderBoard(boardArray, turn);
+        } else {
+            // চাল সম্পন্ন করা
+            let pieceToMove = boardArray[selectedSquare];
+            boardArray[index] = pieceToMove; // নতুন জায়গায় বসানো
+            boardArray[selectedSquare] = ''; // পুরনো জায়গা ফাঁকা করা
+            
+            selectedSquare = -1; // সিলেকশন ক্লিয়ার
+            let newTurn = (myPlayerColor === 'w') ? 'b' : 'w';
+
+            // ডেটাবেসে আপডেট পাঠানো
+            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/chess_matches/${currentMatchId}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ board: boardArray, turn: newTurn })
+            });
+
+            renderBoard(boardArray, newTurn);
+        }
+    }
+}
+
+// ================= 4. কোচিং ট্যাব =================
 function loadCoachTab() {
     let content = `
     <div style="background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #cbd5e1;">
         <h3 style="color:#0f172a; margin-top:0;">📚 চেস বেসিকস (নতুনদের জন্য)</h3>
-        
         <div style="background:#f1f5f9; padding:10px; border-radius:8px; margin-bottom:10px;">
             <h4 style="margin:0 0 5px 0; color:#3b82f6;">১. গুটি কীভাবে চলে?</h4>
             <ul style="font-size:12px; padding-left:15px; color:#475569; margin:0;">
@@ -2085,16 +2161,11 @@ function loadCoachTab() {
                 <li><b>মন্ত্রী (Queen):</b> সোজা এবং কোণাকুণি যেকোনো দিকে যায়।</li>
             </ul>
         </div>
-
-        <div style="background:#f1f5f9; padding:10px; border-radius:8px; margin-bottom:15px;">
-            <h4 style="margin:0 0 5px 0; color:#10b981;">২. প্র্যাকটিস করুন</h4>
-            <p style="font-size:12px; color:#475569; margin:0 0 10px 0;">নিচের বাটনে ক্লিক করে কম্পিউটারের সাথে প্র্যাকটিস করতে পারেন।</p>
-            <button onclick="window.open('https://lichess.org/editor', '_blank')" style="background:#1e293b; color:white; border:none; padding:8px 15px; border-radius:5px; font-weight:bold; cursor:pointer; width:100%;">বোর্ড সাজিয়ে প্র্যাকটিস করুন</button>
-        </div>
+        <p style="font-size:11px; color:gray; font-weight:bold; text-align:center;">অ্যাপের ভেতরের বোর্ডটি একদম কাঠের বোর্ডের মতো। নিয়ম মেনে নিজের চাল নিজেকেই দিতে হবে!</p>
     </div>
     `;
     document.getElementById('chess-content').innerHTML = content;
-                    }
+}
     
 </script>
 </body>
