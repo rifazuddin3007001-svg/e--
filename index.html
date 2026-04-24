@@ -1667,10 +1667,9 @@ async function payTax() {
     }
                                             }
 // =========================================================
-// 📸 REDGRAM (Floating Photo Gallery & Tournament)
+// 📸 REDGRAM (Fixed Image Size & Tournament Upload)
 // =========================================================
 
-// ১. ভাসমান বাটন (Floating Button)
 setTimeout(() => {
     if(!document.getElementById('gallery-fab')) {
         let fab = `<div id="gallery-fab" onclick="openRedGram()" style="position:fixed; bottom:80px; right:20px; width:60px; height:60px; background:linear-gradient(135deg, #ec4899, #f43f5e); border-radius:50%; box-shadow:0 4px 15px rgba(236, 72, 153, 0.4); display:flex; justify-content:center; align-items:center; font-size:28px; z-index:1000; cursor:pointer; color:white; border:2px solid white; animation: bounce 2s infinite;">📸</div>`;
@@ -1680,7 +1679,6 @@ setTimeout(() => {
 
 let currentTournament = null;
 
-// ২. মেইন গ্যালারি ওপেন করা
 async function openRedGram() {
     renderModal("📸 RedGram", `<div style="text-align:center; padding:20px;">লোড হচ্ছে... ⏳</div>`);
     
@@ -1690,24 +1688,35 @@ async function openRedGram() {
     } catch(e) {}
 
     let tourneyHtml = '';
+    // সাধারণ আপলোড বাটন
+    let uploadButtons = `
+        <input type="file" id="photo-upload-normal" accept="image/*" style="display:none;" onchange="processAndUploadPhoto(event, false)">
+        <label for="photo-upload-normal" style="background:#ec4899; color:white; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; display:inline-block; margin:5px; font-size: 13px;">+ সাধারণ ছবি দিন</label>
+    `;
+
+    // টুর্নামেন্ট চালু থাকলে নতুন বাটন যোগ হবে
     if (currentTournament && currentTournament.active) {
         tourneyHtml = `
         <div style="background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <h3 style="margin:0; font-size:16px;">🏆 ফটোগ্র্যাফি টুর্নামেন্ট চলছে!</h3>
+            <h3 style="margin:0; font-size:16px;">🏆 টুর্নামেন্ট চলছে!</h3>
             <p style="margin:3px 0 0 0; font-size:12px;">বিষয়: <b>${currentTournament.theme}</b> | পুরস্কার: <b>৳${currentTournament.prize}</b></p>
         </div>`;
+
+        uploadButtons += `
+        <input type="file" id="photo-upload-tourney" accept="image/*" style="display:none;" onchange="processAndUploadPhoto(event, true)">
+        <label for="photo-upload-tourney" style="background:#f59e0b; color:white; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; display:inline-block; margin:5px; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">🏆 টুর্নামেন্টে অংশ নিন</label>
+        `;
     }
 
     let html = `
     ${tourneyHtml}
     <div style="background: var(--bg-main); padding: 15px; border-radius: 12px; border: 2px dashed #ec4899; text-align: center; margin-bottom: 15px;">
-        <p style="margin:0 0 10px 0; font-size:13px; color:var(--text-muted); font-weight:bold;">RedGram-এ আপনার ছবি শেয়ার করুন!</p>
-        <input type="file" id="photo-upload" accept="image/*" style="display:none;" onchange="processAndUploadPhoto(event)">
-        <label for="photo-upload" style="background:#ec4899; color:white; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; display:inline-block;">+ নতুন ছবি দিন</label>
+        <p style="margin:0 0 10px 0; font-size:13px; color:var(--text-muted); font-weight:bold;">RedGram-এ ছবি শেয়ার করুন!</p>
+        ${uploadButtons}
         <p id="upload-status" style="color:#10b981; font-size:11px; margin-top:8px; display:none;">ছবি আপলোড হচ্ছে... ⏳</p>
     </div>
     
-    <div id="photo-feed" style="max-height: 65vh; overflow-y: auto; padding-right: 5px; padding-bottom: 20px; display: flex; flex-direction: column; gap: 20px;">
+    <div id="photo-feed" style="max-height: 65vh; overflow-y: auto; padding-right: 5px; padding-bottom: 20px; display: block;">
         <p style="text-align:center; color:gray;">ছবি লোড হচ্ছে...</p>
     </div>
     `;
@@ -1715,10 +1724,12 @@ async function openRedGram() {
     loadPhotoFeed();
 }
 
-function processAndUploadPhoto(event) {
+// ছবি আপলোড করার লজিক (টুর্নামেন্ট কি না তা চেক করে)
+function processAndUploadPhoto(event, isTourney) {
     let file = event.target.files[0];
     if(!file) return;
     document.getElementById('upload-status').style.display = "block";
+    
     let reader = new FileReader();
     reader.onload = function(e) {
         let img = new Image();
@@ -1731,9 +1742,18 @@ function processAndUploadPhoto(event) {
             canvas.height = img.height * scaleSize;
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             let base64Image = canvas.toDataURL('image/jpeg', 0.6); 
-            let newPost = { uid: user.id, uname: user.name, img: base64Image, likes: 0, tips: 0, time: new Date().getTime() };
+            
+            let newPost = { 
+                uid: user.id, uname: user.name, 
+                img: base64Image, likes: 0, tips: 0, 
+                time: new Date().getTime(),
+                isTournament: isTourney // এটি টুর্নামেন্টের ছবি কি না তার রেকর্ড
+            };
+            
             await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/gallery/posts.json`, { method: 'POST', body: JSON.stringify(newPost) });
             document.getElementById('upload-status').style.display = "none";
+            
+            if(isTourney) alert("✅ টুর্নামেন্টে আপনার ছবি সফলভাবে জমা হয়েছে!");
             loadPhotoFeed();
         }
         img.src = e.target.result;
@@ -1741,29 +1761,34 @@ function processAndUploadPhoto(event) {
     reader.readAsDataURL(file);
 }
 
+// সবার ছবি লোড করা
 async function loadPhotoFeed() {
     try {
         const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/gallery/posts.json`);
         const data = await res.json();
         const feedDiv = document.getElementById('photo-feed');
-        if(!data) { feedDiv.innerHTML = '<p style="text-align:center; color:gray;">RedGram-এ এখনও কোনো ছবি নেই। আপনিই প্রথম ছবি দিন!</p>'; return; }
+        if(!data) { feedDiv.innerHTML = '<p style="text-align:center; color:gray;">RedGram-এ এখনও কোনো ছবি নেই।</p>'; return; }
         
         let html = '';
         let posts = Object.entries(data).reverse(); 
         
         posts.forEach(([postId, post]) => {
             let date = new Date(post.time).toLocaleString('bn-BD');
+            // টুর্নামেন্ট ব্যাজ
+            let tourneyBadge = post.isTournament ? `<div style="background:#f59e0b; color:white; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:bold; margin-left:auto;">🏆 টুর্নামেন্ট এন্ট্রি</div>` : '';
+
             html += `
-            <div style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); border: 1px solid #fce7f3; margin-bottom: 5px;">
+            <div style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); border: 1px solid #fce7f3; margin-bottom: 20px;">
                 <div style="padding: 12px; display: flex; align-items: center; gap: 10px; background: #fdf2f8;">
                     <div style="width:35px; height:35px; background:linear-gradient(135deg, #ec4899, #f43f5e); color:white; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold; font-size:16px;">${post.uname.charAt(0)}</div>
                     <div style="text-align:left;">
                         <div style="font-weight:bold; font-size:14px; color:#1e293b;">${post.uname}</div>
                         <div style="font-size:11px; color:#64748b;">${date}</div>
                     </div>
+                    ${tourneyBadge}
                 </div>
                 
-                <img src="${post.img}" style="width: 100%; height: auto; display: block; border-top: 1px solid #fce7f3; border-bottom: 1px solid #fce7f3;">
+                <img src="${post.img}" style="width: 100%; height: auto; max-height: 500px; object-fit: contain; display: block; border-top: 1px solid #fce7f3; border-bottom: 1px solid #fce7f3; background: #fafafa;">
                 
                 <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; background: white;">
                     <button onclick="likePhoto('${postId}', ${post.likes})" style="background:#fff1f2; border:1px solid #fecdd3; padding:5px 15px; border-radius:20px; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:8px; color:#ec4899; font-weight:bold; transition:0.2s;">
@@ -1808,8 +1833,8 @@ async function sendTip(postId, ownerId, ownerName) {
         alert(`✅ সফল! ${ownerName} গিফট পেয়েছে।`);
         loadPhotoFeed();
     }
-                                                                                                                                                          }
-    
+    }
+            
 </script>
 </body>
 </html>
