@@ -491,6 +491,38 @@ loadTransactions();
 loadStockOptions();
 setInterval(loadTransactions, 10000); // প্রতি ১০ সেকেন্ডে লাইভ রিফ্রেশ হবে
 </script> 
+  <div style="background: #ffffff; padding: 20px; border-radius: 15px; margin-top: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 2px solid #8b5cf6;">
+    <h2 style="color: #1e293b; margin-top: 0; border-bottom: 2px solid #f3e8ff; padding-bottom: 10px;">🍿 মাল্টিপ্লেক্স টিকেট সেলস</h2>
+    <div id="admin-cinema-list" style="max-height: 200px; overflow-y: auto; background: #faf5ff; padding: 10px; border-radius: 8px; border: 1px solid #e9d5ff;">
+        <p style="text-align:center; color: gray;">সেলস রিপোর্ট লোড হচ্ছে...</p>
+    </div>
+</div>
+
+<script>
+async function loadCinemaSales() {
+    try {
+        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/cinema_sales.json`);
+        const data = await res.json();
+        const listDiv = document.getElementById('admin-cinema-list');
+        
+        if(!data) { listDiv.innerHTML = '<p style="text-align:center; color:gray;">এখনও কোনো টিকিট বিক্রি হয়নি।</p>'; return; }
+        
+        let html = '';
+        let sales = Object.values(data).reverse(); 
+        sales.slice(0, 30).forEach(s => {
+            let date = new Date(s.time).toLocaleString('bn-BD');
+            html += `
+            <div style="background: white; padding: 8px; margin-bottom: 5px; border-radius: 5px; border-left: 4px solid #8b5cf6; font-size: 13px;">
+                <b>${s.uname}</b> টিকিট কেটেছে: <b>${s.movie}</b> | ৳${s.price}
+                <div style="font-size: 10px; color: gray;">${date}</div>
+            </div>`;
+        });
+        listDiv.innerHTML = html;
+    } catch(e) {}
+}
+loadCinemaSales();
+setInterval(loadCinemaSales, 15000); // ১৫ সেকেন্ড পর পর অটো রিফ্রেশ
+</script>
     
 </body>
 </html>
