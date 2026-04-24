@@ -226,7 +226,6 @@ async function register() {
         document.querySelector('#register-form button').disabled = false;
     }
 }
-
 async function login() {
     try {
         let rawId = document.getElementById('login-id').value.trim();
@@ -251,9 +250,9 @@ async function login() {
         document.getElementById('app-container').style.display = 'flex';
         document.getElementById('user-name-display').innerText = data.name;
         
-        // লগইন হওয়ার সাথে সাথে নিচে আইডি দেখানো
-        document.getElementById('my-id-footer').style.display = 'block';
-        document.getElementById('footer-id-text').innerText = id;
+        // আইডিটা নামের নিচে ছোট্ট করে দেখানো
+        document.getElementById('header-id-display').innerText = "ID: " + id;
+        document.getElementById('header-id-display').style.display = 'inline-block';
         
         loadFriendsAndChats();
         mainSyncInterval = setInterval(loadFriendsAndChats, 5000); 
