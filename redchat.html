@@ -115,13 +115,17 @@
     </div>
 
     <div id="app-container">
-                <div class="header">
+        <div class="header">
             <h3 style="margin:0;">RedChat</h3>
-            <div style="display:flex; align-items:center; gap:15px;">
+            <div style="display:flex; align-items:center; gap:12px;">
                 <button onclick="toggleDarkMode()" style="background:none; border:none; color:white; font-size:18px; cursor:pointer;" title="Dark Mode">🌙</button>
-                <span id="user-name-display" style="font-size:14px; font-weight:bold;"></span>
-            </div>
+                <div style="text-align: right;">
+                    <span id="user-name-display" style="font-size:14px; font-weight:bold; display:block;"></span>
+                    <span id="header-id-display" onclick="navigator.clipboard.writeText(currentUser.id); alert('ID কপি হয়েছে!')" style="font-size:10px; background:#ec4899; color:white; padding:2px 8px; border-radius:12px; cursor:pointer; display:none; box-shadow:0 2px 4px rgba(0,0,0,0.2);"></span>
                 </div>
+            </div>
+        </div>
+        
         
         <div class="nav-tabs" id="main-nav">
             <div class="active" onclick="switchTab('chats')">চ্যাটস</div>
