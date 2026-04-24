@@ -1891,7 +1891,6 @@ async function loadFriendsTab() {
     `;
     document.getElementById('chess-content').innerHTML = content;
     
-    // রিকোয়েস্ট লোড করা
     try {
         const reqRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friend_requests.json`);
         const reqs = await reqRes.json();
@@ -1908,7 +1907,6 @@ async function loadFriendsTab() {
         }
         document.getElementById('friend-requests-list').innerHTML = reqHtml;
 
-        // ফ্রেন্ড লিস্ট লোড করা
         const frRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friends.json`);
         const friends = await frRes.json();
         let frHtml = '<h4 style="color:#10b981; margin-bottom:5px;">🤝 আপনার ফ্রেন্ড লিস্ট</h4>';
@@ -1953,7 +1951,6 @@ async function loadPlayTab() {
     let content = `<h4 style="color:#1e293b; margin-bottom:10px;">⚔️ বন্ধুদের চ্যালেঞ্জ করুন</h4>`;
     
     try {
-        // নিজের কাছে আসা চ্যালেঞ্জ দেখা
         const chalRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/chess_challenges.json`);
         const challenges = await chalRes.json();
         if(challenges) {
@@ -1968,7 +1965,6 @@ async function loadPlayTab() {
             content += `</div>`;
         }
 
-        // ফ্রেন্ড লিস্ট লোড করে চ্যালেঞ্জ পাঠানোর অপশন
         const frRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/friends.json`);
         const friends = await frRes.json();
         
@@ -1994,20 +1990,40 @@ async function loadPlayTab() {
     } catch(e) {}
 }
 
+// একদম ফিক্সড এবং সিকিউরড API কল
 async function createChallenge(fId, fName) {
     let timeVal = document.getElementById(`time-${fId}`).value.split(',');
     let mins = parseInt(timeVal[0]);
     let inc = parseInt(timeVal[1]);
     
-    alert("গেম তৈরি হচ্ছে, একটু অপেক্ষা করুন...");
+    // স্ক্রিনে সুন্দর করে লোডিং দেখানো
+    document.getElementById('chess-content').innerHTML = `
+        <div style="text-align:center; padding: 30px;">
+            <div style="font-size: 40px; animation: bounce 1s infinite;">⏳</div>
+            <h4 style="color:#f59e0b; margin-top:10px;">গেম তৈরি হচ্ছে... দয়া করে অপেক্ষা করুন।</h4>
+        </div>
+    `;
     
     try {
+        let formData = 'clock.limit=' + (mins * 60) + '&clock.increment=' + inc;
+        
         const response = await fetch("https://lichess.org/api/challenge/open", {
             method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ "clock.limit": mins * 60, "clock.increment": inc })
+            headers: { 
+                "Accept": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded" 
+            },
+            body: formData
         });
+        
+        if(!response.ok) {
+            throw new Error("Lichess সার্ভার কানেকশন এরর: " + response.status);
+        }
+        
         const data = await response.json();
+        if(!data.challenge || !data.challenge.url) {
+            throw new Error("URL পাওয়া যায়নি");
+        }
         const gameUrl = data.challenge.url;
 
         let challengeData = { senderName: user.name, timeMode: `${mins}+${inc}`, gameUrl: gameUrl };
@@ -2015,23 +2031,19 @@ async function createChallenge(fId, fName) {
             method: 'PUT', body: JSON.stringify(challengeData)
         });
 
-        alert(`✅ ${fName}-কে চ্যালেঞ্জ পাঠানো হয়েছে!\nআপনার ব্রাউজারে খেলাটি চালু হচ্ছে। বন্ধু জয়েন করলেই শুরু হবে।`);
+        alert(`✅ ${fName}-কে চ্যালেঞ্জ পাঠানো হয়েছে!\nনতুন উইন্ডোতে খেলাটি চালু হচ্ছে। বন্ধু জয়েন করলেই শুরু হবে।`);
         startMatch(gameUrl); 
         
-    } catch(e) { alert("গেম তৈরি করতে সমস্যা হয়েছে! ইন্টারনেট চেক করুন।"); }
+    } catch(e) { 
+        alert("❌ সমস্যা হয়েছে: " + e.message + "\n\nইন্টারনেট কানেকশন চেক করুন বা পেজ রিফ্রেশ করুন।"); 
+        openChessClub('play'); // সমস্যা হলে আবার আগের জায়গায় ফিরিয়ে আনা
+    }
 }
 
 // আসল গেমটি ফুল স্ক্রিনে ওপেন করার জন্য
 function startMatch(url) {
-    // Lichess সিকিউরিটির জন্য অ্যাপের ভেতরে না খুলে সরাসরি সেফ উইন্ডোতে খুলবে
     window.open(url, '_blank');
-    
-    // ডেটাবেস থেকে চ্যালেঞ্জ ডিলিট করা যাতে বারবার না দেখায়
     fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/chess_challenges.json`, { method: 'DELETE' });
-    
-    alert("✅ গেমটি নতুন ট্যাবে চালু হয়েছে! খেলা শেষ হলে ব্যাক করে আবার অ্যাপে ফিরে আসুন।");
-    
-    // পেজ রিফ্রেশ করে দেওয়া
     openChessClub('play');
 }
 
@@ -2054,17 +2066,13 @@ function loadCoachTab() {
         <div style="background:#f1f5f9; padding:10px; border-radius:8px; margin-bottom:15px;">
             <h4 style="margin:0 0 5px 0; color:#10b981;">২. প্র্যাকটিস করুন</h4>
             <p style="font-size:12px; color:#475569; margin:0 0 10px 0;">নিচের বাটনে ক্লিক করে কম্পিউটারের সাথে প্র্যাকটিস করতে পারেন।</p>
-            <button onclick="startMatch('https://lichess.org/editor')" style="background:#1e293b; color:white; border:none; padding:8px 15px; border-radius:5px; font-weight:bold; cursor:pointer; width:100%;">বোর্ড সাজিয়ে প্র্যাকটিস করুন</button>
-        </div>
-        
-        <div style="text-align:center;">
-            <p style="font-size:11px; color:gray; font-weight:bold;">আরও অ্যাডভান্সড কোচিং খুব জলদি আসছে...</p>
+            <button onclick="window.open('https://lichess.org/editor', '_blank')" style="background:#1e293b; color:white; border:none; padding:8px 15px; border-radius:5px; font-weight:bold; cursor:pointer; width:100%;">বোর্ড সাজিয়ে প্র্যাকটিস করুন</button>
         </div>
     </div>
     `;
     document.getElementById('chess-content').innerHTML = content;
-}
-    
+            }
+            
 </script>
 </body>
 </html>
