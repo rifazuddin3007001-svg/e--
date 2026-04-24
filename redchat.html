@@ -56,21 +56,35 @@
         .btn-attach { background: none; border: none; font-size: 22px; cursor: pointer; color: #64748b; }
         .onetime-toggle { font-size: 20px; cursor: pointer; opacity: 0.5; transition: 0.3s; }
         .onetime-toggle.active { opacity: 1; transform: scale(1.2); text-shadow: 0 0 5px #facc15; }
-        /* Dark Mode Theme */
-        body.dark-mode { background-color: #0f172a; }
-        body.dark-mode #app-container { background: #1e293b; color: #f8fafc; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        body.dark-mode .auth-box { background: #1e293b; color: white; }
-        body.dark-mode .auth-box input, body.dark-mode .auth-box select { background: #0f172a; color: white; border-color: #334155; }
-        body.dark-mode .content-area { background: #0f172a; color: white; }
-        body.dark-mode .chat-list-item { background: #1e293b; border-bottom: 1px solid #334155; color: white; }
-        body.dark-mode .chat-list-item:hover { background: #334155; }
-        body.dark-mode #chat-room { background: #0f172a; background-image: radial-gradient(#334155 1px, transparent 1px); }
-        body.dark-mode .chat-input { background: #1e293b; border-top: 1px solid #334155; }
-        body.dark-mode .chat-input input { background: #0f172a; color: white; border-color: #334155; }
-        body.dark-mode .msg.received { background: #1e293b; color: white; border-color: #334155; }
+                /* Dark Mode Theme - High Visibility Edition */
+        body.dark-mode { background-color: #0f172a !important; color: #f8fafc !important; }
+        body.dark-mode #app-container { background: #1e293b !important; color: #f8fafc !important; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        body.dark-mode .auth-box { background: #1e293b !important; color: white !important; }
+        body.dark-mode .auth-box input, body.dark-mode .auth-box select { background: #0f172a !important; color: white !important; border-color: #334155 !important; }
+        body.dark-mode .content-area { background: #0f172a !important; color: #f1f5f9 !important; }
         
-        /* ID Footer */
-        .id-footer { background: #9d174d; color: #fbcfe8; text-align: center; padding: 10px; font-size: 13px; font-weight: bold; border-top: 1px solid #be185d; }
+        /* চ্যাট লিস্টের নাম ও টেক্সট সাদা করা */
+        body.dark-mode .chat-list-item { background: #1e293b !important; border-bottom: 1px solid #334155 !important; }
+        body.dark-mode .chat-list-item b { color: #ffffff !important; }
+        body.dark-mode .chat-list-item small { color: #94a3b8 !important; }
+        body.dark-mode .chat-list-item:hover { background: #334155 !important; }
+        
+        body.dark-mode #chat-room { background: #0f172a !important; background-image: radial-gradient(#334155 1px, transparent 1px) !important; }
+        body.dark-mode .chat-header { background: #881337 !important; }
+        
+        /* ইনপুট বক্সের লেখা সাদা করা */
+        body.dark-mode .chat-input { background: #1e293b !important; border-top: 1px solid #334155 !important; }
+        body.dark-mode .chat-input input { background: #0f172a !important; color: #ffffff !important; border-color: #475569 !important; }
+        
+        /* মেসেজ বাবল ও টেক্সট ক্লিয়ার করা */
+        body.dark-mode .msg.received { background: #334155 !important; color: #ffffff !important; border-color: #475569 !important; }
+        body.dark-mode .msg.sent { background: #be185d !important; color: #ffffff !important; }
+        body.dark-mode .msg-time { color: #cbd5e1 !important; opacity: 0.8; }
+
+        /* ফ্রেন্ডস ট্যাবের লেখা ঠিক করা */
+        body.dark-mode #tab-friends { color: #f8fafc !important; }
+        body.dark-mode #tab-friends h4 { color: #f472b6 !important; }
+        body.dark-mode #friends-list-box div { background: #1e293b !important; color: white !important; border-color: #334155 !important; }
         
     </style>
 </head>
