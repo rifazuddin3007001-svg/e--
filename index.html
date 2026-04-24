@@ -1670,7 +1670,7 @@ async function payTax() {
 // 📸 REDGRAM (Floating Photo Gallery & Tournament)
 // =========================================================
 
-// ১. ভাসমান বাটন (Floating Button) তৈরি করা
+// ১. ভাসমান বাটন (Floating Button)
 setTimeout(() => {
     if(!document.getElementById('gallery-fab')) {
         let fab = `<div id="gallery-fab" onclick="openRedGram()" style="position:fixed; bottom:80px; right:20px; width:60px; height:60px; background:linear-gradient(135deg, #ec4899, #f43f5e); border-radius:50%; box-shadow:0 4px 15px rgba(236, 72, 153, 0.4); display:flex; justify-content:center; align-items:center; font-size:28px; z-index:1000; cursor:pointer; color:white; border:2px solid white; animation: bounce 2s infinite;">📸</div>`;
@@ -1706,7 +1706,8 @@ async function openRedGram() {
         <label for="photo-upload" style="background:#ec4899; color:white; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; display:inline-block;">+ নতুন ছবি দিন</label>
         <p id="upload-status" style="color:#10b981; font-size:11px; margin-top:8px; display:none;">ছবি আপলোড হচ্ছে... ⏳</p>
     </div>
-    <div id="photo-feed" style="max-height: 450px; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 15px;">
+    
+    <div id="photo-feed" style="max-height: 65vh; overflow-y: auto; padding-right: 5px; padding-bottom: 20px; display: flex; flex-direction: column; gap: 20px;">
         <p style="text-align:center; color:gray;">ছবি লোড হচ্ছে...</p>
     </div>
     `;
@@ -1746,28 +1747,32 @@ async function loadPhotoFeed() {
         const data = await res.json();
         const feedDiv = document.getElementById('photo-feed');
         if(!data) { feedDiv.innerHTML = '<p style="text-align:center; color:gray;">RedGram-এ এখনও কোনো ছবি নেই। আপনিই প্রথম ছবি দিন!</p>'; return; }
+        
         let html = '';
         let posts = Object.entries(data).reverse(); 
+        
         posts.forEach(([postId, post]) => {
             let date = new Date(post.time).toLocaleString('bn-BD');
             html += `
-            <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #fce7f3; margin-bottom:10px;">
-                <div style="padding: 10px; display: flex; align-items: center; gap: 10px; background: #fdf2f8;">
-                    <div style="width:30px; height:30px; background:#ec4899; color:white; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold;">${post.uname.charAt(0)}</div>
+            <div style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); border: 1px solid #fce7f3; margin-bottom: 5px;">
+                <div style="padding: 12px; display: flex; align-items: center; gap: 10px; background: #fdf2f8;">
+                    <div style="width:35px; height:35px; background:linear-gradient(135deg, #ec4899, #f43f5e); color:white; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold; font-size:16px;">${post.uname.charAt(0)}</div>
                     <div style="text-align:left;">
-                        <div style="font-weight:bold; font-size:13px; color:#1e293b;">${post.uname}</div>
-                        <div style="font-size:10px; color:gray;">${date}</div>
+                        <div style="font-weight:bold; font-size:14px; color:#1e293b;">${post.uname}</div>
+                        <div style="font-size:11px; color:#64748b;">${date}</div>
                     </div>
                 </div>
-                <img src="${post.img}" style="width:100%; max-height:400px; object-fit:contain; background:black;">
-                <div style="padding: 12px; display: flex; justify-content: space-between; align-items: center;">
-                    <button onclick="likePhoto('${postId}', ${post.likes})" style="background:none; border:none; font-size:22px; cursor:pointer; display:flex; align-items:center; gap:5px; color:#ec4899;">
-                        ❤️ <span style="font-size:16px; font-weight:bold;">${post.likes || 0}</span>
+                
+                <img src="${post.img}" style="width: 100%; height: auto; display: block; border-top: 1px solid #fce7f3; border-bottom: 1px solid #fce7f3;">
+                
+                <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; background: white;">
+                    <button onclick="likePhoto('${postId}', ${post.likes})" style="background:#fff1f2; border:1px solid #fecdd3; padding:5px 15px; border-radius:20px; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:8px; color:#ec4899; font-weight:bold; transition:0.2s;">
+                        ❤️ <span>${post.likes || 0}</span>
                     </button>
                     ${post.uid !== user.id ? `
-                    <button onclick="sendTip('${postId}', '${post.uid}', '${post.uname}')" style="background:#10b981; color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">
-                        💸 গিফট দিন <span style="background:white; color:#10b981; border-radius:10px; padding:2px 6px; font-size:10px;">${post.tips || 0}</span>
-                    </button>` : `<span style="font-size:11px; color:gray; font-weight:bold;">মোট গিফট: ৳${post.tips || 0}</span>`}
+                    <button onclick="sendTip('${postId}', '${post.uid}', '${post.uname}')" style="background:#10b981; color:white; border:none; padding:8px 18px; border-radius:20px; font-weight:bold; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:0 2px 5px rgba(16, 185, 129, 0.3);">
+                        💸 গিফট <span style="background:white; color:#10b981; border-radius:10px; padding:2px 6px; font-size:11px;">${post.tips || 0}</span>
+                    </button>` : `<span style="font-size:12px; color:#64748b; font-weight:bold; background:#f1f5f9; padding:5px 10px; border-radius:10px;">মোট গিফট: ৳${post.tips || 0}</span>`}
                 </div>
             </div>`;
         });
@@ -1791,16 +1796,19 @@ async function sendTip(postId, ownerId, ownerName) {
         user.bal -= amt;
         await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/bal.json`, { method: 'PUT', body: JSON.stringify(user.bal) });
         document.getElementById('mainBal').innerText = user.bal.toLocaleString();
+        
         const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${ownerId}/bal.json`);
         let ownerBal = await res.json() || 0;
         await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${ownerId}/bal.json`, { method: 'PUT', body: JSON.stringify(ownerBal + amt) });
+        
         const pRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/gallery/posts/${postId}/tips.json`);
         let currentTips = await pRes.json() || 0;
         await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/gallery/posts/${postId}/tips.json`, { method: 'PUT', body: JSON.stringify(currentTips + amt) });
+        
         alert(`✅ সফল! ${ownerName} গিফট পেয়েছে।`);
         loadPhotoFeed();
     }
-    }
+                                                                                                                                                          }
     
 </script>
 </body>
