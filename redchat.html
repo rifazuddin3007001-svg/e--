@@ -166,6 +166,10 @@
             </div>
         </div>
     </div>
+            <div class="id-footer" id="my-id-footer" style="display: none;">
+            আপনার চ্যাট ID: <span id="footer-id-text" style="color:white; font-size:14px; margin-right:10px;"></span>
+            <button onclick="navigator.clipboard.writeText(currentUser.id); alert('ID কপি হয়েছে!')" style="background:#ec4899; color:white; border:none; padding:4px 10px; border-radius:5px; cursor:pointer; font-size:11px;">কপি করুন</button>
+            </div>
     
     <script>
 // ================= FIREBASE API =================
@@ -247,6 +251,10 @@ async function login() {
         document.getElementById('app-container').style.display = 'flex';
         document.getElementById('user-name-display').innerText = data.name;
         
+        // লগইন হওয়ার সাথে সাথে নিচে আইডি দেখানো
+        document.getElementById('my-id-footer').style.display = 'block';
+        document.getElementById('footer-id-text').innerText = id;
+        
         loadFriendsAndChats();
         mainSyncInterval = setInterval(loadFriendsAndChats, 5000); 
     } catch(e) {
@@ -256,6 +264,17 @@ async function login() {
     }
 }
 
+// ডার্ক মোড অন/অফ করার ফাংশন
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    let btn = document.querySelector('.header button');
+    if(document.body.classList.contains('dark-mode')) {
+        btn.innerText = '☀️';
+    } else {
+        btn.innerText = '🌙';
+    }
+}
+        
 // ================= PASSWORD RECOVERY =================
 let recTargetId = null;
 async function checkSecurityQuestion() {
