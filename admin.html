@@ -523,47 +523,56 @@ async function loadCinemaSales() {
 loadCinemaSales();
 setInterval(loadCinemaSales, 15000); // ১৫ সেকেন্ড পর পর অটো রিফ্রেশ
 </script>
-<div style="background: #ffffff; padding: 25px; border-radius: 15px; margin-top: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 2px solid #ef4444;">
-    <h2 style="color: #991b1b; margin-top: 0; border-bottom: 2px solid #fee2e2; padding-bottom: 10px;">🏛️ রাজস্ব ও জরিমানা কন্ট্রোল</h2>
-
-    <div style="background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #cbd5e1; margin-bottom: 20px;">
-        <h4 style="margin: 0 0 10px 0; color: #1e293b;">📅 ট্যাক্স জমা নেওয়ার সময়সীমা</h4>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <div style="flex: 1;">
-                <label style="font-size: 11px; font-weight: bold;">শুরু:</label>
-                <input type="date" id="tax-start" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; color: black;">
-            </div>
-            <div style="flex: 1;">
-                <label style="font-size: 11px; font-weight: bold;">শেষ:</label>
-                <input type="date" id="tax-end" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; color: black;">
-            </div>
+<div style="background: #ffffff; padding: 25px; border-radius: 15px; margin-top: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 2px solid #3b82f6;">
+    <h2 style="color: #1e40af; margin-top: 0; border-bottom: 2px solid #dbeafe; padding-bottom: 10px;">📅 ট্যাক্স সময়সীমা সেট করুন</h2>
+    <p style="font-size: 13px; color: #ef4444; font-weight: bold;">⚠️ নিয়ম: নাগরিকদের কমপক্ষে ৭ দিন সময় দিতে হবে।</p>
+    
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <div style="flex: 1;">
+            <label style="font-size: 11px;">শুরুর তারিখ:</label>
+            <input type="date" id="tax-start" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; color:black;">
         </div>
-        <button onclick="setTaxDates()" style="width: 100%; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold; cursor: pointer;">সময়সীমা ঘোষণা করুন</button>
+        <div style="flex: 1;">
+            <label style="font-size: 11px;">শেষ তারিখ:</label>
+            <input type="date" id="tax-end" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; color:black;">
+        </div>
     </div>
+    <button onclick="setTaxDatesWithRule()" style="width: 100%; background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 8px; margin-top: 15px; font-weight: bold; cursor: pointer;">ঘোষণা করুন</button>
+</div>
 
-    <div style="background: #fff1f2; padding: 15px; border-radius: 10px; border: 1px solid #fecdd3;">
-        <h4 style="margin: 0 0 10px 0; color: #9f1239;">🚨 জরিমানা ব্যবস্থা</h4>
-        <input type="text" id="penalty-uid" placeholder="ইউজার ID (e.g. RD-000000)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 10px; color: black;">
-        <input type="number" id="penalty-amount" placeholder="টাকার পরিমাণ (৳)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 10px; color: black;">
-        
-        <div style="display: flex; gap: 10px;">
-            <button onclick="adminAction('ADD_TAX')" style="flex:1; background: #f59e0b; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 12px;">ট্যাক্স চাপান</button>
-            <button onclick="adminAction('DEDUCT_FINE')" style="flex:1; background: #ef4444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 12px;">জরিমানা কাটুন</button>
-        </div>
+<div style="background: #fff1f2; padding: 20px; border-radius: 15px; border: 2px solid #fecdd3; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    <h3 style="margin: 0 0 10px 0; color: #9f1239;">🚨 জরিমানা ব্যবস্থা</h3>
+    <p style="font-size: 12px; color: #64748b; margin-bottom: 15px;">ট্যাক্স ফাঁকি দিলে ইউজারের ব্যালেন্স থেকে জরিমানা কাটুন।</p>
+    
+    <input type="text" id="penalty-uid" placeholder="ইউজার ID (যেমন: RD-000000)" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 10px; color: black; font-weight:bold;">
+    <input type="number" id="penalty-amount" placeholder="টাকার পরিমাণ (৳)" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 15px; color: black;">
+    
+    <div style="display: flex; gap: 10px;">
+        <button onclick="adminAction('ADD_TAX')" style="flex:1; background: #f59e0b; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px;">ট্যাক্স চাপান</button>
+        <button onclick="adminAction('DEDUCT_FINE')" style="flex:1; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px;">জরিমানা কাটুন</button>
     </div>
 </div>
 
 <script>
-async function setTaxDates() {
+async function setTaxDatesWithRule() {
     let start = document.getElementById('tax-start').value;
     let end = document.getElementById('tax-end').value;
-    if(!start || !end) return alert("দয়া করে শুরুর এবং শেষ তারিখ সিলেক্ট করুন!");
+
+    if(!start || !end) return alert("দয়া করে তারিখ সিলেক্ট করুন!");
+
+    let sDate = new Date(start);
+    let eDate = new Date(end);
+    let diffDays = Math.ceil((eDate - sDate) / (1000 * 60 * 60 * 24)) + 1;
+
+    if(diffDays < 7) {
+        return alert(`🚨 আপনি মাত্র ${diffDays} দিন সময় দিচ্ছেন! নাগরিকদের কমপক্ষে ৭ দিন সময় দেওয়া বাধ্যতামূলক।`);
+    }
 
     await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/government/tax_config.json`, {
         method: 'PUT',
         body: JSON.stringify({ start: start, end: end })
     });
-    alert("✅ সফল! ইউজাররা এখন এই সময়ের মধ্যেই ট্যাক্স দিতে পারবে।");
+    alert(`✅ সফল! ইউজাররা আগামী ${diffDays} দিন ট্যাক্স দিতে পারবে।`);
 }
 
 async function adminAction(actionType) {
