@@ -376,5 +376,121 @@ async function cancelVisa(uid, dest) {
 // পেজ খুললেই লোড হবে
 loadAllVisaData();
 </script>
+<div style="background: #ffffff; padding: 25px; border-radius: 15px; margin-top: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 2px solid #10b981;">
+    <h2 style="color: #1e293b; margin-top: 0; border-bottom: 2px solid #ecfdf5; padding-bottom: 10px;">📈 শেয়ার বাজার ও বিনিয়োগ মনিটর</h2>
+
+    <h3 style="color: #059669; font-size: 16px;">💰 সাম্প্রতিক বিনিয়োগ (Transaction History)</h3>
+    <div id="admin-tx-list" style="max-height: 250px; overflow-y: auto; background: #f0fdf4; padding: 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin-bottom: 20px;">
+        <p style="text-align:center;">লেনদেন লোড হচ্ছে...</p>
+    </div>
+
+    <h3 style="color: #0891b2; font-size: 16px;">🛠️ বাজার নিয়ন্ত্রণ (Price Control)</h3>
+    <div style="background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
+        <p style="font-size: 12px; color: #e11d48; margin-bottom: 10px; font-weight: bold;">(নিয়ম: দিনে সর্বোচ্চ ২ বার পরিবর্তন সম্ভব। একবারে সর্বোচ্চ ২০% কমানো বা বাড়ানো যাবে।)</p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <select id="stock-select" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;"></select>
+            <input type="number" id="new-price" placeholder="নতুন দাম লিখুন" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; color: black;">
+            <button onclick="adminChangePrice()" style="background: #0891b2; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">দাম আপডেট করুন</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ১. লেনদেন তালিকা লোড করা
+async function loadTransactions() {
+    try {
+        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/transactions.json`);
+        const data = await res.json();
+        const listDiv = document.getElementById('admin-tx-list');
+        
+        if(!data) { listDiv.innerHTML = '<p style="text-align:center; color:gray;">এখনও কোনো লেনদেন হয়নি।</p>'; return; }
+        
+        let html = '';
+        // লেটেস্ট লেনদেন আগে দেখানোর জন্য reverse করা হচ্ছে
+        let txs = Object.values(data).reverse(); 
+        txs.slice(0, 50).forEach(tx => {
+            let date = new Date(tx.time).toLocaleString('bn-BD');
+            let color = tx.type === 'BUY' ? '#ef4444' : '#10b981';
+            let action = tx.type === 'BUY' ? 'কিনেছেন' : 'বিক্রি করেছেন';
+            
+            html += `
+            <div style="background: white; padding: 10px; margin-bottom: 8px; border-radius: 6px; border-left: 5px solid ${color}; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <b style="color:#1e293b; font-size:14px;">${tx.uname}</b> <span style="color:#64748b;">${action}:</span> <b>${tx.qty}টি ${tx.stock}</b> | <span style="color:${color}; font-weight:bold;">৳${tx.amount}</span>
+                <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">${date}</div>
+            </div>`;
+        });
+        listDiv.innerHTML = html;
+    } catch(e) {}
+}
+
+// ২. স্টকের ড্রপডাউন লোড করা
+async function loadStockOptions() {
+    try {
+        const res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/market/stocks.json`);
+        const stocks = await res.json();
+        const select = document.getElementById('stock-select');
+        if(stocks) {
+            select.innerHTML = stocks.map(s => `<option value="${s.id}">${s.name} (বর্তমান: ৳${s.price})</option>`).join('');
+        }
+    } catch(e) {}
+}
+
+// ৩. দাম পরিবর্তন করার আসল লজিক (সীমাবদ্ধতা সহ)
+async function adminChangePrice() {
+    const stockId = document.getElementById('stock-select').value;
+    const newPrice = parseInt(document.getElementById('new-price').value);
+    
+    if(!newPrice || newPrice <= 0) return alert("সঠিক দাম লিখুন!");
+
+    // আজকের আপডেট চেক
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const limitRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/market/admin_limits.json`);
+    let limitData = await limitRes.json() || { date: "", count: 0 };
+
+    if(limitData.date === todayStr && limitData.count >= 2) {
+        return alert("❌ আপনি আজ অলরেডি ২ বার দাম পরিবর্তন করেছেন। আগামীকাল আবার চেষ্টা করুন!");
+    }
+
+    // মার্কেট ডেটা আনা
+    const mRes = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/market.json`);
+    let mData = await mRes.json();
+    let stockIdx = mData.stocks.findIndex(s => s.id === stockId);
+    let oldPrice = mData.stocks[stockIdx].price;
+
+    // ২০% এর বেশি কমানো/বাড়ানো চেক
+    let diffPercent = Math.abs((newPrice - oldPrice) / oldPrice);
+    if(diffPercent > 0.20) {
+        let maxAllowed = Math.round(oldPrice + (oldPrice * 0.20));
+        let minAllowed = Math.round(oldPrice - (oldPrice * 0.20));
+        return alert(`❌ আপনি দাম ২০%-এর বেশি পরিবর্তন করতে পারবেন না!\nবর্তমান দাম: ৳${oldPrice}\nআপনি সর্বোচ্চ ৳${maxAllowed} এবং সর্বনিম্ন ৳${minAllowed} করতে পারবেন।`);
+    }
+
+    // আপডেট করা
+    mData.stocks[stockIdx].oldPrice = oldPrice;
+    mData.stocks[stockIdx].price = newPrice;
+    mData.stocks[stockIdx].diff = newPrice - oldPrice;
+    mData.lastUpdate = new Date().getTime();
+
+    await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/market.json`, { method: 'PUT', body: JSON.stringify(mData) });
+
+    // লিমিট সেভ করা
+    let newCount = limitData.date === todayStr ? limitData.count + 1 : 1;
+    await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/market/admin_limits.json`, { 
+        method: 'PUT', 
+        body: JSON.stringify({ date: todayStr, count: newCount }) 
+    });
+
+    alert(`✅ ${stockId}-এর নতুন দাম ৳${newPrice} সেট করা হয়েছে! (আজকের ${newCount} নম্বর পরিবর্তন)`);
+    loadStockOptions();
+    loadTransactions();
+}
+
+// পেজ লোড হলে ফাংশনগুলো চলবে
+loadTransactions();
+loadStockOptions();
+setInterval(loadTransactions, 10000); // প্রতি ১০ সেকেন্ডে লাইভ রিফ্রেশ হবে
+</script> 
+    
 </body>
 </html>
