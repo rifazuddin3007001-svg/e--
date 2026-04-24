@@ -699,6 +699,54 @@ function closeStatusViewer() {
 
 // প্রতি ১৫ সেকেন্ড পর পর স্ট্যাটাস আপডেট চেক করবে
 setInterval(loadStatuses, 15000);
+// --- ছবিসহ স্ট্যাটাস হ্যান্ডেল করার আপডেট লজিক ---
+async function postStatus() {
+    let txt = document.getElementById('status-text-input').value.trim();
+    let file = document.getElementById('status-img-input').files[0];
+    let privacy = document.getElementById('status-privacy').value;
+    
+    if(!txt && !file) return alert("কিছু লিখুন অথবা ছবি বাছুন!");
+
+    let imgBase64 = null;
+    if(file) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+            imgBase64 = reader.result;
+            await saveStatusToDB(txt, imgBase64, privacy);
+        };
+    } else {
+        await saveStatusToDB(txt, null, privacy);
+    }
+}
+
+async function saveStatusToDB(txt, img, privacy) {
+    let sData = { userId: currentUser.id, userName: currentUser.name, text: txt, image: img, time: Date.now(), privacy: privacy, hearts: {} };
+    await fetch(`${DB_URL}/status/${Date.now()}.json`, { method: 'PUT', body: JSON.stringify(sData) });
+    alert("✅ ছবিসহ স্ট্যাটাস পোস্ট হয়েছে!");
+    document.getElementById('status-text-input').value = "";
+    document.getElementById('status-img-input').value = "";
+    document.getElementById('file-name-display').innerText = "";
+    closeStatusUploader(); loadStatuses();
+}
+
+// এই ফাংশনটি আগের showStatus এর জায়গায় আপডেট হবে
+function showStatus(id, s) {
+    currentViewingStatusId = id;
+    document.getElementById('status-viewer').style.display = 'flex';
+    document.getElementById('view-status-name').innerText = s.userName;
+    
+    let displayArea = document.getElementById('view-status-content');
+    displayArea.innerHTML = ""; 
+
+    if(s.image) {
+        displayArea.innerHTML += `<img src="${s.image}" style="max-width:100%; max-height:65vh; border-radius:12px; margin-bottom:15px; box-shadow:0 0 20px rgba(255,255,255,0.2); object-fit: contain;">`;
+    }
+    if(s.text) {
+        displayArea.innerHTML += `<div style="font-size:22px; font-weight:bold; color:white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">${s.text}</div>`;
+    }
+    document.getElementById('view-status-hearts').innerText = s.hearts ? Object.keys(s.hearts).length : 0;
+}
         
 </script>
 </body>
