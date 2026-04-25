@@ -2,107 +2,35 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RedChaat v8</title>
+<title>RedChaat Final</title>
 
 <style>
 :root{
-  --primary:#00bcd4;   /* sky blue */
-  --accent:#ffd54f;    /* yellow */
+  --primary:#00bcd4;
+  --accent:#ffd54f;
   --bg:#e0f7fa;
-  --card:#ffffff;
-  --text:#000;
+  --card:#fff;
 }
-.dark{
-  --bg:#0a1a1f;
-  --card:#12252b;
-  --text:#fff;
-}
-
-body{
-  margin:0;
-  font-family:sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-
-/* HEADER */
-header{
-  background:var(--primary);
-  color:#fff;
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-}
-
-/* SCREEN */
+body{margin:0;font-family:sans-serif;background:var(--bg);}
+header{background:var(--primary);color:#fff;padding:10px;display:flex;justify-content:space-between;}
 .screen{display:none;padding:10px;}
 .active{display:block;}
-
-/* CHAT LIST */
-.chatItem{
-  display:flex;
-  gap:10px;
-  padding:10px;
-  background:var(--card);
-  margin-bottom:5px;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-/* CHAT */
-.chatBox{
-  height:55vh;
-  overflow:auto;
-  background:var(--card);
-  padding:10px;
-  border-radius:10px;
-}
-
-.msg{
-  padding:8px;
-  margin:5px;
-  border-radius:10px;
-  max-width:70%;
-}
-.me{background:var(--accent); margin-left:auto;}
+.chatItem{background:var(--card);padding:10px;margin:5px;border-radius:10px;}
+.chatBox{height:55vh;overflow:auto;background:#fff;padding:10px;border-radius:10px;}
+.msg{padding:8px;margin:5px;border-radius:10px;max-width:70%;}
+.me{background:var(--accent);margin-left:auto;}
 .other{background:#ddd;}
-
-/* INPUT */
-input,button{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  border:none;
-  border-radius:8px;
-}
-button{
-  background:var(--primary);
-  color:#fff;
-}
-
-/* NAV */
-.nav{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  display:flex;
-  background:var(--primary);
-}
-.nav button{
-  flex:1;
-  background:none;
-  color:#fff;
-}
-
-.hidden{display:none;}
+.nav{position:fixed;bottom:0;width:100%;display:flex;background:var(--primary);}
+.nav button{flex:1;color:#fff;background:none;border:none;padding:10px;}
 </style>
+
 </head>
 
 <body>
 
 <header>
-  RedChaat v8
-  <button onclick="toggleTheme()">🌗</button>
+RedChaat Final
+<button onclick="logout()">Logout</button>
 </header>
 
 <!-- AUTH -->
@@ -117,9 +45,12 @@ button{
 </div>
 
 <!-- CHATS -->
-<div id="chats" class="screen"></div>
+<div id="chats" class="screen">
+<button onclick="addFriend()">➕ Add Friend</button>
+<div id="chatList"></div>
+</div>
 
-<!-- CHAT WINDOW -->
+<!-- CHAT -->
 <div id="chatWindow" class="screen">
 <button onclick="back()">⬅ Back</button>
 <h3 id="chatName"></h3>
@@ -128,57 +59,30 @@ button{
 
 <input id="msg" placeholder="Message">
 <button onclick="send()">Send</button>
-<button onclick="sendImage()">📷</button>
-<button onclick="voice()">🎤</button>
-<button onclick="oneTime()">👁️</button>
 </div>
 
-<!-- STATUS -->
-<div id="status" class="screen">
-<input id="statusText" placeholder="Write status">
-<button onclick="addStatus()">Post</button>
-<div id="statusList"></div>
-</div>
-
-<!-- PROFILE -->
-<div id="profile" class="screen">
-<h3>Profile</h3>
-<img id="dp" width="80">
-<input type="file" onchange="uploadDP(this)">
-<button onclick="logout()">Logout</button>
-</div>
-
-<!-- NAV -->
 <div class="nav hidden" id="nav">
 <button onclick="show('chats')">Chats</button>
-<button onclick="show('status')">Status</button>
-<button onclick="show('profile')">Profile</button>
 </div>
 
 <script>
 const db="https://redchaat-ffad2-default-rtdb.firebaseio.com/";
 let user=localStorage.getItem("user");
 let current=null;
-let one=false;
-
-/* THEME */
-function toggleTheme(){
- document.body.classList.toggle("dark");
- localStorage.setItem("theme",document.body.classList.contains("dark"));
-}
-if(localStorage.getItem("theme")=="true") document.body.classList.add("dark");
 
 /* AUTH */
 async function signup(){
- await fetch(db+"users/"+sid.value+".json",{method:"PUT",body:JSON.stringify({password:spass.value,friends:{}})});
+ let id=sid.value, pass=spass.value;
+ await fetch(db+"users/"+id+".json",{method:"PUT",body:JSON.stringify({password:pass,friends:{}})});
  alert("Signup done");
 }
 
 async function login(){
- let r=await fetch(db+"users/"+lid.value+".json");
+ let id=lid.value, pass=lpass.value;
+ let r=await fetch(db+"users/"+id+".json");
  let d=await r.json();
- if(!d||d.password!=lpass.value)return alert("Error");
- localStorage.setItem("user",lid.value);
+ if(!d||d.password!=pass)return alert("Error");
+ localStorage.setItem("user",id);
  location.reload();
 }
 
@@ -188,6 +92,7 @@ if(user){
  nav.classList.remove("hidden");
  show("chats");
  loadChats();
+ setInterval(loadChats,3000);
 }
 
 /* NAV */
@@ -196,152 +101,98 @@ function show(s){
  document.getElementById(s).classList.add("active");
 }
 
-/* FRIEND */
+/* ADD FRIEND */
+async function addFriend(){
+ let f = prompt("Enter Friend ID");
+
+ if(!f || f===user) return alert("Invalid");
+
+ let check = await fetch(db+"users/"+f+".json");
+ let exists = await check.json();
+
+ if(!exists) return alert("User not found");
+
+ await fetch(db+"users/"+user+"/friends/"+f+".json",{method:"PUT",body:"true"});
+ await fetch(db+"users/"+f+"/friends/"+user+".json",{method:"PUT",body:"true"});
+
+ alert("Friend added");
+ loadChats();
+}
+
+/* LOAD FRIEND LIST */
 async function loadChats(){
  let r=await fetch(db+"users/"+user+"/friends.json");
  let d=await r.json();
- chats.innerHTML="";
 
- let add=document.createElement("input");
- add.placeholder="Add friend";
- add.onchange=async()=>{
-  let f=add.value;
-  await fetch(db+"users/"+user+"/friends/"+f+".json",{method:"PUT",body:"true"});
-  await fetch(db+"users/"+f+"/friends/"+user+".json",{method:"PUT",body:"true"});
-  loadChats();
- };
- chats.appendChild(add);
+ chatList.innerHTML="";
 
- if(!d)return;
+ if(!d) return;
 
  Object.keys(d).forEach(f=>{
   let div=document.createElement("div");
   div.className="chatItem";
   div.innerText=f;
   div.onclick=()=>openChat(f);
-  chats.appendChild(div);
+  chatList.appendChild(div);
  });
 }
 
 /* CHAT */
-function cid(a,b){return a<b?a+"_"+b:b+"_"+a;}
+function cid(a,b){
+ return a<b?a+"_"+b:b+"_"+a;
+}
 
 function openChat(f){
  current=f;
  chatName.innerText=f;
  show("chatWindow");
  loadChat();
- setInterval(loadChat,2000);
+
+ setInterval(()=>{
+  if(current) loadChat();
+ },2000);
 }
 
+/* SEND */
 async function send(){
+ if(!current) return alert("Select friend");
+
  let id=Date.now();
+
  await fetch(db+"chats/"+cid(user,current)+"/"+id+".json",{
   method:"PUT",
-  body:JSON.stringify({from:user,text:msg.value,one:one,time:id})
+  body:JSON.stringify({
+    from:user,
+    text:msg.value,
+    time:id
+  })
  });
+
  msg.value="";
- one=false;
-}
-
-function oneTime(){
- one=true;
- alert("One-time ON");
-}
-
-/* IMAGE */
-function sendImage(){
- let i=document.createElement("input");
- i.type="file";
- i.onchange=()=>{
-  let r=new FileReader();
-  r.onload=()=>{
-    fetch(db+"chats/"+cid(user,current)+"/"+Date.now()+".json",{
-      method:"PUT",
-      body:JSON.stringify({from:user,img:r.result})
-    });
-  };
-  r.readAsDataURL(i.files[0]);
- };
- i.click();
-}
-
-/* VOICE */
-function voice(){
- let rec=new webkitSpeechRecognition();
- rec.start();
- rec.onresult=e=>{
-  msg.value=e.results[0][0].transcript;
- };
 }
 
 /* LOAD CHAT */
 async function loadChat(){
  let r=await fetch(db+"chats/"+cid(user,current)+".json");
  let d=await r.json();
+
  chatBox.innerHTML="";
 
- if(!d)return;
+ if(!d) return;
 
- Object.entries(d).forEach(([id,m])=>{
-  if(m.one && Date.now()-m.time>15000){
-    fetch(db+"chats/"+cid(user,current)+"/"+id+".json",{method:"DELETE"});
-    return;
-  }
-
+ Object.values(d).forEach(m=>{
   let div=document.createElement("div");
   div.className="msg "+(m.from==user?"me":"other");
-
-  if(m.text) div.innerText=m.text;
-
-  if(m.img){
-    let img=document.createElement("img");
-    img.src=m.img;
-    img.style.width="100%";
-    div.appendChild(img);
-  }
-
+  div.innerText=m.text;
   chatBox.appendChild(div);
  });
 
  chatBox.scrollTop=chatBox.scrollHeight;
 }
 
-/* STATUS */
-async function addStatus(){
- await fetch(db+"status/"+user+"/"+Date.now()+".json",{
-  method:"PUT",
-  body:JSON.stringify({text:statusText.value,time:Date.now()})
- });
- loadStatus();
-}
-
-async function loadStatus(){
- let r=await fetch(db+"status.json");
- let d=await r.json();
- statusList.innerHTML="";
-
- if(!d)return;
-
- Object.entries(d).forEach(([u,s])=>{
-  Object.values(s).forEach(st=>{
-    if(Date.now()-st.time<86400000){
-      let div=document.createElement("div");
-      div.innerText=u+": "+st.text;
-      statusList.appendChild(div);
-    }
-  });
- });
-}
-
-/* PROFILE */
-function uploadDP(input){
- let r=new FileReader();
- r.onload=()=>{
-  fetch(db+"users/"+user+"/dp.json",{method:"PUT",body:JSON.stringify(r.result)});
-  dp.src=r.result;
- };
- r.readAsDataURL(input.files[0]);
+/* BACK */
+function back(){
+ show("chats");
 }
 
 /* LOGOUT */
@@ -349,8 +200,6 @@ function logout(){
  localStorage.removeItem("user");
  location.reload();
 }
-
-function back(){show("chats");}
 </script>
 
 </body>
