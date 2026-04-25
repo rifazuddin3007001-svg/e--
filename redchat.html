@@ -1,419 +1,255 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RedChat Premium v3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🔥 RedChaat Ultra Pro</title>
 
 <style>
-:root{
-  --bg:#ffffff;
-  --text:#000;
-  --primary:#ff2e63;
-}
-.dark{
-  --bg:#0f0f0f;
-  --text:#fff;
-}
-
 body{
   margin:0;
-  font-family: 'Segoe UI', sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-
-/* LOGO */
-.logo{
-  font-size:22px;
-  font-weight:bold;
-}
-.logo span{
-  color:#fff;
-}
-
-/* HEADER */
-header{
-  background:var(--primary);
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  font-family:sans-serif;
+  background:#0f0f0f;
   color:white;
-  position:sticky;
-  top:0;
 }
-
-/* CONTAINER */
-.container{
+header{
+  background:#ff2e63;
   padding:12px;
+  text-align:center;
+  font-size:20px;
 }
-
-/* INPUTS */
 input,button{
   width:100%;
   padding:10px;
-  margin:6px 0;
-  border-radius:8px;
+  margin:5px 0;
   border:none;
+  border-radius:6px;
 }
-button{
-  background:var(--primary);
-  color:white;
-}
-
-/* CHAT */
-.chat-box{
-  height:55vh;
+button{background:#ff2e63;color:white;}
+.chat{
+  height:50vh;
   overflow:auto;
-  border-radius:10px;
-  background:#f2f2f2;
+  background:#111;
   padding:10px;
 }
-.dark .chat-box{
-  background:#1e1e1e;
-}
-
-.message{
-  padding:8px;
-  margin:6px;
-  border-radius:10px;
-  max-width:70%;
-}
-.me{
-  background:#c8f7c5;
-  margin-left:auto;
-}
-.other{
-  background:#ddd;
-}
-
-/* NAV */
-.nav{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  display:flex;
-  background:#222;
-}
-.nav button{
-  flex:1;
-  background:none;
-  color:white;
-}
-
-/* HIDE */
+.msg{padding:8px;margin:5px;border-radius:8px;max-width:70%;}
+.me{background:#00c853;margin-left:auto;}
+.other{background:#444;}
 .hidden{display:none;}
+.nav{
+  position:fixed;bottom:0;width:100%;display:flex;background:#222;
+}
+.nav button{flex:1;background:none;color:white;}
 </style>
+
 </head>
 
 <body>
 
-<header>
-  <div class="logo">🔥 RedChat <span>Premium</span></div>
-  <button onclick="toggleDark()">🌙</button>
-</header>
+<header>🔥 RedChaat Ultra Pro</header>
 
-<div class="container">
-
-<!-- AUTH -->
 <div id="auth">
-
-<h3>Login</h3>
-<input id="loginId" placeholder="User ID">
-<input id="loginPass" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
-
 <h3>Signup</h3>
-<input id="name" placeholder="Full Name">
-<input id="userid" placeholder="User ID">
-<input id="phone" placeholder="Phone">
-<input id="pass" type="password" placeholder="Password">
-<input id="sq" placeholder="Security Question">
-<input id="sa" placeholder="Answer">
+<input id="sid" placeholder="User ID">
+<input id="spass" type="password" placeholder="Password">
 <button onclick="signup()">Signup</button>
 
+<h3>Login</h3>
+<input id="lid" placeholder="User ID">
+<input id="lpass" type="password">
+<button onclick="login()">Login</button>
 </div>
 
-<!-- APP -->
 <div id="app" class="hidden">
 
-<h3 id="welcome"></h3>
+<h3 id="me"></h3>
 
-<!-- CHAT -->
-<div id="chatTab">
-<div class="chat-box" id="chatBox"></div>
+<div id="friends"></div>
 
-<input id="msg" placeholder="Type message">
-<button onclick="sendMessage()">Send</button>
+<div class="chat" id="chat"></div>
+
+<input id="msg" placeholder="Message">
+<button onclick="send()">Send</button>
+<button onclick="sendImage()">📷 Image</button>
 <button onclick="voice()">🎤</button>
-
-<p id="typingText"></p>
-</div>
-
-<!-- PEOPLE -->
-<div id="peopleTab" class="hidden">
-<input id="friendId" placeholder="Add Friend by ID">
-<button onclick="addFriend()">Add Friend</button>
-<div id="friendsList"></div>
-</div>
-
-<!-- PROFILE -->
-<div id="profileTab" class="hidden">
-<p>ID: <span id="pid"></span></p>
-<input id="newName" placeholder="Change Name">
-<button onclick="updateProfile()">Update</button>
-</div>
+<button onclick="eye()">👁️ One Time</button>
 
 </div>
 
-</div>
-
-<div id="nav" class="nav hidden">
-<button onclick="tab('chat')">Chats</button>
-<button onclick="tab('people')">People</button>
-<button onclick="tab('profile')">Profile</button>
+<div class="nav hidden" id="nav">
+<button onclick="logout()">Logout</button>
 </div>
 
 <script>
-const db = "https://test-chat-8b59b-default-rtdb.firebaseio.com/";
+const db="https://redchaat-ffad2-default-rtdb.firebaseio.com/";
 
-let user = localStorage.getItem("user") || null;
-let currentChat = null;
+let user=localStorage.getItem("user");
+let current=null;
+let oneTime=false;
 
-/* ================= SIGNUP ================= */
+/* AUTH */
 async function signup(){
-  const id = userid.value.trim();
+  let id=sid.value, pass=spass.value;
+  if(!id||!pass)return alert("Fill");
 
-  if(!id || !pass.value){
-    alert("Fill all fields");
-    return;
-  }
-
-  const check = await fetch(db+"users/"+id+".json");
-  const exists = await check.json();
-
-  if(exists){
-    alert("User already exists");
-    return;
-  }
-
-  const data = {
-    name:name.value.trim(),
-    phone:phone.value.trim(),
-    password:String(pass.value), // force string
-    sq:sq.value,
-    sa:sa.value,
-    friends:{},
-    online:true
-  };
+  let res=await fetch(db+"users/"+id+".json");
+  if(await res.json())return alert("Exists");
 
   await fetch(db+"users/"+id+".json",{
     method:"PUT",
-    body:JSON.stringify(data)
+    body:JSON.stringify({password:pass,friends:{}})
   });
-
-  alert("Signup success → Now login");
+  alert("Done");
 }
 
-/* ================= LOGIN FIXED ================= */
 async function login(){
-  const id = loginId.value.trim();
-  const password = String(loginPass.value);
+  let id=lid.value, pass=lpass.value;
+  let res=await fetch(db+"users/"+id+".json");
+  let d=await res.json();
+  if(!d)return alert("No user");
+  if(d.password!=pass)return alert("Wrong");
 
-  const res = await fetch(db+"users/"+id+".json");
-  const data = await res.json();
-
-  if(!data){
-    alert("User not found");
-    return;
-  }
-
-  const dbPass = String(data.password || "");
-
-  if(password !== dbPass){
-    alert("Wrong password");
-    return;
-  }
-
-  localStorage.setItem("user", id);
+  localStorage.setItem("user",id);
   location.reload();
 }
 
-/* ================= INIT ================= */
+/* INIT */
 if(user){
   auth.classList.add("hidden");
   app.classList.remove("hidden");
   nav.classList.remove("hidden");
-
-  welcome.innerText = "Welcome " + user;
-  pid.innerText = user;
-
-  setOnline(true);
-
+  me.innerText="You: "+user;
   loadFriends();
-  setInterval(loadMessages,3000);
-  setInterval(checkTyping,2000);
+  setInterval(loadChat,2000);
 }
 
-/* ================= CHAT ================= */
-function chatId(a,b){
-  return a<b ? a+"_"+b : b+"_"+a;
+/* FRIEND SYSTEM */
+async function loadFriends(){
+  let res=await fetch(db+"users/"+user+"/friends.json");
+  let d=await res.json();
+  friends.innerHTML="";
+
+  let add=document.createElement("input");
+  add.placeholder="Add friend ID";
+  add.onchange=async()=>{
+    let f=add.value;
+    await fetch(db+"users/"+user+"/friends/"+f+".json",{method:"PUT",body:"true"});
+    await fetch(db+"users/"+f+"/friends/"+user+".json",{method:"PUT",body:"true"});
+    loadFriends();
+  };
+  friends.appendChild(add);
+
+  if(!d)return;
+
+  Object.keys(d).forEach(f=>{
+    let b=document.createElement("button");
+    b.innerText=f;
+    b.onclick=()=>{current=f;};
+    friends.appendChild(b);
+  });
 }
 
-async function sendMessage(){
-  if(!currentChat){
-    alert("Select friend");
-    return;
-  }
+/* CHAT ID */
+function cid(a,b){
+  return a<b?a+"_"+b:b+"_"+a;
+}
 
-  const id = Date.now();
+/* SEND */
+async function send(){
+  if(!current)return alert("Select friend");
+  let id=Date.now();
 
-  await fetch(db+"chats/"+chatId(user,currentChat)+"/"+id+".json",{
+  await fetch(db+"chats/"+cid(user,current)+"/"+id+".json",{
     method:"PUT",
     body:JSON.stringify({
       from:user,
       text:msg.value,
-      time:new Date().toLocaleTimeString()
+      one:oneTime,
+      time:Date.now()
     })
   });
 
   msg.value="";
+  oneTime=false;
 }
 
-async function loadMessages(){
-  if(!currentChat) return;
-
-  const res = await fetch(db+"chats/"+chatId(user,currentChat)+".json");
-  const data = await res.json();
-
-  chatBox.innerHTML="";
-
-  if(!data) return;
-
-  Object.values(data).forEach(m=>{
-    let div = document.createElement("div");
-    div.className="message "+(m.from===user?"me":"other");
-    div.innerText = m.text + " ("+m.time+")";
-    chatBox.appendChild(div);
-  });
-
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-/* ================= FRIENDS ================= */
-async function addFriend(){
-  const fid = friendId.value.trim();
-
-  if(fid===user) return alert("Cannot add yourself");
-
-  const res = await fetch(db+"users/"+fid+".json");
-  const exists = await res.json();
-
-  if(!exists){
-    alert("User not found");
-    return;
-  }
-
-  await fetch(db+"users/"+user+"/friends/"+fid+".json",{method:"PUT",body:"true"});
-  await fetch(db+"users/"+fid+"/friends/"+user+".json",{method:"PUT",body:"true"});
-
-  loadFriends();
-}
-
-async function loadFriends(){
-  const res = await fetch(db+"users/"+user+"/friends.json");
-  const data = await res.json();
-
-  friendsList.innerHTML="";
-
-  if(!data) return;
-
-  Object.keys(data).forEach(f=>{
-    let btn=document.createElement("button");
-    btn.innerText=f;
-    btn.onclick=()=>{
-      currentChat=f;
-      loadMessages();
+/* IMAGE */
+async function sendImage(){
+  let file=document.createElement("input");
+  file.type="file";
+  file.onchange=()=>{
+    let reader=new FileReader();
+    reader.onload=async ()=>{
+      await fetch(db+"chats/"+cid(user,current)+"/"+Date.now()+".json",{
+        method:"PUT",
+        body:JSON.stringify({
+          from:user,
+          img:reader.result
+        })
+      });
     };
-    friendsList.appendChild(btn);
+    reader.readAsDataURL(file.files[0]);
+  };
+  file.click();
+}
+
+/* LOAD CHAT */
+async function loadChat(){
+  if(!current)return;
+
+  let res=await fetch(db+"chats/"+cid(user,current)+".json");
+  let d=await res.json();
+
+  chat.innerHTML="";
+
+  if(!d)return;
+
+  Object.entries(d).forEach(([id,m])=>{
+
+    /* disappearing */
+    if(m.one && Date.now()-m.time>15000){
+      fetch(db+"chats/"+cid(user,current)+"/"+id+".json",{method:"DELETE"});
+      return;
+    }
+
+    let div=document.createElement("div");
+    div.className="msg "+(m.from==user?"me":"other");
+
+    if(m.img){
+      let img=document.createElement("img");
+      img.src=m.img;
+      img.style.width="100%";
+      div.appendChild(img);
+    }else{
+      div.innerText=m.text;
+    }
+
+    chat.appendChild(div);
   });
+
+  chat.scrollTop=chat.scrollHeight;
 }
 
-/* ================= PROFILE ================= */
-async function updateProfile(){
-  await fetch(db+"users/"+user+"/name.json",{
-    method:"PUT",
-    body:JSON.stringify(newName.value)
-  });
-  alert("Updated");
+/* ONE TIME */
+function eye(){
+  oneTime=true;
+  alert("One-time message ON");
 }
 
-/* ================= TYPING ================= */
-msg.addEventListener("input", ()=>{
-  if(currentChat){
-    fetch(db+"typing/"+chatId(user,currentChat)+"/"+user+".json",{
-      method:"PUT",
-      body:"true"
-    });
-
-    setTimeout(()=>{
-      fetch(db+"typing/"+chatId(user,currentChat)+"/"+user+".json",{method:"DELETE"});
-    },2000);
-  }
-});
-
-async function checkTyping(){
-  if(!currentChat) return;
-
-  const res = await fetch(db+"typing/"+chatId(user,currentChat)+".json");
-  const data = await res.json();
-
-  if(data && Object.keys(data).some(u=>u!==user)){
-    typingText.innerText="Typing...";
-  } else {
-    typingText.innerText="";
-  }
-}
-
-/* ================= ONLINE ================= */
-async function setOnline(status){
-  await fetch(db+"users/"+user+"/online.json",{
-    method:"PUT",
-    body:JSON.stringify(status)
-  });
-}
-
-/* ================= VOICE ================= */
+/* VOICE */
 function voice(){
-  let rec = new webkitSpeechRecognition();
+  let rec=new webkitSpeechRecognition();
   rec.lang="en-IN";
   rec.start();
-
-  rec.onresult = e=>{
-    msg.value = e.results[0][0].transcript;
-  }
+  rec.onresult=e=>{
+    msg.value=e.results[0][0].transcript;
+  };
 }
 
-/* ================= UI ================= */
-function tab(t){
-  chatTab.classList.add("hidden");
-  peopleTab.classList.add("hidden");
-  profileTab.classList.add("hidden");
-
-  if(t==="chat") chatTab.classList.remove("hidden");
-  if(t==="people") peopleTab.classList.remove("hidden");
-  if(t==="profile") profileTab.classList.remove("hidden");
+/* LOGOUT */
+function logout(){
+  localStorage.removeItem("user");
+  location.reload();
 }
-
-function toggleDark(){
-  document.body.classList.toggle("dark");
-}
-
-/* ================= EXIT ================= */
-window.onbeforeunload=()=>{
-  if(user) setOnline(false);
-};
 </script>
 
 </body>
