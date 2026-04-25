@@ -803,401 +803,165 @@ async function adminGift(postId, uid, uname) {
 // পেজ লোড হলে লিস্ট আসবে
 loadAdminGallery();
     </script>
- <script>
-    // ১. Chart.js ডাইনামিকালি লোড করা (গ্রাফের জন্য)
-    if (!window.Chart) {
-        let script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-        document.head.appendChild(script);
-    }
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>রেডিকা অ্যাডমিন প্যানেল</title>
+    <style>
+        :root { --primary: #0f172a; --accent: #3b82f6; --success: #10b981; --danger: #ef4444; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+        .admin-container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-top: 0; }
+        h2 { color: var(--accent); margin-top: 30px; font-size: 18px; border-left: 4px solid var(--accent); padding-left: 10px; }
+        .warning-box { background: #fee2e2; border: 1px solid #f87171; color: #b91c1c; padding: 10px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: bold; margin-bottom: 20px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #475569; }
+        input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        .btn-save { display: block; width: 100%; background: var(--success); color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 30px; transition: 0.3s; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3); }
+        .btn-save:hover { background: #059669; transform: translateY(-2px); }
+        .status { text-align: center; margin-top: 15px; font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
 
-    // ২. মেনু গ্রিডে নিজে থেকে বাটন অ্যাড করা
-    setTimeout(() => {
-        let menuGrid = document.querySelector('.menu-grid');
-        if(menuGrid && !document.getElementById('spin-btn')) {
-            let extraButtons = `
-            <div id="spin-btn" class="menu-item" onclick="openSpinWheel()" style="border-color:#ec4899; background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), transparent);">
-                <span class="icon" style="font-size:35px;">🎡</span>
-                <h3 style="color:#ec4899;">লাকি স্পিন</h3>
-            </div>
-            <div id="mf-btn" class="menu-item" onclick="openMutualFund()" style="border-color:#059669; background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), transparent);">
-                <span class="icon" style="font-size:35px;">📊</span>
-                <h3 style="color:#059669;">মিউচুয়াল ফান্ড</h3>
-            </div>`;
-            menuGrid.insertAdjacentHTML('beforeend', extraButtons);
-        }
-    }, 2000);
-
-    // ৩. স্পিনিং উইলের CSS ডিজাইন হেড-এ অ্যাড করা
-    if (!document.getElementById('spin-styles')) {
-        const spinCss = `
-        <style id="spin-styles">
-            .wheel-container { position: relative; width: 250px; height: 250px; margin: 20px auto; border-radius: 50%; border: 8px solid var(--primary); box-shadow: 0 0 20px rgba(0,0,0,0.3); overflow: hidden; transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99); }
-            .wheel-slice { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: white; clip-path: polygon(0 0, 100% 0, 100% 100%); }
-            .slice-1 { background: #ef4444; transform: rotate(0deg); }
-            .slice-2 { background: #f59e0b; transform: rotate(60deg); }
-            .slice-3 { background: #10b981; transform: rotate(120deg); }
-            .slice-4 { background: #3b82f6; transform: rotate(180deg); }
-            .slice-5 { background: #8b5cf6; transform: rotate(240deg); }
-            .slice-6 { background: #ec4899; transform: rotate(300deg); }
-            .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #fff; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5)); z-index: 10; }
-            .wheel-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: white; border-radius: 50%; border: 4px solid var(--primary); z-index: 5; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3); }
-        </style>`;
-        document.head.insertAdjacentHTML('beforeend', spinCss);
-    }
-
-    // ফায়ারবেস থেকে অ্যাডমিন কনফিগ আনা
-    async function fetchAdminConfig() {
-        try {
-            let res = await fetch('https://radica-super-app-18cb3-default-rtdb.firebaseio.com/admin_config.json');
-            return await res.json() || {};
-        } catch(e) {
-            return {};
-        }
-    }
-
-    // ==========================================
-    // 🎡 অ্যাডমিন-কন্ট্রোলড লাকি স্পিন
-    // ==========================================
-    window.isSpinning = false;
-    window.currentSpinFee = 50;
-    window.currentSpinPrizes = [100, 0, 500, 10, 1000, 50];
-
-    window.openSpinWheel = async function() {
-        renderModal("🎡 লাকি স্পিন", `<div style="text-align:center; padding:20px;">সার্ভার থেকে ডেটা আসছে... ⏳</div>`);
-        
-        let config = await fetchAdminConfig();
-        if (config.spin) {
-            window.currentSpinFee = config.spin.fee !== undefined ? config.spin.fee : 50;
-            window.currentSpinPrizes = config.spin.prizes || [100, 0, 500, 10, 1000, 50];
-        }
-
-        let p = window.currentSpinPrizes;
-
-        let html = `
-        <div style="text-align:center; margin-bottom:10px;">
-            <h2 style="color:var(--primary); margin:0;">ভাগ্য পরীক্ষা করুন!</h2>
-            <p style="font-size:12px; color:var(--text-muted);">প্রতিটি স্পিনের খরচ: <b style="color:var(--danger)">${window.currentSpinFee} Q</b></p>
-        </div>
-        
-        <div style="position:relative; width: fit-content; margin: 0 auto;">
-            <div class="wheel-pointer"></div>
-            <div class="wheel-container" id="spinWheel">
-                <div class="wheel-slice slice-1"><span style="transform: rotate(45deg) translate(-20px, -20px);">${p[0]} Q</span></div>
-                <div class="wheel-slice slice-2"><span style="transform: rotate(45deg) translate(-20px, -20px);">${p[1]} Q</span></div>
-                <div class="wheel-slice slice-3"><span style="transform: rotate(45deg) translate(-20px, -20px);">${p[2]} Q</span></div>
-                <div class="wheel-slice slice-4"><span style="transform: rotate(45deg) translate(-20px, -20px);">${p[3]} Q</span></div>
-                <div class="wheel-slice slice-5"><span style="transform: rotate(45deg) translate(-20px, -20px);">${p[4]} Q</span></div>
-                <div class="wheel-slice slice-6"><span style="transform: rotate(45deg) translate(-20px, -20px);">${p[5]} Q</span></div>
-                <div class="wheel-center"></div>
-            </div>
-        </div>
-
-        <button id="spinBtn" onclick="startSpin()" style="width:100%; background: linear-gradient(45deg, #ec4899, #f43f5e); color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; box-shadow: 0 4px 10px rgba(236, 72, 153, 0.4); margin-top:20px;">
-            🎡 স্পিন করুন (${window.currentSpinFee} Q)
-        </button>
-        `;
-        renderModal("🎡 লাকি স্পিন", html);
-    };
-
-    window.startSpin = async function() {
-        if (window.isSpinning) return;
-        if (user.bal < window.currentSpinFee) return showToast(`❌ স্পিন করার জন্য ${window.currentSpinFee} Q প্রয়োজন!`, "error");
-
-        window.isSpinning = true;
-        document.getElementById('spinBtn').disabled = true;
-        document.getElementById('spinBtn').innerText = "স্পিন হচ্ছে... ⏳";
-        
-        user.bal -= window.currentSpinFee;
-        logTx("স্পিন হুইল এন্ট্রি", -window.currentSpinFee);
-        document.getElementById('mainBal').innerText = user.bal.toLocaleString('en-IN');
-
-        let randomSlice = Math.floor(Math.random() * 6);
-        let extraSpins = 3 * 360; 
-        let sliceAngle = 60; 
-        let finalAngle = extraSpins + (randomSlice * sliceAngle) - 30; 
-
-        let wheel = document.getElementById('spinWheel');
-        wheel.style.transform = `rotate(${finalAngle}deg)`;
-
-        setTimeout(async () => {
-            window.isSpinning = false;
-            let wonIndex = (6 - randomSlice) % 6; 
-            let wonAmount = window.currentSpinPrizes[wonIndex];
-
-            if (wonAmount > 0) {
-                user.bal += wonAmount;
-                logTx("স্পিন হুইল পুরস্কার", wonAmount);
-                showToast(`🎉 অভিনন্দন! আপনি ${wonAmount} Q জিতেছেন!`, 'success');
-            } else {
-                showToast("😢 এবার কিছু পাননি। আবার চেষ্টা করুন!", 'error');
-            }
-
-            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ bal: user.bal, history: user.history })
-            });
-            
-            save();
-            updateDashboard();
-            setTimeout(() => { openSpinWheel(); }, 1500); 
-        }, 4000); 
-    };
-
-    // ==========================================
-    // 📊 অ্যাডমিন-কন্ট্রোলড মিউচুয়াল ফান্ড + গ্রাফ
-    // ==========================================
-    window.openMutualFund = async function() {
-        renderModal("📊 মিউচুয়াল ফান্ড", `<div style="text-align:center; padding:20px;">মার্কেট অ্যানালাইসিস লোড হচ্ছে... ⏳</div>`);
-
-        let config = await fetchAdminConfig();
-        
-        let mfList = config.mutualFunds || [
-            { id: 'MF-MEGA', name: 'রেডিকা মেগা ক্যাপ ফান্ড', type: 'High Risk', returnRate: '12% - 25%', icon: '🚀', price: 150 },
-            { id: 'MF-STEP', name: 'STEP এডুকেশন ফান্ড', type: 'Medium Risk', returnRate: '8% - 15%', icon: '📚', price: 110 },
-            { id: 'MF-AGRI', name: 'গ্রিন এগ্রি ফান্ড', type: 'Low Risk', returnRate: '5% - 10%', icon: '🌱', price: 105 }
-        ];
-
-        let graphLabels = config.mfGraph ? config.mfGraph.labels : ["দিন ১", "দিন ২", "দিন ৩", "দিন ৪", "দিন ৫", "দিন ৬", "আজ"];
-        let graphData = config.mfGraph ? config.mfGraph.data : [100, 102, 105, 103, 108, 112, 115];
-
-        let myFunds = user.mutualFunds || {};
-        let totalInvested = 0;
-        let fundsHtml = '';
-        
-        mfList.forEach(mf => {
-            let investedAmount = myFunds[mf.id] || 0;
-            totalInvested += investedAmount;
-            
-            fundsHtml += `
-            <div style="background:var(--bg-card); border:1px solid var(--border-col); border-radius:12px; padding:15px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="font-size:30px;">${mf.icon}</div>
-                    <div>
-                        <div style="font-weight:bold; font-size:14px; color:var(--primary);">${mf.name}</div>
-                        <div style="font-size:11px; color:var(--text-muted);">রিস্ক: ${mf.type} | সম্ভাব্য রিটার্ন: <span style="color:var(--success)">${mf.returnRate}</span></div>
-                        <div style="font-size:11px; color:#f59e0b; font-weight:bold;">বর্তমান NAV: ৳${mf.price || 100}</div>
-                        ${investedAmount > 0 ? `<div style="font-size:12px; font-weight:bold; color:var(--success); margin-top:3px;">আপনার বিনিয়োগ: ৳${investedAmount.toLocaleString()}</div>` : ''}
-                    </div>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                    <button onclick="investMFPrompt('${mf.id}', '${mf.name}', ${mf.price || 100})" style="background:#059669; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:11px;">SIP কিনুন</button>
-                    ${investedAmount > 0 ? `<button onclick="withdrawMFPrompt('${mf.id}', '${mf.name}', ${investedAmount})" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:11px;">উত্তোলন</button>` : ''}
-                </div>
-            </div>`;
-        });
-
-        let html = `
-        <div style="background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; border: 1px solid #334155;">
-            <h2 style="margin: 0; font-size: 18px; color:#10b981;">📊 মার্কেট অ্যানালাইসিস (৭ দিন)</h2>
-            <div style="width: 100%; height: 120px; margin-top:10px;">
-                <canvas id="mfChart"></canvas>
-            </div>
-            <div style="margin-top:10px; background:rgba(255,255,255,0.1); padding:8px; border-radius:8px;">
-                <div style="font-size:11px; color:#cbd5e1;">আপনার মোট বিনিয়োগ</div>
-                <div style="font-size:18px; font-weight:bold; color:#fcd34d;">৳${totalInvested.toLocaleString()}</div>
-            </div>
-        </div>
-        <div style="max-height: 280px; overflow-y: auto; padding-right: 5px;">
-            ${fundsHtml}
-        </div>
-        `;
-        renderModal("📊 মিউচুয়াল ফান্ড", html);
-
-        // গ্রাফ রেন্ডার করা (একটু ডিলে দিয়ে যাতে DOM রেডি হয়)
-        setTimeout(() => {
-            let ctx = document.getElementById('mfChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: graphLabels,
-                    datasets: [{
-                        label: 'মার্কেট ট্রেন্ড (Market Trend)',
-                        data: graphData,
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                        borderWidth: 2,
-                        pointRadius: 3,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: '#94a3b8', font: {size: 9} }, grid: {display: false} },
-                        y: { ticks: { color: '#94a3b8', font: {size: 9} }, grid: {color: 'rgba(255,255,255,0.05)'} }
-                    }
-                }
-            });
-        }, 150);
-    };
-
-    window.investMFPrompt = async function(fundId, fundName, navPrice) {
-        let amtStr = prompt(`বর্তমান NAV: ৳${navPrice}\nআপনি ${fundName}-এ কত টাকা বিনিয়োগ করতে চান?\n(মিনিমাম: ৳১০০)`, "500");
-        if (!amtStr) return;
-        
-        let amt = parseInt(amtStr);
-        if (isNaN(amt) || amt < 100) return showToast("মিনিমাম ৳১০০ বিনিয়োগ করতে হবে!", "error");
-        if (user.bal < amt) return showToast("❌ আপনার ব্যালেন্সে পর্যাপ্ত টাকা নেই!", "error");
-
-        if (confirm(`আপনি কি ৳${amt} দিয়ে ${fundName}-এ বিনিয়োগ করতে নিশ্চিত?`)) {
-            user.bal -= amt;
-            logTx(`MF বিনিয়োগ: ${fundName}`, -amt);
-            
-            if (!user.mutualFunds) user.mutualFunds = {};
-            user.mutualFunds[fundId] = (user.mutualFunds[fundId] || 0) + amt;
-
-            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ bal: user.bal, mutualFunds: user.mutualFunds, history: user.history })
-            });
-            
-            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/mf_transactions.json`, {
-                method: 'POST',
-                body: JSON.stringify({ uid: user.id, uname: user.name, type: 'INVEST', fund: fundName, amount: amt, time: new Date().getTime() })
-            });
-
-            save();
-            updateDashboard();
-            showToast("✅ বিনিয়োগ সফল হয়েছে!");
-            openMutualFund(); 
-        }
-    };
-
-    window.withdrawMFPrompt = async function(fundId, fundName, currentAmount) {
-        let randomReturnPercent = (Math.random() * 20) - 5; 
-        let finalAmount = Math.round(currentAmount + (currentAmount * (randomReturnPercent / 100)));
-
-        if (confirm(`আপনার বিনিয়োগ ৳${currentAmount}।\nবাজার দরের উপর ভিত্তি করে আপনি এখন ৳${finalAmount} ফেরত পাবেন।\nআপনি কি উত্তোলন করতে চান?`)) {
-            user.bal += finalAmount;
-            logTx(`MF উত্তোলন: ${fundName}`, finalAmount);
-            
-            user.mutualFunds[fundId] = 0; 
-
-            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ bal: user.bal, mutualFunds: user.mutualFunds, history: user.history })
-            });
-
-            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/mf_transactions.json`, {
-                method: 'POST',
-                body: JSON.stringify({ uid: user.id, uname: user.name, type: 'WITHDRAW', fund: fundName, amount: finalAmount, time: new Date().getTime() })
-            });
-            
-            save();
-            updateDashboard();
-            showToast(`✅ টাকা উত্তোলন সফল! আপনি ৳${finalAmount} পেয়েছেন।`, "success");
-            openMutualFund(); 
-        }
-    };
-</script>   
-    <div style="background: #ffffff; padding: 25px; border-radius: 15px; margin-top: 20px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 2px solid #f59e0b;">
-    <h2 style="color: #b45309; margin-top: 0; border-bottom: 2px solid #fef3c7; padding-bottom: 10px;">⚙️ স্পিন ও মিউচুয়াল ফান্ড কন্ট্রোল</h2>
-
-    <h3 style="color: #ea580c; font-size: 16px;">🎡 লাকি স্পিন সেটিং</h3>
-    <div style="background: #fffbeb; padding: 15px; border-radius: 10px; border: 1px solid #fde68a; margin-bottom: 15px;">
-        <label style="font-size: 12px; font-weight: bold; color: black;">স্পিন করার খরচ (Q):</label>
-        <input type="number" id="admin-spin-fee" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #cbd5e1; color: black;">
-        
-        <label style="font-size: 12px; font-weight: bold; color: black;">৬টি পুরস্কার (Q) কমা (,) দিয়ে লিখুন:</label>
-        <input type="text" id="admin-spin-prizes" placeholder="যেমন: 100, 0, 500, 10, 1000, 50" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #cbd5e1; color: black;">
+<div class="admin-container">
+    <h1>⚙️ রেডিকা সুপার অ্যাডমিন প্যানেল</h1>
+    
+    <div class="warning-box">
+        ⚠️ এখান থেকে ডেটা সেভ করলে অ্যাপের অটো-মার্কেট সিস্টেম ১০ মিনিটের জন্য লক হয়ে যাবে!
+    </div>
+    
+    <h2>🎡 লাকি স্পিন কন্ট্রোল</h2>
+    <div class="form-grid">
+        <div class="form-group"><label>স্পিন করার খরচ (Q)</label><input type="number" id="spinFee"></div>
+    </div>
+    <div class="form-grid">
+        <div class="form-group"><label>পুরস্কার ১ (Q)</label><input type="number" id="p1"></div>
+        <div class="form-group"><label>পুরস্কার ২ (Q)</label><input type="number" id="p2"></div>
+        <div class="form-group"><label>পুরস্কার ৩ (Q)</label><input type="number" id="p3"></div>
+        <div class="form-group"><label>পুরস্কার ৪ (Q)</label><input type="number" id="p4"></div>
+        <div class="form-group"><label>পুরস্কার ৫ (Q)</label><input type="number" id="p5"></div>
+        <div class="form-group"><label>পুরস্কার ৬ (Q)</label><input type="number" id="p6"></div>
     </div>
 
-    <h3 style="color: #059669; font-size: 16px;">📊 মিউচুয়াল ফান্ড NAV ও গ্রাফ</h3>
-    <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; border: 1px solid #bbf7d0; margin-bottom: 15px;">
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-            <div style="flex: 1;">
-                <label style="font-size: 11px; color: black; font-weight:bold;">মেগা ক্যাপ ফান্ড (NAV)</label>
-                <input type="number" id="admin-mf1" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #cbd5e1; color: black;">
-            </div>
-            <div style="flex: 1;">
-                <label style="font-size: 11px; color: black; font-weight:bold;">STEP ফান্ড (NAV)</label>
-                <input type="number" id="admin-mf2" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #cbd5e1; color: black;">
-            </div>
-            <div style="flex: 1;">
-                <label style="font-size: 11px; color: black; font-weight:bold;">গ্রিন এগ্রি ফান্ড (NAV)</label>
-                <input type="number" id="admin-mf3" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #cbd5e1; color: black;">
-            </div>
-        </div>
-        
-        <label style="font-size: 12px; font-weight: bold; color: black;">গ্রাফের ডেটা (৭ দিনের, কমা দিয়ে):</label>
-        <input type="text" id="admin-graph-data" placeholder="100, 105, 102, 110, 115, 120, 125" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #cbd5e1; color: black;">
+    <h2>📊 মিউচুয়াল ফান্ড NAV (বর্তমান দাম)</h2>
+    <div class="form-grid">
+        <div class="form-group"><label>STEP এডুকেশন ফান্ড (NAV)</label><input type="number" id="mf1Price"></div>
+        <div class="form-group"><label>Kumar টিউটোরিয়াল ফান্ড (NAV)</label><input type="number" id="mf2Price"></div>
+        <div class="form-group"><label>গ্রিন রেডিকা ফান্ড (NAV)</label><input type="number" id="mf3Price"></div>
     </div>
 
-    <button onclick="saveSpinMFConfig()" id="saveSpinMFBtn" style="width: 100%; background: #f59e0b; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">💾 আপডেট সেভ করুন</button>
+    <h2>📈 মার্কেট গ্রাফ আপডেট (শেষ ৭ দিনের ডেটা)</h2>
+    <p style="font-size: 12px; color: gray; margin-top: 0;">এখানে কমা (,) দিয়ে ৭ দিনের পয়েন্ট দিন। (বাম দিক থেকে ৬ দিন আগের এবং ডান দিকের শেষটি আজকের)</p>
+    <div class="form-group">
+        <input type="text" id="graphData" placeholder="100, 105, 110, 108, 115, 120, 122">
+    </div>
+
+    <button class="btn-save" onclick="saveAdminData()" id="saveBtn">💾 ডেটা সেভ করুন (১০ মিনিট লক চালু হবে)</button>
+    <div class="status" id="statusMsg"></div>
 </div>
 
 <script>
-    // ডেটাবেস থেকে বর্তমান সেটিংস আনা
-    async function loadSpinMFConfig() {
+    const FIREBASE_URL = "https://radica-super-app-18cb3-default-rtdb.firebaseio.com/admin_config.json";
+    let oldData = {};
+
+    // পেজ লোড হওয়ার সাথে সাথে বর্তমান ডেটা আনা
+    window.onload = async function() {
         try {
-            let res = await fetch('https://radica-super-app-18cb3-default-rtdb.firebaseio.com/admin_config.json');
-            let data = await res.json() || {};
-            
-            if(data.spin) {
-                document.getElementById('admin-spin-fee').value = data.spin.fee;
-                document.getElementById('admin-spin-prizes').value = data.spin.prizes.join(', ');
+            let res = await fetch(FIREBASE_URL);
+            oldData = await res.json() || {};
+
+            if(oldData.spin) {
+                document.getElementById('spinFee').value = oldData.spin.fee;
+                let p = oldData.spin.prizes;
+                document.getElementById('p1').value = p[0]; document.getElementById('p2').value = p[1];
+                document.getElementById('p3').value = p[2]; document.getElementById('p4').value = p[3];
+                document.getElementById('p5').value = p[4]; document.getElementById('p6').value = p[5];
             } else {
-                document.getElementById('admin-spin-fee').value = 50;
-                document.getElementById('admin-spin-prizes').value = "100, 0, 500, 10, 1000, 50";
+                document.getElementById('spinFee').value = 50;
+                document.getElementById('p1').value = 100; document.getElementById('p2').value = 0;
+                document.getElementById('p3').value = 500; document.getElementById('p4').value = 10;
+                document.getElementById('p5').value = 1000; document.getElementById('p6').value = 50;
             }
-            
-            if(data.mutualFunds) {
-                document.getElementById('admin-mf1').value = data.mutualFunds[0].price;
-                document.getElementById('admin-mf2').value = data.mutualFunds[1].price;
-                document.getElementById('admin-mf3').value = data.mutualFunds[2].price;
+
+            if(oldData.mutualFunds) {
+                document.getElementById('mf1Price').value = oldData.mutualFunds[0].price;
+                document.getElementById('mf2Price').value = oldData.mutualFunds[1].price;
+                document.getElementById('mf3Price').value = oldData.mutualFunds[2].price;
             } else {
-                document.getElementById('admin-mf1').value = 150;
-                document.getElementById('admin-mf2').value = 110;
-                document.getElementById('admin-mf3').value = 105;
+                document.getElementById('mf1Price').value = 150;
+                document.getElementById('mf2Price').value = 120;
+                document.getElementById('mf3Price').value = 105;
             }
-            
-            if(data.mfGraph) {
-                document.getElementById('admin-graph-data').value = data.mfGraph.data.join(', ');
+
+            if(oldData.mfGraph) {
+                document.getElementById('graphData').value = oldData.mfGraph.data.join(', ');
             } else {
-                document.getElementById('admin-graph-data').value = "100, 102, 105, 103, 108, 112, 115";
+                document.getElementById('graphData').value = "100, 105, 110, 108, 115, 120, 122";
             }
-        } catch(e) {}
-    }
-    
-    // অ্যাডমিন ডেটা সেভ করা
-    async function saveSpinMFConfig() {
-        let btn = document.getElementById('saveSpinMFBtn');
-        btn.innerText = "সেভ হচ্ছে... ⏳";
-        
-        let prizesArr = document.getElementById('admin-spin-prizes').value.split(',').map(n => Number(n.trim()));
-        let graphArr = document.getElementById('admin-graph-data').value.split(',').map(n => Number(n.trim()));
-        
+        } catch (error) {
+            console.error("ডেটা লোড করতে সমস্যা হয়েছে!");
+        }
+    };
+
+    // ডেটা সেভ করা এবং ১০ মিনিটের লক চালু করা
+    async function saveAdminData() {
+        let btn = document.getElementById('saveBtn');
+        let status = document.getElementById('statusMsg');
+        btn.innerText = "সেভ হচ্ছে... ⏳"; btn.disabled = true;
+
+        let graphArray = document.getElementById('graphData').value.split(',').map(item => Number(item.trim()));
+
         let newConfig = {
             spin: {
-                fee: Number(document.getElementById('admin-spin-fee').value),
-                prizes: prizesArr
+                fee: Number(document.getElementById('spinFee').value),
+                prizes: [
+                    Number(document.getElementById('p1').value), Number(document.getElementById('p2').value),
+                    Number(document.getElementById('p3').value), Number(document.getElementById('p4').value),
+                    Number(document.getElementById('p5').value), Number(document.getElementById('p6').value)
+                ]
             },
             mutualFunds: [
-                { id: 'MF-MEGA', name: 'রেডিকা মেগা ক্যাপ ফান্ড', type: 'High Risk', returnRate: '12% - 25%', icon: '🚀', price: Number(document.getElementById('admin-mf1').value) },
-                { id: 'MF-STEP', name: 'STEP এডুকেশন ফান্ড', type: 'Medium Risk', returnRate: '8% - 15%', icon: '📚', price: Number(document.getElementById('admin-mf2').value) },
-                { id: 'MF-AGRI', name: 'গ্রিন এগ্রি ফান্ড', type: 'Low Risk', returnRate: '5% - 10%', icon: '🌱', price: Number(document.getElementById('admin-mf3').value) }
+                { id: 'MF-STEP', name: 'STEP এডুকেশন ফান্ড', type: 'High Risk', returnRate: '15% - 25%', icon: '🎓', price: Number(document.getElementById('mf1Price').value) },
+                { id: 'MF-KUMAR', name: 'Kumar টিউটোরিয়াল ফান্ড', type: 'Medium Risk', returnRate: '10% - 18%', icon: '📖', price: Number(document.getElementById('mf2Price').value) },
+                { id: 'MF-AGRI', name: 'গ্রিন রেডিকা ফান্ড', type: 'Low Risk', returnRate: '5% - 12%', icon: '🌳', price: Number(document.getElementById('mf3Price').value) }
             ],
             mfGraph: {
-                labels: ["দিন ১", "দিন ২", "দিন ৩", "দিন ৪", "দিন ৫", "দিন ৬", "আজ"],
-                data: graphArr
-            }
+                labels: ["৬ দিন আগে", "৫ দিন আগে", "৪ দিন আগে", "৩ দিন আগে", "পরশু", "গতকাল", "আজ (লাইভ)"],
+                data: graphArray
+            },
+            // এই টাইমস্ট্যাম্পটিই ইউজার অ্যাপে ১০ মিনিটের লক অ্যাক্টিভেট করবে
+            adminLastUpdate: Date.now(), 
+            lastAutoUpdate: oldData.lastAutoUpdate || Date.now(),
+            lastDate: oldData.lastDate || new Date().toDateString()
         };
-        
-        await fetch('https://radica-super-app-18cb3-default-rtdb.firebaseio.com/admin_config.json', {
-            method: 'PUT',
-            body: JSON.stringify(newConfig)
-        });
-        
-        btn.innerText = "✅ আপডেট সেভ হয়েছে!";
-        setTimeout(() => { btn.innerText = "💾 আপডেট সেভ করুন"; }, 2000);
+
+        try {
+            await fetch(FIREBASE_URL, { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(newConfig) 
+            });
+            status.style.color = "var(--success)"; 
+            status.innerText = "✅ ডেটা সেভ হয়েছে! অ্যাপের অটো-মার্কেট আগামী ১০ মিনিটের জন্য লক থাকবে।";
+        } catch (error) {
+            status.style.color = "var(--danger)"; 
+            status.innerText = "❌ সেভ করতে সমস্যা হয়েছে! ইন্টারনেট কানেকশন চেক করুন।";
+        }
+
+        setTimeout(() => { 
+            btn.innerText = "💾 ডেটা সেভ করুন (১০ মিনিট লক চালু হবে)"; 
+            btn.disabled = false; 
+            status.innerText = ""; 
+        }, 4000);
     }
-    
-    // পেজ লোড হলেই সেটিংস দেখাবে
-    loadSpinMFConfig();
 </script>
+</body>
+</html>
+    
 </body>
 </html>
