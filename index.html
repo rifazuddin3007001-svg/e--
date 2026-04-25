@@ -2368,6 +2368,264 @@ function loadCoachTab() {
         }
     };
 </script>
+<script>
+    // ১. নার্সারি মেনু বাটন অ্যাড করা
+    setTimeout(() => {
+        let menuGrid = document.querySelector('.menu-grid');
+        if(menuGrid && !document.getElementById('nursery-btn')) {
+            let nurseryBtn = `
+            <div id="nursery-btn" class="menu-item" onclick="openNursery('garden')" style="border-color:#10b981; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent);">
+                <span class="icon" style="font-size:35px;">🪴</span>
+                <h3 style="color:#10b981;">ডিজিটাল নার্সারি</h3>
+            </div>`;
+            menuGrid.insertAdjacentHTML('beforeend', nurseryBtn);
+        }
+    }, 2000);
+
+    // ২. নার্সারি CSS ডিজাইন
+    if (!document.getElementById('nursery-styles')) {
+        const nurseryCss = `
+        <style id="nursery-styles">
+            .n-tab-container { display: flex; gap: 5px; margin-bottom: 15px; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 10px; overflow-x: auto; white-space: nowrap; }
+            .n-tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.3s; min-width: 80px; }
+            .n-tab.active { background: #10b981; color: white; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3); }
+            .n-tab.inactive { color: #64748b; background: transparent; }
+            .n-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .n-card { background: var(--bg-card); border: 1px solid var(--border-col); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.3s; }
+            .n-card:hover { border-color: #10b981; }
+            .n-plant { font-size: 45px; margin-bottom: 5px; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); }
+            .n-daily-info { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 10px; margin-bottom: 10px; border-radius: 6px; text-align: left; font-size: 13px; color: #166534; display: flex; justify-content: space-between; align-items: center; }
+            .qa-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 10px; margin-bottom: 15px; text-align: left; }
+        </style>`;
+        document.head.insertAdjacentHTML('beforeend', nurseryCss);
+    }
+
+    // ৩. গ্লোবাল ডেটা ও স্টোর আইটেম
+    window.nurseryStore = [
+        { id: 'pl_01', name: 'তুলসী', icon: '🌿', price: 0, desc: 'পরিবেশ পরিশোধক' },
+        { id: 'pl_02', name: 'অ্যালোভেরা', icon: '🌵', price: 50, desc: 'ঔষধি গুণসম্পন্ন' },
+        { id: 'pl_03', name: 'গোলাপ', icon: '🌹', price: 150, desc: 'শীতকালীন যত্ন প্রয়োজন' },
+        { id: 'pl_04', name: 'বোগেনভিলিয়া', icon: '🌸', price: 200, desc: 'রোদ ভালোবাসে' },
+        { id: 'pl_05', name: 'অ্যাডেনিয়াম', icon: '🌺', price: 300, desc: 'ডেজার্ট রোজ, কম জল লাগে' },
+        { id: 'pl_06', name: 'বনসাই বট', icon: '🌳', price: 1000, desc: 'প্রিমিয়াম কালেকশন' }
+    ];
+
+    window.dailyPlantTips = [
+        "অ্যাডেনিয়ামের মাটি ওয়েল-ড্রেইন্ড হওয়া খুব জরুরি, নয়তো শিকড় পচে যায়।",
+        "বোগেনভিলিয়া গাছে ফুল আনতে হলে জলের পরিমাণ একটু কমিয়ে দিন।",
+        "গোলাপ গাছের ছাঁটাই (Pruning) শীতের শুরুতে করলে বেশি ফুল পাওয়া যায়。",
+        "সপ্তাহে একদিন নিম তেল স্প্রে করলে গাছে পোকামাকড় আক্রমণ করে না।",
+        "ইনডোর প্ল্যান্টের পাতায় ধুলো জমলে সালোকসংশ্লেষ ব্যাহত হয়, তাই পাতা মুছে দিন।",
+        "অতিরিক্ত জল (Overwatering) গাছের মৃত্যুর প্রধান কারণ। মাটি শুকোলে তবেই জল দিন।",
+        "ডিমের খোসা গুঁড়ো করে মাটিতে দিলে ক্যালসিয়ামের অভাব দূর হয়।",
+        "মানি প্ল্যান্ট জলে রাখলে প্রতি সপ্তাহে জল পাল্টানো বাধ্যতামূলক।",
+        "ক্যালঞ্চো বা পাথরকুচি পাতা থেকে খুব সহজেই নতুন চারা তৈরি হয়।",
+        "সকালবেলার হালকা রোদ সব গাছের জন্যই উপকারী।"
+    ];
+
+    window.savedTips = JSON.parse(localStorage.getItem('radicaSavedTips')) || [];
+
+    // ৪. নার্সারি উইন্ডো ওপেনার
+    window.openNursery = function(activeTab = 'garden') {
+        if(!user.garden) user.garden = [];
+
+        let tabsHtml = `
+        <div class="n-tab-container">
+            <div class="n-tab ${activeTab === 'garden' ? 'active' : 'inactive'}" onclick="openNursery('garden')">🏡 আমার বাগান</div>
+            <div class="n-tab ${activeTab === 'store' ? 'active' : 'inactive'}" onclick="openNursery('store')">🛒 স্টোর</div>
+            <div class="n-tab ${activeTab === 'care' ? 'active' : 'inactive'}" onclick="openNursery('care')">📖 কেয়ার ও Q&A</div>
+            <div class="n-tab ${activeTab === 'leaderboard' ? 'active' : 'inactive'}" onclick="openNursery('leaderboard')">🏆 র‍্যাঙ্কিং</div>
+        </div>
+        <div id="nursery-content" style="max-height: 400px; overflow-y: auto; padding-right: 5px; text-align: center;"></div>
+        `;
+
+        renderModal("🪴 ডিজিটাল নার্সারি", tabsHtml);
+
+        let contentDiv = document.getElementById('nursery-content');
+        
+        if (activeTab === 'garden') {
+            let gardenHtml = '';
+            if (user.garden.length === 0) {
+                gardenHtml = `<div style="padding:40px; color:gray;">আপনার বাগানে কোনো গাছ নেই! স্টোর থেকে গাছ সংগ্রহ করুন।</div>`;
+            } else {
+                gardenHtml = `<div class="n-grid">`;
+                user.garden.forEach((pl, index) => {
+                    let growText = pl.waterCount > 5 ? 'পূর্ণাঙ্গ গাছ' : 'চারা গাছ';
+                    let plantSize = 30 + (pl.waterCount * 3); // জল দিলে সাইজ বাড়বে
+                    if(plantSize > 60) plantSize = 60;
+                    
+                    gardenHtml += `
+                    <div class="n-card">
+                        <div class="n-plant" style="font-size:${plantSize}px;">${pl.icon}</div>
+                        <div style="font-weight:bold; color:var(--primary);">${pl.name}</div>
+                        <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">অবস্থা: ${growText}</div>
+                        <button onclick="waterPlant(${index})" style="background:#3b82f6; color:white; border:none; padding:5px 10px; border-radius:5px; font-size:11px; cursor:pointer; width:100%;">💧 জল দিন (${pl.waterCount})</button>
+                    </div>`;
+                });
+                gardenHtml += `</div>`;
+            }
+            contentDiv.innerHTML = gardenHtml;
+        } 
+        else if (activeTab === 'store') {
+            let storeHtml = `<div class="n-grid">`;
+            window.nurseryStore.forEach(pl => {
+                let priceBtn = pl.price === 0 
+                    ? `<button onclick="buyPlant('${pl.id}')" style="background:#10b981; color:white; border:none; padding:6px 10px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">বিনামূল্যে নিন</button>`
+                    : `<button onclick="buyPlant('${pl.id}')" style="background:#f59e0b; color:#000; border:none; padding:6px 10px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">${pl.price} Q দিয়ে কিনুন</button>`;
+                
+                storeHtml += `
+                <div class="n-card">
+                    <div class="n-plant">${pl.icon}</div>
+                    <div style="font-weight:bold; font-size:14px;">${pl.name}</div>
+                    <div style="font-size:10px; color:gray; margin-bottom:8px; height: 24px;">${pl.desc}</div>
+                    ${priceBtn}
+                </div>`;
+            });
+            storeHtml += `</div>`;
+            contentDiv.innerHTML = storeHtml;
+        }
+        else if (activeTab === 'care') {
+            let careHtml = `
+            <div class="qa-box">
+                <h4 style="margin:0 0 10px 0; color:#0f172a;">💬 লাইভ বটানিস্ট (Q&A)</h4>
+                <div style="display:flex; gap:5px;">
+                    <input type="text" id="plantQuestion" placeholder="গাছ নিয়ে প্রশ্ন করুন..." style="flex:1; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    <button onclick="askBotanist()" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">জিজ্ঞাসা</button>
+                </div>
+                <div id="qa-answer" style="margin-top:10px; font-size:12px; color:#334155; font-style:italic;"></div>
+            </div>
+            <h4 style="text-align:left; color:#10b981; margin-bottom:10px;">🌟 আজকের সেরা ১০ তথ্য</h4>
+            <div style="text-align:left;">`;
+            
+            window.dailyPlantTips.forEach((tip, idx) => {
+                let isSaved = window.savedTips.includes(tip);
+                careHtml += `
+                <div class="n-daily-info">
+                    <span style="flex:1;">${idx+1}. ${tip}</span>
+                    <button onclick="savePlantTip('${tip}')" style="background:${isSaved?'#94a3b8':'#10b981'}; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer; margin-left:10px;" ${isSaved?'disabled':''}>${isSaved?'সেভড':'সেভ'}</button>
+                </div>`;
+            });
+            careHtml += `</div>
+            <h4 style="text-align:left; color:#3b82f6; margin-top:20px;">💾 আপনার সেভ করা তথ্যসমূহ</h4>
+            <div style="text-align:left; font-size:12px; color:gray;">
+                ${window.savedTips.length > 0 ? window.savedTips.map((t, i) => `<div style="padding:5px 0; border-bottom:1px dashed #cbd5e1;">✅ ${t}</div>`).join('') : 'কোনো তথ্য সেভ করা নেই।'}
+            </div>`;
+            contentDiv.innerHTML = careHtml;
+        }
+        else if (activeTab === 'leaderboard') {
+            contentDiv.innerHTML = `<div style="padding:20px; color:var(--primary); font-weight:bold;">সার্ভার থেকে লাইভ র‍্যাঙ্কিং লোড হচ্ছে... ⏳</div>`;
+            loadGardenLeaderboard();
+        }
+    };
+
+    // ৫. নার্সারি অ্যাকশন ফাংশন
+    window.buyPlant = async function(plantId) {
+        let plantInfo = window.nurseryStore.find(p => p.id === plantId);
+        if (!plantInfo) return;
+
+        if (user.bal < plantInfo.price) return showToast(`❌ আপনার ব্যালেন্সে ${plantInfo.price} Q নেই!`, 'error');
+
+        let msg = plantInfo.price === 0 ? `আপনি কি বিনামূল্যে ${plantInfo.name} সংগ্রহ করতে চান?` : `${plantInfo.name} কিনতে ${plantInfo.price} Q খরচ হবে। নিশ্চিত?`;
+        
+        if (confirm(msg)) {
+            user.bal -= plantInfo.price;
+            if(plantInfo.price > 0) logTx(`নার্সারি: ${plantInfo.name}`, -plantInfo.price);
+            
+            user.garden.push({ id: plantInfo.id, name: plantInfo.name, icon: plantInfo.icon, waterCount: 0, plantedAt: Date.now() });
+
+            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}.json`, { 
+                method: 'PATCH', 
+                body: JSON.stringify({ bal: user.bal, garden: user.garden, history: user.history }) 
+            });
+
+            // লিডারবোর্ডের জন্য গ্লোবাল কাউন্ট আপডেট
+            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/nursery_leaderboard/${user.id}.json`, {
+                method: 'PUT',
+                body: JSON.stringify({ name: user.name, plantsCount: user.garden.length })
+            });
+
+            save(); updateDashboard();
+            showToast(`✅ ${plantInfo.name} আপনার বাগানে যুক্ত হয়েছে!`);
+            openNursery('garden');
+        }
+    };
+
+    window.waterPlant = async function(index) {
+        user.garden[index].waterCount += 1;
+        showToast("💧 গাছে জল দেওয়া হয়েছে! গাছটি বড় হচ্ছে।");
+        
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/garden.json`, { 
+            method: 'PUT', 
+            body: JSON.stringify(user.garden) 
+        });
+        save();
+        openNursery('garden');
+    };
+
+    // ৬. লাইভ Q&A এবং সেভ ফাংশন
+    window.askBotanist = function() {
+        let q = document.getElementById('plantQuestion').value.trim();
+        let ansBox = document.getElementById('qa-answer');
+        if (!q) return;
+
+        ansBox.innerHTML = `<span style="color:#f59e0b;">লাইভ সার্ভার থেকে তথ্য খোঁজা হচ্ছে... ⏳</span>`;
+        
+        setTimeout(() => {
+            let responses = [
+                "এই গাছের জন্য সরাসরি সূর্যালোক খুব জরুরি, তবে কড়া রোদ থেকে বাঁচাবেন।",
+                "মাটি পুরোপুরি শুকিয়ে গেলে তবেই জল দিন, অতিরিক্ত জলে শিকড় পচে যেতে পারে।",
+                "সপ্তাহে একবার সরিষার খোল পচা জল পাতলা করে দিলে গাছের বৃদ্ধি ভালো হয়।",
+                "মিলিবাগ বা পোকামাকড়ের আক্রমণ হলে ১ লিটার জলে ১ চামচ শ্যাম্পু ও একটু নিম তেল মিশিয়ে স্প্রে করুন।"
+            ];
+            let ans = q.includes("অ্যাডেনিয়াম") ? "অ্যাডেনিয়ামের মাটি এমন হতে হবে যাতে জল না দাঁড়ায়। কোকোপিট, বালি ও মাটি সমপরিমাণে মেশান।" : responses[Math.floor(Math.random() * responses.length)];
+            
+            ansBox.innerHTML = `<b style="color:#10b981;">উত্তর:</b> ${ans}`;
+        }, 1500);
+    };
+
+    window.savePlantTip = function(tipText) {
+        if (!window.savedTips.includes(tipText)) {
+            window.savedTips.push(tipText);
+            localStorage.setItem('radicaSavedTips', JSON.stringify(window.savedTips));
+            showToast("✅ তথ্য সেভ করা হয়েছে!");
+            openNursery('care');
+        }
+    };
+
+    // ৭. লিডারবোর্ড লোডিং
+    window.loadGardenLeaderboard = async function() {
+        try {
+            let res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/nursery_leaderboard.json`);
+            let data = await res.json();
+            let contentDiv = document.getElementById('nursery-content');
+            
+            if (!data) {
+                contentDiv.innerHTML = `<div style="padding:20px; color:gray;">এখনও কেউ বাগান শুরু করেনি!</div>`;
+                return;
+            }
+
+            // ডেটা সর্ট করা (যাঁর গাছ বেশি, সে ওপরে)
+            let sortedLeaders = Object.values(data).sort((a, b) => b.plantsCount - a.plantsCount).slice(0, 10);
+            
+            let html = `<div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:12px; text-align:left;">
+                <h4 style="margin:0 0 10px 0; color:#166534; text-align:center;">🌟 টপ ১০ গার্ডেনার</h4>`;
+            
+            sortedLeaders.forEach((leader, idx) => {
+                let medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : '🪴'));
+                let highlight = leader.name === user.name ? 'background:#dcfce7; font-weight:bold;' : '';
+                html += `
+                <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px dashed #cbd5e1; ${highlight}">
+                    <span>${medal} ${leader.name}</span>
+                    <span style="color:#059669; font-weight:bold;">${leader.plantsCount} টি গাছ</span>
+                </div>`;
+            });
+            html += `</div>`;
+            contentDiv.innerHTML = html;
+        } catch(e) {
+            document.getElementById('nursery-content').innerHTML = "সার্ভার এরর!";
+        }
+    };
+</script>
     
 </body>
 </html>
