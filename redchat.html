@@ -1,68 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RedChat Premium</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RedChat Premium v2</title>
 
 <style>
 :root {
-  --bg: #ffffff;
-  --text: #000;
-  --primary: #e50914;
+  --bg:#fff; --text:#000; --primary:#e50914;
 }
-.dark {
-  --bg: #0d0d0d;
-  --text: #fff;
-}
+.dark { --bg:#0d0d0d; --text:#fff; }
+
 body {
-  margin:0;
-  font-family: Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  margin:0; font-family:sans-serif;
+  background:var(--bg); color:var(--text);
 }
+
 header {
-  position: sticky;
-  top:0;
-  background: var(--primary);
-  color:#fff;
-  padding:10px;
-  display:flex;
-  justify-content:space-between;
+  background:var(--primary);
+  color:#fff; padding:10px;
+  display:flex; justify-content:space-between;
 }
+
 .container { padding:10px; }
 
-input, button {
-  width:100%;
-  padding:10px;
-  margin:5px 0;
+input,button {
+  width:100%; padding:10px; margin:5px 0;
 }
+
 .chat-box {
-  height:60vh;
-  overflow-y:auto;
-  border:1px solid #ccc;
-  padding:10px;
+  height:55vh; overflow:auto;
+  border:1px solid #ccc; padding:10px;
 }
-.message {
-  padding:8px;
-  margin:5px;
-  border-radius:8px;
-}
+
+.message { margin:5px; padding:8px; border-radius:8px; }
 .me { background:#dcf8c6; text-align:right; }
 .other { background:#eee; }
 
 .bottom-nav {
-  position:fixed;
-  bottom:0;
-  width:100%;
-  display:flex;
-  background:#222;
+  position:fixed; bottom:0; width:100%;
+  display:flex; background:#222;
 }
 .bottom-nav button {
-  flex:1;
-  color:#fff;
-  background:none;
-  border:none;
+  flex:1; color:#fff; background:none; border:none;
 }
 
 .hidden { display:none; }
@@ -72,49 +51,64 @@ input, button {
 <body>
 
 <header>
-  <span>RedChat Premium</span>
-  <div>
-    <button onclick="toggleDark()">🌙</button>
-  </div>
+  <b>RedChat Premium</b>
+  <button onclick="toggleDark()">🌙</button>
 </header>
 
 <div class="container">
 
 <!-- AUTH -->
 <div id="auth">
-  <h3>Login</h3>
-  <input id="loginId" placeholder="User ID">
-  <input id="loginPass" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
 
-  <h3>Signup</h3>
-  <input id="name" placeholder="Full Name">
-  <input id="userid" placeholder="User ID">
-  <input id="phone" placeholder="Phone">
-  <input id="pass" type="password" placeholder="Password">
-  <input id="sq" placeholder="Security Question">
-  <input id="sa" placeholder="Answer">
-  <button onclick="signup()">Signup</button>
+<h3>Login</h3>
+<input id="l_id" placeholder="User ID">
+<input id="l_pass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+
+<h3>Signup</h3>
+<input id="s_name" placeholder="Full Name">
+<input id="s_id" placeholder="User ID">
+<input id="s_phone" placeholder="Phone">
+<input id="s_pass" type="password" placeholder="Password">
+<input id="s_sq" placeholder="Security Question">
+<input id="s_sa" placeholder="Answer">
+<button onclick="signup()">Signup</button>
+
 </div>
 
 <!-- APP -->
 <div id="app" class="hidden">
-  <h3 id="welcome"></h3>
 
-  <div id="chat">
-    <div class="chat-box" id="chatBox"></div>
+<h3 id="welcome"></h3>
 
-    <input id="msg" placeholder="Type message">
-    <button onclick="sendMessage()">Send</button>
-    <button onclick="startVoice()">🎤</button>
-  </div>
+<!-- CHAT -->
+<div id="chatTab">
+  <div class="chat-box" id="chatBox"></div>
+  <input id="msg" placeholder="Type message">
+  <button onclick="sendMessage()">Send</button>
+  <button onclick="voice()">🎤</button>
+</div>
+
+<!-- PEOPLE -->
+<div id="peopleTab" class="hidden">
+  <input id="friendId" placeholder="Enter User ID">
+  <button onclick="addFriend()">Add Friend</button>
+  <div id="friendsList"></div>
+</div>
+
+<!-- PROFILE -->
+<div id="profileTab" class="hidden">
+  <p>ID: <span id="pid"></span></p>
+  <input id="newName" placeholder="New Name">
+  <button onclick="updateProfile()">Update</button>
 </div>
 
 </div>
 
-<div class="bottom-nav hidden" id="nav">
+</div>
+
+<div id="nav" class="bottom-nav hidden">
   <button onclick="showTab('chat')">Chats</button>
-  <button onclick="showTab('status')">Status</button>
   <button onclick="showTab('people')">People</button>
   <button onclick="showTab('profile')">Profile</button>
 </div>
@@ -122,75 +116,90 @@ input, button {
 <script>
 const db = "https://test-chat-8b59b-default-rtdb.firebaseio.com/";
 
-let currentUser = localStorage.getItem("user") || null;
-let currentChat = null;
+let user = localStorage.getItem("user");
 
-/* ===========================
-   AUTH FUNCTIONS
-=========================== */
+/* ================= AUTH ================= */
 
-async function signup() {
-  const user = {
-    name: name.value,
-    phone: phone.value,
-    password: pass.value,
-    sq: sq.value,
-    sa: sa.value,
-    online: true
+async function signup(){
+  const id = s_id.value.trim();
+
+  if(!id) return alert("User ID required");
+
+  const check = await fetch(db+"users/"+id+".json");
+  const exists = await check.json();
+
+  if(exists) return alert("User already exists");
+
+  const data = {
+    name: s_name.value,
+    phone: s_phone.value,
+    password: s_pass.value,
+    sq: s_sq.value,
+    sa: s_sa.value,
+    friends: {},
+    online:true
   };
 
-  await fetch(db+"users/"+userid.value+".json", {
+  await fetch(db+"users/"+id+".json",{
     method:"PUT",
-    body: JSON.stringify(user)
+    body: JSON.stringify(data)
   });
 
-  alert("Signup Success");
+  alert("Signup successful. Now login.");
 }
 
-async function login() {
-  const res = await fetch(db+"users/"+loginId.value+".json");
+async function login(){
+  const id = l_id.value.trim();
+  const pass = l_pass.value;
+
+  const res = await fetch(db+"users/"+id+".json");
   const data = await res.json();
 
-  if(data && data.password === loginPass.value) {
-    localStorage.setItem("user", loginId.value);
-    location.reload();
-  } else {
-    alert("Invalid login");
+  if(!data){
+    alert("User not found");
+    return;
   }
+
+  if(data.password !== pass){
+    alert("Wrong password");
+    return;
+  }
+
+  localStorage.setItem("user", id);
+  location.reload();
 }
 
-/* ===========================
-   INIT APP
-=========================== */
+/* ================= INIT ================= */
 
-if(currentUser){
-  document.getElementById("auth").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  document.getElementById("nav").classList.remove("hidden");
+if(user){
+  auth.classList.add("hidden");
+  app.classList.remove("hidden");
+  nav.classList.remove("hidden");
 
-  welcome.innerText = "Welcome " + currentUser;
+  welcome.innerText = "Welcome " + user;
+  pid.innerText = user;
 
   setOnline(true);
-  loadMessages();
-  setInterval(loadMessages, 3000);
+  loadFriends();
+  setInterval(loadMessages,3000);
 }
 
-/* ===========================
-   CHAT SYSTEM
-=========================== */
+/* ================= CHAT ================= */
+
+let currentChat = null;
 
 async function sendMessage(){
-  const msgText = msg.value;
-  if(!msgText) return;
+  if(!currentChat) return alert("Select friend first");
 
   const id = Date.now();
+  const path = "chats/"+chatId(user,currentChat)+"/"+id;
 
-  await fetch(db+"chats/global/"+id+".json",{
+  await fetch(db+path+".json",{
     method:"PUT",
     body: JSON.stringify({
-      sender: currentUser,
-      text: msgText,
-      time: new Date().toLocaleTimeString()
+      from:user,
+      text:msg.value,
+      time:new Date().toLocaleTimeString()
     })
   });
 
@@ -198,17 +207,19 @@ async function sendMessage(){
 }
 
 async function loadMessages(){
-  const res = await fetch(db+"chats/global.json");
+  if(!currentChat) return;
+
+  const res = await fetch(db+"chats/"+chatId(user,currentChat)+".json");
   const data = await res.json();
 
   chatBox.innerHTML="";
 
-  for(let id in data){
-    let m = data[id];
+  for(let i in data){
+    let m = data[i];
 
     let div = document.createElement("div");
-    div.className = "message " + (m.sender === currentUser ? "me":"other");
-    div.innerText = m.text + " ("+m.time+")";
+    div.className="message "+(m.from===user?"me":"other");
+    div.innerText = m.text+" ("+m.time+")";
 
     chatBox.appendChild(div);
   }
@@ -216,54 +227,99 @@ async function loadMessages(){
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-/* ===========================
-   ONLINE STATUS
-=========================== */
+function chatId(a,b){
+  return a<b ? a+"_"+b : b+"_"+a;
+}
+
+/* ================= FRIENDS ================= */
+
+async function addFriend(){
+  const fid = friendId.value.trim();
+
+  if(fid===user) return alert("Cannot add yourself");
+
+  const check = await fetch(db+"users/"+fid+".json");
+  const exists = await check.json();
+
+  if(!exists) return alert("User not found");
+
+  await fetch(db+"users/"+user+"/friends/"+fid+".json",{method:"PUT",body:"true"});
+  await fetch(db+"users/"+fid+"/friends/"+user+".json",{method:"PUT",body:"true"});
+
+  loadFriends();
+}
+
+async function loadFriends(){
+  const res = await fetch(db+"users/"+user+"/friends.json");
+  const data = await res.json();
+
+  friendsList.innerHTML="";
+
+  for(let f in data){
+    let btn = document.createElement("button");
+    btn.innerText = f;
+    btn.onclick = ()=>{
+      currentChat=f;
+      loadMessages();
+    };
+    friendsList.appendChild(btn);
+  }
+}
+
+/* ================= PROFILE ================= */
+
+async function updateProfile(){
+  await fetch(db+"users/"+user+"/name.json",{
+    method:"PUT",
+    body: JSON.stringify(newName.value)
+  });
+  alert("Updated");
+}
+
+/* ================= ONLINE ================= */
 
 async function setOnline(status){
-  await fetch(db+"users/"+currentUser+"/online.json",{
+  await fetch(db+"users/"+user+"/online.json",{
     method:"PUT",
     body: JSON.stringify(status)
   });
 }
 
-/* ===========================
-   DARK MODE
-=========================== */
+/* ================= VOICE ================= */
+
+function voice(){
+  let rec = new webkitSpeechRecognition();
+  rec.lang="en-IN";
+  rec.start();
+
+  rec.onresult = e=>{
+    msg.value = e.results[0][0].transcript;
+  }
+}
+
+/* ================= UI ================= */
+
+function showTab(tab){
+  chatTab.classList.add("hidden");
+  peopleTab.classList.add("hidden");
+  profileTab.classList.add("hidden");
+
+  if(tab==="chat") chatTab.classList.remove("hidden");
+  if(tab==="people") peopleTab.classList.remove("hidden");
+  if(tab==="profile") profileTab.classList.remove("hidden");
+}
 
 function toggleDark(){
   document.body.classList.toggle("dark");
 }
 
-/* ===========================
-   VOICE TYPING
-=========================== */
+/* ================= EXIT ================= */
 
-function startVoice(){
-  const rec = new webkitSpeechRecognition();
-  rec.lang = "bn-IN";
-  rec.start();
-
-  rec.onresult = function(e){
-    msg.value = e.results[0][0].transcript;
-  }
-}
-
-/* ===========================
-   TABS (basic)
-=========================== */
-
-function showTab(tab){
-  alert("Switch to " + tab + " (extend UI here)");
-}
-
-/* ===========================
-   AUTO LOGOUT ON CLOSE
-=========================== */
 window.onbeforeunload = ()=>{
   setOnline(false);
 };
 
 </script>
+
 </body>
 </html>
