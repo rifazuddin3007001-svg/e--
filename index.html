@@ -2320,16 +2320,23 @@ function loadCoachTab() {
         let adminLock = (Date.now() - (config.adminLastUpdate || 0)) < 600000;
         
         let fundsHtml = '';
+        let totalInvested = 0;
+
         config.mutualFunds.forEach(mf => {
             let myInv = (user.mutualFunds || {})[mf.id] || 0;
+            totalInvested += myInv;
+
             fundsHtml += `
             <div style="background:var(--bg-card); border:1px solid var(--border-col); border-radius:12px; padding:15px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <div style="font-weight:bold; color:var(--primary);">${mf.icon} ${mf.name}</div>
                     <div style="font-size:11px; color:var(--text-muted);">রিটার্ন: ${mf.returnRate} | NAV: <b style="color:#f59e0b;">৳${mf.price}</b></div>
-                    ${myInv > 0 ? `<div style="font-size:11px; color:var(--success); font-weight:bold;">বিনিয়োগ: ৳${myInv}</div>` : ''}
+                    ${myInv > 0 ? `<div style="font-size:12px; color:var(--success); font-weight:bold; margin-top:5px;">আপনার বিনিয়োগ: ৳${myInv}</div>` : ''}
                 </div>
-                <button onclick="investMFPrompt('${mf.id}', '${mf.name}', ${mf.price})" style="background:#059669; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:12px;">কিনুন</button>
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                    <button onclick="investMFPrompt('${mf.id}', '${mf.name}', ${mf.price})" style="background:#059669; color:white; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:11px; font-weight:bold;">SIP কিনুন</button>
+                    ${myInv > 0 ? `<button onclick="withdrawMFPrompt('${mf.id}', '${mf.name}', ${myInv})" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:11px; font-weight:bold;">উত্তোলন (Sell)</button>` : ''}
+                </div>
             </div>`;
         });
 
@@ -2337,9 +2344,13 @@ function loadCoachTab() {
         <div style="background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h2 style="margin: 0; font-size: 16px; color:#10b981;">📊 মার্কেট অ্যানালাইসিস</h2>
-                <span style="font-size:10px; padding:3px 8px; border-radius:10px; background:${adminLock?'#f59e0b':'#10b981'}">${adminLock?'🔒 লজ করা':'🟢 লাইভ'}</span>
+                <span style="font-size:10px; padding:3px 8px; border-radius:10px; background:${adminLock?'#f59e0b':'#10b981'}">${adminLock?'🔒 লক করা':'🟢 লাইভ'}</span>
             </div>
             <div style="height: 120px;"><canvas id="mfChart"></canvas></div>
+            <div style="margin-top:10px; background:rgba(255,255,255,0.1); padding:8px; border-radius:8px;">
+                <div style="font-size:11px; color:#cbd5e1;">আপনার মোট বিনিয়োগ</div>
+                <div style="font-size:18px; font-weight:bold; color:#fcd34d;">৳${totalInvested.toLocaleString()}</div>
+            </div>
         </div>
         <div style="max-height: 280px; overflow-y: auto;">${fundsHtml}</div>`;
         renderModal("📊 মিউচুয়াল ফান্ড", html);
@@ -2367,7 +2378,32 @@ function loadCoachTab() {
             save(); updateDashboard(); showToast("✅ বিনিয়োগ সফল!"); openMutualFund();
         }
     };
+
+    // ৭. উত্তোলন (Sell) ফাংশন যোগ করা হলো
+    window.withdrawMFPrompt = async function(fundId, fundName, currentAmount) {
+        // মার্কেট দরের উপর ভিত্তি করে -৫% থেকে +১৫% লাভ বা ক্ষতি হবে
+        let randomReturnPercent = (Math.random() * 20) - 5; 
+        let finalAmount = Math.round(currentAmount + (currentAmount * (randomReturnPercent / 100)));
+
+        if (confirm(`আপনার বিনিয়োগ: ৳${currentAmount}।\nবাজার দরের উপর ভিত্তি করে আপনি এখন ৳${finalAmount} ফেরত পাবেন।\nআপনি কি উত্তোলন (Sell) করতে চান?`)) {
+            user.bal += finalAmount;
+            logTx(`MF উত্তোলন: ${fundName}`, finalAmount);
+            
+            user.mutualFunds[fundId] = 0; // ফান্ড জিরো করে দেওয়া হলো
+
+            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ bal: user.bal, mutualFunds: user.mutualFunds, history: user.history })
+            });
+            
+            save();
+            updateDashboard();
+            showToast(`✅ টাকা উত্তোলন সফল! আপনি ৳${finalAmount} পেয়েছেন।`, "success");
+            openMutualFund(); 
+        }
+    };
 </script>
+    
 <script>
     // ১. নার্সারি মেনু বাটন অ্যাড করা
     setTimeout(() => {
