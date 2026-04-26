@@ -2662,6 +2662,234 @@ function loadCoachTab() {
         }
     };
 </script>
+<script>
+    // ১. কুইজ বাটন মেনুতে অ্যাড করা
+    setTimeout(() => {
+        let menuGrid = document.querySelector('.menu-grid');
+        if(menuGrid && !document.getElementById('quiz-btn')) {
+            let quizBtn = `
+            <div id="quiz-btn" class="menu-item" onclick="openQuizHub()" style="border-color:#8b5cf6; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent);">
+                <span class="icon" style="font-size:35px;">🧠</span>
+                <h3 style="color:#8b5cf6;">স্মার্ট কুইজ</h3>
+            </div>`;
+            menuGrid.insertAdjacentHTML('beforeend', quizBtn);
+        }
+    }, 2000);
+
+    // ২. কুইজ ডেটাবেস (English & GK - Standard Level)
+    const quizBankBN = [
+        { q: "ভারতের প্রথম নোবেল জয়ী কে ছিলেন?", options: ["সি. ভি. রমন", "রবীন্দ্রনাথ ঠাকুর", "অমর্ত্য সেন", "মাদার টেরেসা"], ans: 1 },
+        { q: "সৌরজগতের সবচেয়ে বড় গ্রহ কোনটি?", options: ["পৃথিবী", "মঙ্গল", "বৃহস্পতি", "শনি"], ans: 2 },
+        { q: "Identify the Noun: 'Honesty is the best policy.'", options: ["Honesty", "best", "policy", "Both A & C"], ans: 3 },
+        { q: "রক্তের রং লাল হয় কিসের উপস্থিতির কারণে?", options: ["প্লাজমা", "হিমোগ্লোবিন", "শ্বেতকণিকা", "অ্যান্টিবডি"], ans: 1 },
+        { q: "What is the synonym of 'Beautiful'?", options: ["Ugly", "Pretty", "Bad", "Angry"], ans: 1 },
+        { q: "কম্পিউটারের মস্তিষ্ক কাকে বলা হয়?", options: ["Monitor", "Mouse", "CPU", "Keyboard"], ans: 2 },
+        { q: "Fill in the blank: 'He is ___ honest man.'", options: ["a", "an", "the", "none"], ans: 1 },
+        { q: "ভারতের জাতীয় জলজ প্রাণী কোনটি?", options: ["কুমির", "ডলফিন", "হাঙ্গর", "তিমি"], ans: 1 },
+        { q: "Choose the correct spelling:", options: ["Recieve", "Receive", "Resieve", "Riceive"], ans: 1 },
+        { q: "আলোর প্রধান উৎস কী?", options: ["চাঁদ", "বিদ্যুৎ", "সূর্য", "আগুন"], ans: 2 }
+    ];
+
+    const quizBankEN = [
+        { q: "Who was the first Indian to win a Nobel Prize?", options: ["C.V. Raman", "Rabindranath Tagore", "Amartya Sen", "Mother Teresa"], ans: 1 },
+        { q: "Which is the largest planet in our solar system?", options: ["Earth", "Mars", "Jupiter", "Saturn"], ans: 2 },
+        { q: "Identify the Noun: 'Honesty is the best policy.'", options: ["Honesty", "best", "policy", "Both A & C"], ans: 3 },
+        { q: "Why is the color of blood red?", options: ["Plasma", "Hemoglobin", "WBC", "Antibody"], ans: 1 },
+        { q: "What is the synonym of 'Beautiful'?", options: ["Ugly", "Pretty", "Bad", "Angry"], ans: 1 },
+        { q: "What is known as the brain of the computer?", options: ["Monitor", "Mouse", "CPU", "Keyboard"], ans: 2 },
+        { q: "Fill in the blank: 'He is ___ honest man.'", options: ["a", "an", "the", "none"], ans: 1 },
+        { q: "Which is the national aquatic animal of India?", options: ["Crocodile", "Dolphin", "Shark", "Whale"], ans: 1 },
+        { q: "Choose the correct spelling:", options: ["Recieve", "Receive", "Resieve", "Riceive"], ans: 1 },
+        { q: "What is the primary source of light?", options: ["Moon", "Electricity", "Sun", "Fire"], ans: 2 }
+    ];
+
+    // ৩. গ্লোবাল ভেরিয়েবল
+    let currentQuestions = [];
+    let currentQIndex = 0;
+    let correctCount = 0;
+    let quizStartTime = 0;
+    let selectedLanguage = 'BN';
+
+    // ৪. মেইন কুইজ হাব ওপেনার
+    window.openQuizHub = async function() {
+        let todayStr = new Date().toDateString();
+        let playedToday = false;
+
+        try {
+            let res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}/quiz_history.json`);
+            let history = await res.json() || {};
+            if (history.lastPlayed === todayStr) playedToday = true;
+        } catch(e) {}
+
+        let html = `
+        <div style="background: linear-gradient(135deg, #4c1d95, #8b5cf6); color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 15px; border: 2px solid #c4b5fd;">
+            <h2 style="margin: 0; font-size: 22px;">🧠 মেধাভূমি কুইজ</h2>
+            <p style="margin: 5px 0 0 0; font-size: 12px; color: #ddd6fe;">GK এবং English টেস্ট দিয়ে Q জিতে নিন!</p>
+        </div>
+        
+        ${playedToday 
+            ? `<div style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:15px; border-radius:10px; text-align:center; font-weight:bold; margin-bottom:15px;">✅ আপনি আজকের কুইজ সম্পন্ন করেছেন। আগামীকাল আবার নতুন প্রশ্ন আসবে!</div>` 
+            : `<div style="background:var(--bg-card); border:1px solid var(--border-col); padding:15px; border-radius:10px; text-align:center; margin-bottom:15px;">
+                <h4 style="margin:0 0 10px 0;">ভাষা নির্বাচন করুন / Select Language</h4>
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <button onclick="startQuiz('BN')" style="background:#10b981; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">বাংলা</button>
+                    <button onclick="startQuiz('EN')" style="background:#3b82f6; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">English</button>
+                </div>
+               </div>`
+        }
+
+        <div style="background:var(--bg-main); padding:15px; border-radius:10px; border:1px solid var(--border-col);">
+            <h3 style="margin:0 0 10px 0; color:var(--primary); text-align:center;">🏆 আজকের লাইভ লিডারবোর্ড</h3>
+            <div id="quiz-leaderboard" style="max-height: 200px; overflow-y: auto; font-size:13px;">লোড হচ্ছে... ⏳</div>
+        </div>
+        `;
+        renderModal("🧠 স্মার্ট কুইজ", html);
+        loadQuizLeaderboard(todayStr);
+    };
+
+    // ৫. কুইজ শুরু করার ফাংশন
+    window.startQuiz = function(lang) {
+        selectedLanguage = lang;
+        let fullBank = lang === 'BN' ? quizBankBN : quizBankEN;
+        
+        // তারিখের ওপর ভিত্তি করে প্রতিদিন ৫টি করে নতুন প্রশ্ন বাছাই (Daily Date Algorithm)
+        let daySeed = new Date().getDate(); 
+        let startIndex = daySeed % (fullBank.length - 4); 
+        currentQuestions = fullBank.slice(startIndex, startIndex + 5);
+        
+        currentQIndex = 0;
+        correctCount = 0;
+        quizStartTime = Date.now();
+        renderQuestion();
+    };
+
+    // ৬. প্রশ্ন রেন্ডার করা
+    window.renderQuestion = function() {
+        let qData = currentQuestions[currentQIndex];
+        let optionsHtml = '';
+        
+        qData.options.forEach((opt, idx) => {
+            optionsHtml += `<button onclick="submitQuizAnswer(${idx})" style="display:block; width:100%; text-align:left; background:#f1f5f9; border:1px solid #cbd5e1; padding:12px; border-radius:8px; margin-bottom:8px; font-size:14px; cursor:pointer; transition:0.2s;">${idx+1}. ${opt}</button>`;
+        });
+
+        let html = `
+        <div style="text-align:center; margin-bottom:15px;">
+            <span style="background:#8b5cf6; color:white; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:bold;">প্রশ্ন: ${currentQIndex + 1} / ${currentQuestions.length}</span>
+            <div style="font-size:12px; color:gray; margin-top:5px;">দ্রুত উত্তর দিন, বেশি পয়েন্ট পান!</div>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid #c4b5fd; padding:20px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <h3 style="margin:0 0 20px 0; color:#1e293b; font-size:16px;">${qData.q}</h3>
+            ${optionsHtml}
+        </div>
+        `;
+        document.getElementById('modalBody').innerHTML = html;
+    };
+
+    // ৭. উত্তর সাবমিট করা
+    window.submitQuizAnswer = function(selectedIdx) {
+        let qData = currentQuestions[currentQIndex];
+        if (selectedIdx === qData.ans) correctCount++;
+        
+        currentQIndex++;
+        if (currentQIndex < currentQuestions.length) {
+            renderQuestion();
+        } else {
+            finishQuiz();
+        }
+    };
+
+    // ৮. কুইজ সমাপ্ত ও ফলাফল ক্যালকুলেশন
+    window.finishQuiz = async function() {
+        let timeTakenSec = Math.floor((Date.now() - quizStartTime) / 1000);
+        let todayStr = new Date().toDateString();
+        
+        // পয়েন্ট ক্যালকুলেশন: প্রতি সঠিক উত্তরে 50 পয়েন্ট, কম সময়ের জন্য বোনাস
+        let baseScore = correctCount * 50;
+        let timeBonus = Math.max(0, 100 - timeTakenSec); // 100 সেকেন্ডের কম নিলে বোনাস
+        let totalScore = baseScore > 0 ? baseScore + timeBonus : 0;
+        
+        // Q (কোয়ান্ট) প্রাইজ: স্কোরের অর্ধেক টাকা হিসেবে পাবে
+        let quantPrize = Math.floor(totalScore / 2);
+
+        let resultHtml = `
+        <div style="text-align:center; padding:20px;">
+            <div style="font-size:50px; margin-bottom:10px;">${correctCount >= 3 ? '🎉' : '👍'}</div>
+            <h2 style="margin:0; color:var(--primary);">কুইজ সম্পন্ন!</h2>
+            <p style="font-size:14px; margin:10px 0; color:#475569;">সঠিক উত্তর: <b>${correctCount}/${currentQuestions.length}</b></p>
+            <p style="font-size:14px; margin:10px 0; color:#475569;">সময় লেগেছে: <b>${timeTakenSec} সেকেন্ড</b></p>
+            <div style="background:#fef3c7; border:1px solid #f59e0b; padding:15px; border-radius:10px; margin:20px 0;">
+                <div style="font-size:12px; color:#b45309;">আপনার স্কোর</div>
+                <div style="font-size:24px; font-weight:bold; color:#d97706;">${totalScore}</div>
+            </div>
+            ${quantPrize > 0 ? `<div style="color:#10b981; font-weight:bold; margin-bottom:20px;">উপহার: ৳${quantPrize} আপনার অ্যাকাউন্টে যোগ হয়েছে!</div>` : ''}
+            <button onclick="openQuizHub()" style="background:#8b5cf6; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer; width:100%;">লিডারবোর্ড দেখুন</button>
+        </div>`;
+        
+        document.getElementById('modalBody').innerHTML = resultHtml;
+
+        // ডেটাবেসে আপডেট
+        if (quantPrize > 0) {
+            user.bal += quantPrize;
+            logTx(`কুইজ পুরস্কার (${correctCount}/5)`, quantPrize);
+        }
+        
+        let historyUpdate = { lastPlayed: todayStr, totalScore: (user.quizScore || 0) + totalScore };
+        user.quizScore = historyUpdate.totalScore;
+
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}.json`, { 
+            method: 'PATCH', 
+            body: JSON.stringify({ bal: user.bal, quiz_history: historyUpdate, history: user.history }) 
+        });
+        
+        save();
+        updateDashboard();
+
+        // লিডারবোর্ডে স্কোর পাঠানো
+        let leaderboardRef = todayStr.replace(/\s/g, '_');
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/quiz_leaderboard/${leaderboardRef}/${user.id}.json`, {
+            method: 'PUT',
+            body: JSON.stringify({ name: user.name, score: totalScore, time: timeTakenSec, correct: correctCount, lang: selectedLanguage })
+        });
+    };
+
+    // ৯. লিডারবোর্ড লোড করা
+    window.loadQuizLeaderboard = async function(todayStr) {
+        let leaderboardRef = todayStr.replace(/\s/g, '_');
+        try {
+            let res = await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/quiz_leaderboard/${leaderboardRef}.json`);
+            let data = await res.json();
+            let boardDiv = document.getElementById('quiz-leaderboard');
+            
+            if (!data) {
+                boardDiv.innerHTML = `<div style="text-align:center; color:gray; padding:20px;">আজ এখনও কেউ কুইজ খেলেনি। আপনিই প্রথম হন!</div>`;
+                return;
+            }
+
+            // স্কোর অনুযায়ী সাজানো (বেশি স্কোর এবং কম সময়)
+            let players = Object.values(data).sort((a, b) => {
+                if (b.score === a.score) return a.time - b.time;
+                return b.score - a.score;
+            });
+
+            let html = '';
+            players.forEach((p, idx) => {
+                let medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : '🔹'));
+                let highlight = p.name === user.name ? 'background:#f1f5f9; font-weight:bold; border-left:3px solid #8b5cf6;' : '';
+                html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #e2e8f0; ${highlight}">
+                    <div>
+                        <span style="font-size:16px;">${medal}</span> <span>${p.name}</span> <small style="color:gray;">(${p.lang})</small>
+                        <div style="font-size:10px; color:#64748b; margin-left:25px;">সঠিক: ${p.correct}/5 | সময়: ${p.time}s</div>
+                    </div>
+                    <div style="font-weight:bold; color:#8b5cf6;">${p.score} pt</div>
+                </div>`;
+            });
+            boardDiv.innerHTML = html;
+        } catch(e) {
+            document.getElementById('quiz-leaderboard').innerHTML = "<span style='color:red;'>লিডারবোর্ড লোড করতে সমস্যা হচ্ছে।</span>";
+        }
+    };
+            </script>
     
 </body>
 </html>
