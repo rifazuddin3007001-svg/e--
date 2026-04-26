@@ -2890,6 +2890,295 @@ function loadCoachTab() {
         }
     };
             </script>
+<script>
+    // ১. শৌর্যপুর ডিফেন্স মেনু বাটন অ্যাড করা
+    setTimeout(() => {
+        let menuGrid = document.querySelector('.menu-grid');
+        if(menuGrid && !document.getElementById('defense-btn')) {
+            let defBtn = `
+            <div id="defense-btn" class="menu-item" onclick="openDefenseHub('cyber')" style="border-color:#ef4444; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), transparent);">
+                <span class="icon" style="font-size:35px;">⚔️</span>
+                <h3 style="color:#ef4444;">শৌর্যপুর ডিফেন্স</h3>
+            </div>`;
+            menuGrid.insertAdjacentHTML('beforeend', defBtn);
+        }
+    }, 2000);
+
+    // ২. ডিফেন্স হাবের CSS
+    if (!document.getElementById('defense-styles')) {
+        const defCss = `
+        <style id="defense-styles">
+            .def-tab-container { display: flex; gap: 5px; margin-bottom: 15px; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 10px; }
+            .def-tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.3s; }
+            .def-tab.active { background: #ef4444; color: white; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.3); }
+            .def-tab.inactive { color: #64748b; background: transparent; }
+            
+            /* Cyber Defense */
+            .cyber-screen { position: relative; width: 100%; height: 200px; background: #0f172a; border: 2px solid #3b82f6; border-radius: 10px; overflow: hidden; margin-bottom: 10px; box-shadow: inset 0 0 15px rgba(59,130,246,0.3); }
+            .falling-word { position: absolute; color: #10b981; font-family: monospace; font-weight: bold; font-size: 16px; text-shadow: 0 0 5px #10b981; white-space: nowrap; }
+            
+            /* Reaction Game */
+            .reaction-box { width: 100%; height: 150px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; color: white; cursor: pointer; transition: background 0.1s; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+            .react-waiting { background: #ef4444; }
+            .react-ready { background: #10b981; }
+            
+            /* Rank Badge */
+            .rank-badge { display: inline-block; padding: 5px 12px; background: linear-gradient(45deg, #f59e0b, #d97706); color: white; border-radius: 20px; font-size: 12px; font-weight: bold; margin-top: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        </style>`;
+        document.head.insertAdjacentHTML('beforeend', defCss);
+    }
+
+    // ৩. গ্লোবাল ভেরিয়েবল
+    window.cyberGameInterval = null;
+    window.reactionTimeout = null;
+    window.reactionStartTime = 0;
+    
+    const bountyRiddles = [
+        { id: 'r1', q: "আমি কথা বলি না, কিন্তু আমার অনেক কিছু বলার আছে। আমি কে?", ans: ["বই", "book"], prize: 500 },
+        { id: 'r2', q: "আমি আপনার, কিন্তু অন্যরাই আমাকে বেশি ব্যবহার করে। আমি কী?", ans: ["নাম", "name"], prize: 800 },
+        { id: 'r3', q: "যার চোখ নেই কিন্তু কাঁদে, ডানা নেই কিন্তু ওড়ে?", ans: ["মেঘ", "cloud"], prize: 1000 },
+        { id: 'r4', q: "আমি যত বাড়ে, আপনি তত কম দেখেন। আমি কে?", ans: ["অন্ধকার", "darkness", "আঁধার"], prize: 1500 }
+    ];
+
+    // ৪. মেইন উইন্ডো ওপেনার
+    window.openDefenseHub = function(activeTab = 'cyber') {
+        // Stop any running intervals if switching tabs
+        clearInterval(window.cyberGameInterval);
+        clearTimeout(window.reactionTimeout);
+
+        // ইনিশিয়ালাইজ ইউজার ডেটা
+        if(!user.defenseRankXP) user.defenseRankXP = 0;
+        if(!user.bountiesSolved) user.bountiesSolved = [];
+
+        let rankName = getDefenseRank(user.defenseRankXP);
+
+        let tabsHtml = `
+        <div style="text-align:center; margin-bottom:15px;">
+            <h2 style="margin:0; color:#ef4444;">⚔️ শৌর্যপুর হেডকোয়ার্টার</h2>
+            <div class="rank-badge">র‍্যাঙ্ক: ${rankName} (XP: ${user.defenseRankXP})</div>
+        </div>
+        <div class="def-tab-container">
+            <div class="def-tab ${activeTab === 'cyber' ? 'active' : 'inactive'}" onclick="openDefenseHub('cyber')">💻 সাইবার ডিফেন্স</div>
+            <div class="def-tab ${activeTab === 'bounty' ? 'active' : 'inactive'}" onclick="openDefenseHub('bounty')">🕵️ গোয়েন্দা বাউন্টি</div>
+            <div class="def-tab ${activeTab === 'combat' ? 'active' : 'inactive'}" onclick="openDefenseHub('combat')">🎯 কমব্যাট ট্রেনিং</div>
+        </div>
+        <div id="defense-content" style="max-height: 400px; overflow-y: auto; padding-right: 5px; text-align: center;"></div>
+        `;
+
+        renderModal("⚔️ শৌর্যপুর ডিফেন্স", tabsHtml);
+        let contentDiv = document.getElementById('defense-content');
+
+        // --- TAB 1: CYBER DEFENSE ---
+        if (activeTab === 'cyber') {
+            contentDiv.innerHTML = `
+            <p style="font-size:12px; color:gray; margin-top:0;">হ্যাকারদের পাঠানো কোড নিচে নামার আগেই টাইপ করে ধ্বংস করুন!</p>
+            <div class="cyber-screen" id="cyberScreen">
+                <div id="cyberStartBtn" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);">
+                    <button onclick="startCyberDefense()" style="background:#3b82f6; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">স্টার্ট ডিফেন্স</button>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <input type="text" id="cyberInput" placeholder="এখানে টাইপ করুন..." disabled style="flex:1; padding:10px; border-radius:8px; border:2px solid #ef4444; font-family:monospace; font-weight:bold; text-transform:uppercase;">
+                <div style="background:#1e293b; color:#10b981; padding:10px 15px; border-radius:8px; font-weight:bold; font-family:monospace;">স্কোর: <span id="cyberScore">0</span></div>
+            </div>`;
+            
+            document.getElementById('cyberInput').addEventListener('input', function(e) {
+                let typed = e.target.value.toUpperCase();
+                let currentWordEl = document.getElementById('currentFallingWord');
+                if(currentWordEl && currentWordEl.innerText === typed) {
+                    // Word destroyed
+                    currentWordEl.remove();
+                    e.target.value = "";
+                    let score = parseInt(document.getElementById('cyberScore').innerText) + 1;
+                    document.getElementById('cyberScore').innerText = score;
+                    spawnCyberWord(); // Spawn next word faster
+                }
+            });
+        } 
+        
+        // --- TAB 2: BOUNTY MISSIONS ---
+        else if (activeTab === 'bounty') {
+            let bountyHtml = `<p style="font-size:12px; color:gray; margin-top:0;">অপরাধীদের ধরতে ক্লু সলভ করুন এবং বাউন্টি জিতুন!</p>`;
+            
+            bountyRiddles.forEach((r, idx) => {
+                let isSolved = user.bountiesSolved.includes(r.id);
+                bountyHtml += `
+                <div style="background:var(--bg-card); border:1px solid ${isSolved ? '#10b981' : '#cbd5e1'}; padding:15px; border-radius:10px; margin-bottom:10px; text-align:left; position:relative;">
+                    <div style="font-weight:bold; color:var(--primary); font-size:14px; margin-bottom:8px;">মিশন #${idx+1}</div>
+                    <div style="font-size:13px; color:#334155; margin-bottom:10px;"><i>"${r.q}"</i></div>
+                    ${isSolved 
+                        ? `<div style="color:#10b981; font-weight:bold; font-size:12px;">✅ সলভড! (পুরস্কার: ${r.prize} Q)</div>` 
+                        : `<div style="display:flex; gap:5px;">
+                            <input type="text" id="ans_${r.id}" placeholder="উত্তর দিন..." style="flex:1; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:12px;">
+                            <button onclick="checkBounty('${r.id}')" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px;">সাবমিট</button>
+                           </div>
+                           <div style="position:absolute; top:15px; right:15px; background:#fef3c7; color:#d97706; padding:3px 8px; border-radius:10px; font-size:10px; font-weight:bold; border:1px solid #f59e0b;">💰 ${r.prize} Q</div>`
+                    }
+                </div>`;
+            });
+            contentDiv.innerHTML = bountyHtml;
+        } 
+        
+        // --- TAB 3: COMBAT TRAINING ---
+        else if (activeTab === 'combat') {
+            contentDiv.innerHTML = `
+            <p style="font-size:12px; color:gray; margin-top:0;">রিঅ্যাকশন টাইম টেস্ট: লাল থেকে সবুজ হওয়ার সাথে সাথেই ক্লিক করুন!</p>
+            <div id="reactionBox" class="reaction-box react-waiting" onclick="handleReactionClick()">
+                ক্লিক করে শুরু করুন
+            </div>
+            <div id="reactionResult" style="margin-top:15px; font-size:14px; font-weight:bold; color:var(--primary);"></div>
+            <p style="font-size:11px; color:#64748b; margin-top:15px;">দ্রুত রিঅ্যাক্ট করলে ডিফেন্স XP বাড়বে এবং র‍্যাঙ্ক আপগ্রেড হবে!</p>
+            `;
+        }
+    };
+
+    // ৫. লজিক: সাইবার ডিফেন্স গেম
+    window.startCyberDefense = function() {
+        document.getElementById('cyberStartBtn').style.display = 'none';
+        let input = document.getElementById('cyberInput');
+        input.disabled = false; input.focus();
+        document.getElementById('cyberScore').innerText = "0";
+        spawnCyberWord();
+    };
+
+    window.spawnCyberWord = function() {
+        clearInterval(window.cyberGameInterval);
+        let words = ["HACKER", "VIRUS", "MALWARE", "TROJAN", "GLITCH", "STEAL", "RADICA", "BREACH", "SPYWARE", "PHISHING"];
+        let screen = document.getElementById('cyberScreen');
+        let oldWord = document.getElementById('currentFallingWord');
+        if(oldWord) oldWord.remove();
+
+        let word = words[Math.floor(Math.random() * words.length)];
+        let wordEl = document.createElement('div');
+        wordEl.id = 'currentFallingWord';
+        wordEl.className = 'falling-word';
+        wordEl.innerText = word;
+        
+        // Random X position
+        let maxLeft = screen.clientWidth - 80;
+        wordEl.style.left = Math.floor(Math.random() * maxLeft) + 'px';
+        wordEl.style.top = '0px';
+        screen.appendChild(wordEl);
+
+        let topPos = 0;
+        let speed = 2 + (parseInt(document.getElementById('cyberScore').innerText) * 0.2); // Speed increases with score
+
+        window.cyberGameInterval = setInterval(() => {
+            topPos += speed;
+            wordEl.style.top = topPos + 'px';
+
+            if(topPos > screen.clientHeight - 20) {
+                // Game Over
+                clearInterval(window.cyberGameInterval);
+                document.getElementById('cyberInput').disabled = true;
+                let finalScore = parseInt(document.getElementById('cyberScore').innerText);
+                
+                let rewardMsg = "গেম ওভার!";
+                if(finalScore >= 5) {
+                    let rewardQ = finalScore * 10;
+                    user.bal += rewardQ;
+                    logTx("সাইবার ডিফেন্স রিওয়ার্ড", rewardQ);
+                    rewardMsg = `দারুণ! আপনি ${rewardQ} Q জিতেছেন।`;
+                    
+                    // Shield Badge Logic
+                    if(finalScore >= 10 && !user.inventory.find(i => i.name === 'শৌর্যপুর শিল্ড')) {
+                        user.inventory.push({name: 'শৌর্যপুর শিল্ড', icon: '🛡️'});
+                        rewardMsg += "<br>এবং 🛡️ শৌর্যপুর শিল্ড আপনার পাসপোর্টে যুক্ত হয়েছে!";
+                    }
+                    save(); updateDashboard();
+                }
+                
+                screen.innerHTML = `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-weight:bold;">${rewardMsg}<br><br><button onclick="startCyberDefense()" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">আবার খেলুন</button></div>`;
+            }
+        }, 50);
+    };
+
+    // ৬. লজিক: গোয়েন্দা বাউন্টি
+    window.checkBounty = async function(rId) {
+        let riddle = bountyRiddles.find(r => r.id === rId);
+        let inputVal = document.getElementById(`ans_${rId}`).value.trim().toLowerCase();
+        
+        if(!inputVal) return;
+
+        let isCorrect = riddle.ans.some(a => inputVal.includes(a));
+        
+        if(isCorrect) {
+            user.bountiesSolved.push(rId);
+            user.bal += riddle.prize;
+            logTx("বাউন্টি মিশন সফল", riddle.prize);
+            
+            await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}.json`, { 
+                method: 'PATCH', 
+                body: JSON.stringify({ bal: user.bal, bountiesSolved: user.bountiesSolved, history: user.history }) 
+            });
+            save(); updateDashboard();
+            showToast(`✅ সঠিক উত্তর! আপনি ${riddle.prize} Q বাউন্টি পেয়েছেন!`, 'success');
+            openDefenseHub('bounty'); // Refresh tab
+        } else {
+            showToast("❌ উত্তর ভুল হয়েছে! আবার চেষ্টা করুন।", 'error');
+        }
+    };
+
+    // ৭. লজিক: কমব্যাট ট্রেনিং (রিঅ্যাকশন গেম)
+    window.handleReactionClick = function() {
+        let box = document.getElementById('reactionBox');
+        let res = document.getElementById('reactionResult');
+
+        if (box.innerText === "ক্লিক করে শুরু করুন" || box.innerText === "আবার চেষ্টা করুন") {
+            box.innerText = "অপেক্ষা করুন...";
+            box.className = "reaction-box react-waiting";
+            res.innerText = "";
+            
+            let waitTime = Math.floor(Math.random() * 3000) + 2000; // 2-5 seconds
+            
+            window.reactionTimeout = setTimeout(() => {
+                box.innerText = "ক্লিক করুন!";
+                box.className = "reaction-box react-ready";
+                window.reactionStartTime = Date.now();
+            }, waitTime);
+        } 
+        else if (box.innerText === "অপেক্ষা করুন...") {
+            clearTimeout(window.reactionTimeout);
+            box.innerText = "আবার চেষ্টা করুন";
+            res.innerText = "❌ খুব তাড়াতাড়ি ক্লিক করে ফেলেছেন!";
+            res.style.color = "#ef4444";
+        }
+        else if (box.innerText === "ক্লিক করুন!") {
+            let reactionTime = Date.now() - window.reactionStartTime;
+            box.innerText = "আবার চেষ্টা করুন";
+            box.className = "reaction-box react-waiting";
+            
+            let xpGained = 0;
+            if(reactionTime < 300) { xpGained = 50; res.innerText = `⚡ অসাধারণ! সময়: ${reactionTime}ms (+${xpGained} XP)`; res.style.color = "#10b981"; }
+            else if (reactionTime < 600) { xpGained = 20; res.innerText = `👍 ভালো! সময়: ${reactionTime}ms (+${xpGained} XP)`; res.style.color = "#3b82f6"; }
+            else { xpGained = 5; res.innerText = `🐌 একটু ধীর! সময়: ${reactionTime}ms (+${xpGained} XP)`; res.style.color = "#f59e0b"; }
+
+            updateDefenseRank(xpGained);
+        }
+    };
+
+    window.updateDefenseRank = async function(xp) {
+        user.defenseRankXP += xp;
+        let newRank = getDefenseRank(user.defenseRankXP);
+        
+        await fetch(`https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users/${user.id}.json`, { 
+            method: 'PATCH', 
+            body: JSON.stringify({ defenseRankXP: user.defenseRankXP }) 
+        });
+        save();
+        
+        // Update header UI silently
+        let headerBadge = document.querySelector('.rank-badge');
+        if(headerBadge) headerBadge.innerText = `র‍্যাঙ্ক: ${newRank} (XP: ${user.defenseRankXP})`;
+    };
+
+    window.getDefenseRank = function(xp) {
+        if(xp < 100) return 'ক্যাডেট (Cadet)';
+        if(xp < 300) return 'স্নাইপার (Sniper)';
+        if(xp < 600) return 'ক্যাপ্টেন (Captain)';
+        return 'কম্যান্ডার (Commander) 🎖️';
+    };
+                                                            </script>
     
 </body>
 </html>
