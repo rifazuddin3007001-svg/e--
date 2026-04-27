@@ -3179,6 +3179,49 @@ function loadCoachTab() {
         return 'কম্যান্ডার (Commander) 🎖️';
     };
                                                             </script>
+<script>
+    // ১. মেনুতে অডিও স্টোরি বাটন যোগ করা
+    setTimeout(() => {
+        let menuGrid = document.querySelector('.menu-grid');
+        if(menuGrid && !document.getElementById('audio-btn')) {
+            let audioBtn = `
+            <div id="audio-btn" class="menu-item" onclick="openAudioHub()" style="border-color:#f59e0b; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), transparent);">
+                <span class="icon" style="font-size:35px;">🎧</span>
+                <h3 style="color:#f59e0b;">অডিও স্টোরি</h3>
+            </div>`;
+            menuGrid.insertAdjacentHTML('beforeend', audioBtn);
+        }
+    }, 2000);
+
+    // ২. অডিও স্টোরি হাব ওপেন করার ফাংশন
+    window.openAudioHub = function() {
+        let html = `
+        <div style="background: linear-gradient(135deg, #1e3a8a, #4c1d95); color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; border: 2px solid #8b5cf6; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+            <h2 style="margin: 0; font-size: 20px; color: #c4b5fd;">🎧 রেডিকা অডিও স্টোরি</h2>
+            <p style="margin: 5px 0 0 0; font-size: 12px; color: #e9d5ff;">চোখ বন্ধ করে গল্পের দুনিয়ায় হারিয়ে যান</p>
+        </div>
+        
+        <div style="background: #000; border-radius: 12px; overflow: hidden; border: 2px solid #f59e0b; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; padding-bottom: 56.25%; height: 0;">
+            <iframe src="https://youtube.com/playlist?list=PLq71IJk8mCV4-DqsZ7W6zRS7uzKOmmT8j&si=kIAovlpHh-nJ2Ceq" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+        
+        <div style="margin-top:15px; background:var(--bg-card); border:1px solid var(--border-col); padding:15px; border-radius:10px; font-size:13px; color:var(--text-main); text-align:left; line-height: 1.6;">
+            <b style="color:var(--danger); font-size:14px;">📱 স্ক্রিন অফ করে শোনার নিয়ম:</b><br>
+            ইউটিউবের সাধারণ নিয়মে স্ক্রিন অফ করলে অডিও থেমে যায়। তবে আপনি চাইলে স্ক্রিন অফ করেও শুনতে পারেন:
+            <ol style="margin-top: 5px; padding-left: 20px; color:var(--text-muted);">
+                <li>আপনার মোবাইল ব্রাউজারের মেনু (৩ ডট) থেকে <b>"Desktop Site"</b> অপশনটি চালু করুন।</li>
+                <li>গল্প প্লে করে মোবাইলের স্ক্রিন অফ করে দিন (অডিও থেমে যাবে)।</li>
+                <li>এবার লক-স্ক্রিন অন করে নোটিফিকেশন প্যানেলে আসা <b>Play (▶)</b> বাটনটি চাপুন।</li>
+            </ol>
+            <i style="color:#10b981;">ব্যাস! এবার স্ক্রিন অফ অবস্থাতেই নিরবচ্ছিন্ন অডিও উপভোগ করুন।</i>
+        </div>
+        
+        <button onclick="document.getElementById('dynamicModal').style.display='none'" style="margin-top:15px; width:100%; background:var(--primary); color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">বন্ধ করুন</button>
+        `;
+        
+        renderModal("🎧 অডিও স্টোরি হাব", html);
+    };
+</script>
     
 </body>
 </html>
