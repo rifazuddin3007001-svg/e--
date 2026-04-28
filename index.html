@@ -3180,52 +3180,155 @@ function loadCoachTab() {
     };
                                                             </script>
 <script>
-    // ১. মেনুতে স্পটিফাই অডিও স্টোরি বাটন (উন্নত ডিজাইন)
+    if (!document.getElementById('audio-pro-styles')) {
+        const audioStyles = `
+        <style id="audio-pro-styles">
+            .ap-container { background: #0f172a; border-radius: 16px; padding: 20px; color: white; border: 1px solid #334155; }
+            .ap-track-list { max-height: 250px; overflow-y: auto; margin-top: 15px; text-align: left; }
+            .ap-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.03); margin-bottom: 8px; border: 1px solid transparent; }
+            .ap-item:hover, .ap-item.active { background: rgba(34, 197, 94, 0.1); border-color: #22c55e; }
+            .ap-icon { width: 40px; height: 40px; background: #22c55e; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 10px rgba(34,197,94,0.3); }
+            .ap-info { flex: 1; overflow: hidden; }
+            .ap-title { font-weight: bold; font-size: 14px; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .ap-author { font-size: 11px; color: #94a3b8; }
+            #blackoutLayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99999; display: none; flex-direction: column; align-items: center; justify-content: center; color: #22c55e; }
+            .ap-controls { display: flex; flex-direction: column; align-items: center; gap: 15px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #1e293b; }
+            .ap-progress { width: 100%; height: 6px; background: #334155; border-radius: 5px; position: relative; cursor: pointer; overflow: hidden; }
+            .ap-bar { height: 100%; background: linear-gradient(90deg, #10b981, #22c55e); width: 0%; border-radius: 5px; transition: width 0.1s linear; }
+        </style>`;
+        document.head.insertAdjacentHTML('beforeend', audioStyles);
+    }
+
+    let dynamicPlaylist = [];
+    let currentAudio = new Audio();
+    let isPlaying = false;
+
     setTimeout(() => {
         let menuGrid = document.querySelector('.menu-grid');
         if(menuGrid && !document.getElementById('audio-btn')) {
-            let audioBtn = `
-            <div id="audio-btn" class="menu-item" onclick="openAudioHub()" style="border: 2px solid rgba(29, 185, 84, 0.3); background: linear-gradient(135deg, rgba(25, 20, 20, 0.8), rgba(29, 185, 84, 0.15)); box-shadow: 0 4px 15px rgba(29, 185, 84, 0.1); transition: all 0.3s ease;">
-                <span class="icon" style="font-size:38px; filter: drop-shadow(0 2px 4px rgba(29,185,84,0.4));">🎧</span>
-                <h3 style="color:#1db954; font-weight: 800; letter-spacing: 0.5px;">অডিও স্টোরি</h3>
-            </div>`;
-            menuGrid.insertAdjacentHTML('beforeend', audioBtn);
+            menuGrid.insertAdjacentHTML('beforeend', `
+            <div id="audio-btn" class="menu-item" onclick="openAudioPro()" style="border-color:#22c55e; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), transparent);">
+                <span class="icon" style="font-size:35px; filter: drop-shadow(0 2px 4px rgba(34,197,94,0.3));">📻</span>
+                <h3 style="color:#22c55e;">রেডিকা স্টোরি</h3>
+            </div>`);
+        }
+        if(!document.getElementById('blackoutLayer')) {
+            document.body.insertAdjacentHTML('beforeend', `
+            <div id="blackoutLayer" onclick="toggleBlackout()">
+                <div style="font-size:60px; margin-bottom:20px; filter: drop-shadow(0 0 10px #22c55e);">🌙</div>
+                <div style="font-size:18px; font-weight:bold; letter-spacing: 1px;">স্ক্রিন অফ মোড</div>
+                <div style="font-size:12px; color:#64748b; margin-top:10px;">স্ক্রিনে টাচ করলেই ফিরে যাবেন</div>
+            </div>`);
         }
     }, 2000);
 
-    // ২. স্পটিফাই হাব ওপেন করার ফাংশন
-    window.openAudioHub = function() {
-        // সিকিউরিটি বাইপাস ট্রিক: লিংকটি ভেঙে জোড়া লাগানো হলো যাতে সিস্টেম ব্লক না করে
-        let domain1 = "open.s";
-        let domain2 = "potify.com";
-        // এটি একটি পপুলার বাংলা অডিও স্টোরি / সানডে সাসপেন্স প্লেলিস্টের আইডি
-        let playlistId = "0N05K0yR2kZ9Gj8oH00T6J"; 
-        let realSpotifyUrl = "https://" + domain1 + domain2 + "/embed/playlist/" + playlistId + "?utm_source=generator&theme=0";
+    window.openAudioPro = async function() {
+        renderModal("📻 রেডিকা অডিও স্টোরি প্রো", `<div style="text-align:center; padding:40px; color:#22c55e; font-weight:bold;">সার্ভার থেকে গল্প লোড হচ্ছে... ⏳</div>`);
+        
+        try {
+            let res = await fetch('https://radica-super-app-18cb3-default-rtdb.firebaseio.com/admin_audio_stories.json');
+            let data = await res.json();
+            
+            if (data) {
+                dynamicPlaylist = Object.values(data).sort((a, b) => b.timestamp - a.timestamp);
+            } else {
+                dynamicPlaylist = [];
+            }
+        } catch (e) { dynamicPlaylist = []; }
+
+        let listHtml = '';
+        if (dynamicPlaylist.length === 0) {
+            listHtml = `<div style="text-align:center; color:#64748b; padding:20px; font-size:13px;">অ্যাডমিন এখনও কোনো গল্প আপলোড করেননি।</div>`;
+        } else {
+            dynamicPlaylist.forEach((track, i) => {
+                listHtml += `
+                <div class="ap-item" onclick="playTrack(${i})">
+                    <div class="ap-icon">🎙️</div>
+                    <div class="ap-info">
+                        <div class="ap-title">${track.title}</div>
+                        <div class="ap-author">${track.author}</div>
+                    </div>
+                    <div style="font-size:11px; font-weight:bold; color:#22c55e; background:rgba(34,197,94,0.1); padding:5px 10px; border-radius:20px;">প্লে ▶</div>
+                </div>`;
+            });
+        }
 
         let html = `
-        <div style="animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
-            <div style="background: linear-gradient(135deg, #191414, #121212); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(29, 185, 84, 0.2); box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-                <h2 style="margin: 0; font-size: 22px; color: #fff; text-align: center;">
-                    <span style="color:#1db954;">🎧</span> স্পটিফাই স্টোরি হাব
-                </h2>
-                <p style="margin: 8px 0 0 0; font-size: 12px; color: #b3b3b3; text-align: center;">স্ক্রিন অফ করে বাংলা গল্পের মজা নিন</p>
+        <div class="ap-container">
+            <div class="ap-controls">
+                <div id="now-playing" style="font-weight:bold; color:#22c55e; font-size:16px; text-align:center; margin-bottom:5px;">গল্প নির্বাচন করুন</div>
+                <div class="ap-progress" onclick="seekAudio(event)">
+                    <div id="apBar" class="ap-bar"></div>
+                </div>
+                <div style="display:flex; gap:30px; align-items:center; margin-top:10px;">
+                    <button onclick="currentAudio.currentTime -= 15" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;">⏪</button>
+                    <button id="masterPlayBtn" onclick="togglePlay()" style="background:linear-gradient(135deg, #22c55e, #10b981); border:none; width:60px; height:60px; border-radius:50%; font-size:24px; color:black; cursor:pointer; box-shadow: 0 5px 15px rgba(34,197,94,0.4); display:flex; align-items:center; justify-content:center;">▶️</button>
+                    <button onclick="currentAudio.currentTime += 15" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;">⏩</button>
+                </div>
             </div>
             
-            <div style="border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.05); background: #282828; margin-bottom: 20px;">
-                <iframe src="${realSpotifyUrl}" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="display: block;"></iframe>
-            </div>
-            
-            <div style="background: linear-gradient(90deg, rgba(29,185,84,0.08), transparent); padding: 12px 15px; border-radius: 12px; font-size: 13px; color: var(--text-main); border-left: 4px solid #1db954; text-align: left; margin-bottom: 20px;">
-                <span style="font-size:18px;">📱</span> <b>স্ক্রিন অফ প্লেব্যাক:</b> স্পটিফাইতে কোনো ঝামেলা নেই। প্লে বোতামে চাপ দিন এবং অনায়াসে স্ক্রিন অফ করে গল্প শুনতে থাকুন!
-            </div>
-            
-            <button onclick="document.getElementById('dynamicModal').style.display='none'" style="background: linear-gradient(135deg, #1db954, #1ed760); color: #191414; font-weight: 800; font-size: 15px; padding: 16px; border-radius: 14px; border: none; width: 100%; cursor: pointer; box-shadow: 0 6px 20px rgba(29, 185, 84, 0.3);">
-                প্যানেল বন্ধ করুন
+            <button onclick="toggleBlackout()" style="width:100%; background:linear-gradient(135deg, #1e293b, #0f172a); color:#22c55e; border:1px solid #334155; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:14px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                🌙 স্ক্রিন অফ মোড (ব্যাটারি সেভার)
             </button>
-        </div>
-        `;
-        
-        renderModal("🎧 রেডিকা অডিও স্টোরি", html);
+
+            <div class="ap-track-list">${listHtml}</div>
+        </div>`;
+
+        document.getElementById('modalBody').innerHTML = html;
+    };
+
+    window.playTrack = function(index) {
+        let track = dynamicPlaylist[index];
+        currentAudio.src = track.url;
+        currentAudio.play();
+        isPlaying = true;
+        document.getElementById('now-playing').innerText = track.title;
+        document.getElementById('masterPlayBtn').innerHTML = '⏸️';
+        if(typeof showToast === "function") showToast(`শুরু হচ্ছে: ${track.title}`, "success");
+
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: track.title, artist: track.author, album: 'Radica Audio Stories',
+                artwork: [{ src: 'https://cdn-icons-png.flaticon.com/512/3616/3616230.png', sizes: '512x512', type: 'image/png' }]
+            });
+            navigator.mediaSession.setActionHandler('play', () => togglePlay());
+            navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+        }
+    };
+
+    window.togglePlay = function() {
+        if (!currentAudio.src) return;
+        if (isPlaying) { currentAudio.pause(); document.getElementById('masterPlayBtn').innerHTML = '▶️'; isPlaying = false; } 
+        else { currentAudio.play(); document.getElementById('masterPlayBtn').innerHTML = '⏸️'; isPlaying = true; }
+    };
+
+    window.toggleBlackout = function() {
+        let layer = document.getElementById('blackoutLayer');
+        if (layer.style.display === 'flex') { layer.style.display = 'none'; } 
+        else {
+            if (!isPlaying) {
+                if(typeof showToast === "function") showToast("আগে একটি গল্প প্লে করুন!", "error");
+                else alert("আগে একটি গল্প প্লে করুন!");
+                return;
+            }
+            layer.style.display = 'flex';
+        }
+    };
+
+    currentAudio.ontimeupdate = function() {
+        let bar = document.getElementById('apBar');
+        if (bar && currentAudio.duration) {
+            let pc = (currentAudio.currentTime / currentAudio.duration) * 100;
+            bar.style.width = pc + "%";
+        }
+    };
+
+    window.seekAudio = function(e) {
+        let rect = e.target.getBoundingClientRect();
+        if(!rect.width) rect = e.currentTarget.getBoundingClientRect();
+        let x = e.clientX - rect.left;
+        let pc = x / rect.width;
+        currentAudio.currentTime = pc * currentAudio.duration;
     };
 </script>
     
