@@ -3180,46 +3180,105 @@ function loadCoachTab() {
     };
                                                             </script>
 <script>
-    // ১. মেনুতে অডিও স্টোরি বাটন যোগ করা
+    // ১. মেনুতে স্পটিফাই অডিও স্টোরি বাটন (উন্নত ডিজাইন)
     setTimeout(() => {
         let menuGrid = document.querySelector('.menu-grid');
         if(menuGrid && !document.getElementById('audio-btn')) {
             let audioBtn = `
-            <div id="audio-btn" class="menu-item" onclick="openAudioHub()" style="border-color:#f59e0b; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), transparent);">
-                <span class="icon" style="font-size:35px;">🎧</span>
-                <h3 style="color:#f59e0b;">অডিও স্টোরি</h3>
+            <div id="audio-btn" class="menu-item" onclick="openAudioHub()" style="border: 2px solid rgba(29, 185, 84, 0.3); background: linear-gradient(135deg, rgba(25, 20, 20, 0.8), rgba(29, 185, 84, 0.15)); box-shadow: 0 4px 15px rgba(29, 185, 84, 0.1); transition: all 0.3s ease;">
+                <span class="icon" style="font-size:38px; filter: drop-shadow(0 2px 4px rgba(29,185,84,0.4));">🎧</span>
+                <h3 style="color:#1db954; font-weight: 800; letter-spacing: 0.5px;">অডিও স্টোরি</h3>
             </div>`;
             menuGrid.insertAdjacentHTML('beforeend', audioBtn);
         }
     }, 2000);
 
-    // ২. অডিও স্টোরি হাব ওপেন করার ফাংশন
+    // ২. প্রিমিয়াম CSS স্টাইল ইনজেক্ট করা
+    if (!document.getElementById('premium-audio-styles')) {
+        const audioCss = `
+        <style id="premium-audio-styles">
+            .audio-hub-wrapper { animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+            @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+            
+            .spotify-header {
+                background: linear-gradient(135deg, #191414, #121212);
+                padding: 20px; border-radius: 16px; margin-bottom: 20px;
+                position: relative; overflow: hidden;
+                border: 1px solid rgba(29, 185, 84, 0.2);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            }
+            .spotify-header::after {
+                content: ''; position: absolute; top: -50px; right: -50px;
+                width: 100px; height: 100px; background: rgba(29, 185, 84, 0.3);
+                filter: blur(40px); border-radius: 50%;
+            }
+            
+            .spotify-iframe-container {
+                border-radius: 16px; overflow: hidden;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255,255,255,0.05);
+                background: #282828; margin-bottom: 20px;
+            }
+            
+            .feature-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+            .feature-item {
+                display: flex; align-items: center; gap: 12px;
+                background: linear-gradient(90deg, rgba(29,185,84,0.08), transparent);
+                padding: 12px 15px; border-radius: 12px;
+                font-size: 13px; color: var(--text-main);
+                border-left: 4px solid #1db954;
+            }
+            
+            .btn-close-premium {
+                background: linear-gradient(135deg, #1db954, #1ed760);
+                color: #191414; font-weight: 800; font-size: 15px;
+                padding: 16px; border-radius: 14px; border: none; width: 100%;
+                cursor: pointer; box-shadow: 0 6px 20px rgba(29, 185, 84, 0.3);
+                transition: transform 0.2s, box-shadow 0.2s;
+                letter-spacing: 0.5px; text-transform: uppercase;
+            }
+            .btn-close-premium:active { transform: scale(0.97); box-shadow: 0 2px 10px rgba(29, 185, 84, 0.2); }
+        </style>`;
+        document.head.insertAdjacentHTML('beforeend', audioCss);
+    }
+
+    // ৩. অডিও স্টোরি হাব ওপেন করার ফাংশন
     window.openAudioHub = function() {
         let html = `
-        <div style="background: linear-gradient(135deg, #1e3a8a, #4c1d95); color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; border: 2px solid #8b5cf6; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-            <h2 style="margin: 0; font-size: 20px; color: #c4b5fd;">🎧 রেডিকা অডিও স্টোরি</h2>
-            <p style="margin: 5px 0 0 0; font-size: 12px; color: #e9d5ff;">চোখ বন্ধ করে গল্পের দুনিয়ায় হারিয়ে যান</p>
+        <div class="audio-hub-wrapper">
+            <div class="spotify-header">
+                <h2 style="margin: 0; font-size: 22px; color: #fff; display: flex; align-items: center; gap: 8px; justify-content: center;">
+                    <span style="color:#1db954;">🎧</span> স্পটিফাই স্টোরি হাব
+                </h2>
+                <p style="margin: 8px 0 0 0; font-size: 12px; color: #b3b3b3; text-align: center;">চোখ বন্ধ করুন, আর হারিয়ে যান সাসপেন্সের দুনিয়ায়</p>
+            </div>
+            
+            <div class="spotify-iframe-container">
+                <iframe src="https://open.spotify.com/embed/playlist/1c28c89GZ86aW3yqG7O26U?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="display: block;"></iframe>
+            </div>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span style="font-size:18px;">📱</span>
+                    <span><b>স্ক্রিন অফ প্লেব্যাক:</b> মোবাইল লক থাকলেও গল্প চলতে থাকবে।</span>
+                </div>
+                <div class="feature-item">
+                    <span style="font-size:18px;">⚡</span>
+                    <span><b>বাফার-ফ্রি:</b> কোনো বিজ্ঞাপন বা লোডিং ঝামেলা ছাড়া নিরবচ্ছিন্ন অডিও।</span>
+                </div>
+                <div class="feature-item">
+                    <span style="font-size:18px;">🔋</span>
+                    <span><b>ব্যাটারি সেভার:</b> ইউটিউবের চেয়ে অনেক কম ব্যাটারি ও ডাটা খরচ হয়।</span>
+                </div>
+            </div>
+            
+            <button class="btn-close-premium" onclick="document.getElementById('dynamicModal').style.display='none'">
+                মিউজিক প্যানেল বন্ধ করুন
+            </button>
         </div>
-        
-        <div style="background: #000; border-radius: 12px; overflow: hidden; border: 2px solid #f59e0b; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; padding-bottom: 56.25%; height: 0;">
-            <iframe src="https://www.youtube.com/embed/videoseries?list=PLq71lJk8mCV4-DqsZ7W6zRS7uzKOmmT8j" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-        
-        <div style="margin-top:15px; background:var(--bg-card); border:1px solid var(--border-col); padding:15px; border-radius:10px; font-size:13px; color:var(--text-main); text-align:left; line-height: 1.6;">
-            <b style="color:var(--danger); font-size:14px;">📱 স্ক্রিন অফ করে শোনার নিয়ম:</b><br>
-            ইউটিউবের সাধারণ নিয়মে স্ক্রিন অফ করলে অডিও থেমে যায়। তবে আপনি চাইলে স্ক্রিন অফ করেও শুনতে পারেন:
-            <ol style="margin-top: 5px; padding-left: 20px; color:var(--text-muted);">
-                <li>আপনার মোবাইল ব্রাউজারের মেনু (৩ ডট) থেকে <b>"Desktop Site"</b> অপশনটি চালু করুন।</li>
-                <li>গল্প প্লে করে মোবাইলের স্ক্রিন অফ করে দিন (অডিও থেমে যাবে)।</li>
-                <li>এবার লক-স্ক্রিন অন করে নোটিফিকেশন প্যানেলে আসা <b>Play (▶)</b> বাটনটি চাপুন।</li>
-            </ol>
-            <i style="color:#10b981;">ব্যাস! এবার স্ক্রিন অফ অবস্থাতেই নিরবচ্ছিন্ন অডিও উপভোগ করুন।</i>
-        </div>
-        
-        <button onclick="document.getElementById('dynamicModal').style.display='none'" style="margin-top:15px; width:100%; background:var(--primary); color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">বন্ধ করুন</button>
         `;
         
-        renderModal("🎧 অডিও স্টোরি হাব", html);
+        renderModal("🎧 রেডিকা অডিও স্টোরি", html);
     };
 </script>
     
