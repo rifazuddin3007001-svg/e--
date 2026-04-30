@@ -2,130 +2,173 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RedChaat Pro - Messaging Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RedChaat Pro - Premium Messaging</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #00bcd4;
-            --secondary: #ff5252;
-            --accent: #ffd54f;
+            --primary: #00bcd4; /* Cyan */
+            --secondary: #ff3b30; /* Vibrant Red */
+            --accent: #ffd54f; /* Gold */
             --bg: #f0f2f5;
             --sidebar-bg: #ffffff;
-            --chat-bg: #e5ddd5;
+            --chat-bg-color: #fdeaea; /* Light red tint for wallpaper */
             --text-main: #111b21;
             --text-sec: #667781;
-            --my-msg: #d9fdd3;
+            --my-msg: #ffebeb; /* Light red for my messages */
             --other-msg: #ffffff;
             --white: #ffffff;
+            --border-color: rgba(0,0,0,0.08);
         }
 
         .dark-theme {
             --bg: #0b141a;
             --sidebar-bg: #111b21;
-            --chat-bg: #0b141a;
+            --chat-bg-color: #2a0a10; /* Dark red tint */
             --text-main: #e9edef;
             --text-sec: #8696a0;
-            --my-msg: #005c4b;
+            --my-msg: #5c0f1e; /* Dark red msg */
             --other-msg: #202c33;
             --white: #111b21;
+            --border-color: rgba(255,255,255,0.08);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Hind Siliguri', sans-serif; }
-        body { background: var(--bg); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            background: var(--bg); color: var(--text-main); 
+            font-family: 'Hind Siliguri', sans-serif;
+            height: 100dvh; /* Dynamic Viewport Height - fixes the mobile input hiding issue */
+            width: 100vw;
+            overflow: hidden; 
+            display: flex; 
+        }
+
+        /* Stylized Logo Font */
+        .brand-logo {
+            font-family: 'Pacifico', cursive;
+            color: var(--secondary);
+            font-size: 24px;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
 
         /* Auth Screen */
         .auth-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000;
+            background: linear-gradient(135deg, var(--secondary), var(--primary)); 
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
         .auth-card {
-            background: white; padding: 30px; border-radius: 15px; width: 320px;
-            text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            background: var(--sidebar-bg); padding: 40px 30px; border-radius: 20px; width: 90%; max-width: 380px;
+            text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            color: var(--text-main);
         }
         .auth-card input {
-            width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px;
+            width: 100%; padding: 14px; margin: 10px 0; border: 1px solid var(--border-color); 
+            border-radius: 10px; font-size: 15px; background: var(--bg); color: var(--text-main);
         }
         .auth-card button {
-            width: 100%; padding: 12px; background: var(--primary); color: white;
-            border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+            width: 100%; padding: 14px; background: var(--secondary); color: white;
+            border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer;
+            transition: background 0.3s; margin-top: 10px;
         }
+        .auth-card button:hover { background: #e6352b; }
 
         /* Main Container */
-        .app-container { width: 100%; height: 100%; display: flex; background: var(--white); }
+        .app-container { width: 100%; height: 100dvh; display: flex; background: var(--white); }
 
         /* Sidebar */
         .sidebar {
-            width: 30%; min-width: 300px; border-right: 1px solid rgba(0,0,0,0.1);
-            display: flex; flex-direction: column; background: var(--sidebar-bg);
+            width: 30%; min-width: 320px; border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; background: var(--sidebar-bg); height: 100%;
         }
         .sidebar-header {
-            padding: 10px 16px; background: var(--sidebar-bg); height: 65px;
-            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f2f5;
+            padding: 10px 16px; background: var(--sidebar-bg); height: 70px;
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
         }
         .user-info { display: flex; flex-direction: column; }
         .user-id-top { font-size: 11px; color: var(--text-sec); font-weight: bold; text-transform: uppercase; }
-        .user-name-display { font-size: 16px; font-weight: 600; color: var(--primary); }
         
         .header-actions i {
-            color: var(--text-sec); margin-left: 15px; cursor: pointer; font-size: 18px;
+            color: var(--text-sec); margin-left: 18px; cursor: pointer; font-size: 18px; transition: color 0.2s;
         }
+        .header-actions i:hover { color: var(--primary); }
         .logout-btn { color: var(--secondary) !important; }
 
-        .search-area { padding: 10px; background: var(--sidebar-bg); }
+        .search-area { padding: 12px; background: var(--sidebar-bg); border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
         .search-box {
             background: var(--bg); display: flex; align-items: center;
-            padding: 8px 15px; border-radius: 20px;
+            padding: 10px 15px; border-radius: 25px;
         }
         .search-box input {
-            background: transparent; border: none; outline: none; width: 100%; padding-left: 10px;
+            background: transparent; border: none; outline: none; width: 100%; padding-left: 10px; color: var(--text-main);
         }
 
         .chat-list { flex: 1; overflow-y: auto; }
         .chat-item {
-            display: flex; padding: 12px 16px; cursor: pointer; transition: 0.2s;
-            border-bottom: 1px solid rgba(0,0,0,0.05); align-items: center;
+            display: flex; padding: 12px 16px; cursor: pointer; transition: 0.2s; align-items: center;
         }
         .chat-item:hover, .chat-item.active { background: var(--bg); }
         .avatar {
-            width: 45px; height: 45px; border-radius: 50%; background: #ccc;
-            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;
+            width: 50px; height: 50px; border-radius: 50%; background: var(--primary);
+            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px;
         }
 
         /* Main Chat Area */
-        .main-chat { flex: 1; display: flex; flex-direction: column; background: var(--chat-bg); }
+        .main-chat { flex: 1; display: flex; flex-direction: column; height: 100dvh; background: var(--sidebar-bg); }
+        
         .chat-header {
-            padding: 10px 16px; background: var(--sidebar-bg); height: 65px;
-            display: flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 5;
+            padding: 10px 16px; background: var(--sidebar-bg); height: 70px;
+            display: flex; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 5; flex-shrink: 0;
         }
-        .messages-container {
-            flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column;
-            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-        }
-        .msg {
-            max-width: 65%; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px;
-            font-size: 14px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        .msg.sent { align-self: flex-end; background: var(--my-msg); }
-        .msg.received { align-self: flex-start; background: var(--other-msg); }
-        .msg-time { font-size: 10px; color: var(--text-sec); text-align: right; margin-top: 4px; }
+        .back-btn { display: none; margin-right: 15px; font-size: 20px; color: var(--text-sec); cursor: pointer; }
 
+        /* Indian Pattern Wallpaper */
+        .messages-container {
+            flex: 1 1 auto; overflow-y: auto; padding: 20px; display: flex; flex-direction: column;
+            background-color: var(--chat-bg-color);
+            background-image: url('https://www.transparenttextures.com/patterns/paisley.png'); /* Indian Kalka Pattern */
+            background-blend-mode: multiply;
+        }
+        
+        .msg {
+            max-width: 75%; padding: 10px 14px; border-radius: 12px; margin-bottom: 8px;
+            font-size: 15px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            line-height: 1.4;
+        }
+        .msg.sent { align-self: flex-end; background: var(--my-msg); border-bottom-right-radius: 2px; border: 1px solid rgba(255,59,48,0.1); }
+        .msg.received { align-self: flex-start; background: var(--other-msg); border-bottom-left-radius: 2px; }
+        .msg-time { font-size: 10px; color: var(--text-sec); text-align: right; margin-top: 5px; }
+
+        /* Input Bar - Fixed at bottom securely */
         .input-bar {
-            padding: 10px 15px; background: var(--sidebar-bg); display: flex; align-items: center; gap: 10px;
+            padding: 12px 16px; background: var(--sidebar-bg); display: flex; align-items: center; gap: 12px;
+            border-top: 1px solid var(--border-color); flex-shrink: 0;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom)); /* Support for iPhone notch area */
         }
         .input-bar input {
             flex: 1; background: var(--bg); border: none; outline: none;
-            padding: 12px 18px; border-radius: 25px; font-size: 14px;
+            padding: 14px 20px; border-radius: 30px; font-size: 15px; color: var(--text-main);
         }
-        .input-bar i { color: var(--text-sec); font-size: 20px; cursor: pointer; }
+        .input-bar i { color: var(--text-sec); font-size: 22px; cursor: pointer; transition: 0.2s; }
+        .input-bar i:hover { color: var(--primary); }
+        
+        .send-btn { 
+            background: var(--secondary); color: white !important; width: 45px; height: 45px; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(255,59,48,0.3);
+        }
 
         @media (max-width: 768px) {
-            .sidebar { width: 100%; }
-            .main-chat { display: none; }
-            .active-chat-mobile .sidebar { display: none; }
-            .active-chat-mobile .main-chat { display: flex; width: 100%; }
+            .sidebar { width: 100%; min-width: 100%; }
+            .main-chat { display: none; position: absolute; top: 0; left: 0; width: 100%; z-index: 10; }
+            .active-chat-mobile .main-chat { display: flex; }
+            .back-btn { display: block; }
+            .msg { max-width: 85%; }
         }
     </style>
 </head>
@@ -133,62 +176,73 @@
 
     <div id="authArea" class="auth-overlay">
         <div class="auth-card" id="loginBox">
-            <h2 style="color: var(--secondary); margin-bottom: 10px;">RedChaat</h2>
-            <input type="text" id="uID" placeholder="ইউজার আইডি">
+            <div class="brand-logo" style="font-size: 36px; margin-bottom: 20px;">RedChaat</div>
+            <input type="text" id="uID" placeholder="আপনার ইউজার আইডি">
             <input type="password" id="uPass" placeholder="পাসওয়ার্ড">
             <button onclick="login()">প্রবেশ করুন</button>
-            <p style="margin-top:15px; font-size:13px; cursor:pointer;" onclick="toggleAuth(false)">নতুন আইডি তৈরি করুন</p>
+            <p style="margin-top:20px; font-size:14px; cursor:pointer; color: var(--text-sec);" onclick="toggleAuth(false)">নতুন আইডি তৈরি করতে চান? <b>সাইন আপ</b></p>
         </div>
         <div class="auth-card" id="signupBox" style="display:none;">
-            <h2>নতুন অ্যাকাউন্ট</h2>
+            <div class="brand-logo" style="font-size: 36px; margin-bottom: 20px;">RedChaat</div>
             <input type="text" id="sID" placeholder="নতুন আইডি নাম">
-            <input type="password" id="sPass" placeholder="পাসওয়ার্ড">
+            <input type="password" id="sPass" placeholder="পাসওয়ার্ড তৈরি করুন">
             <button onclick="signup()">সাইন আপ</button>
-            <p style="margin-top:15px; font-size:13px; cursor:pointer;" onclick="toggleAuth(true)">ইতিমধ্যে আইডি আছে?</p>
+            <p style="margin-top:20px; font-size:14px; cursor:pointer; color: var(--text-sec);" onclick="toggleAuth(true)">ইতিমধ্যে আইডি আছে? <b>লগইন করুন</b></p>
         </div>
     </div>
 
     <div class="app-container" id="appMain" style="display:none;">
+        
         <div class="sidebar">
             <div class="sidebar-header">
                 <div class="user-info">
                     <span class="user-id-top" id="topIdDisplay">ID: LOADING</span>
-                    <span class="user-name-display">আমার চ্যাট</span>
+                    <span class="brand-logo">RedChaat</span>
                 </div>
                 <div class="header-actions">
-                    <i class="fa-solid fa-moon" onclick="toggleTheme()"></i>
-                    <i class="fa-solid fa-user-plus" onclick="addFriend()"></i>
+                    <i class="fa-solid fa-moon" onclick="toggleTheme()" title="ডার্ক মোড"></i>
+                    <i class="fa-solid fa-user-plus" onclick="addFriend()" title="বন্ধু যোগ করুন"></i>
                     <i class="fa-solid fa-right-from-bracket logout-btn" onclick="logout()" title="লগ আউট"></i>
                 </div>
             </div>
             <div class="search-area">
                 <div class="search-box">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="বন্ধু খুঁজুন...">
+                    <input type="text" placeholder="বন্ধুদের খুঁজুন...">
                 </div>
             </div>
             <div class="chat-list" id="chatList"></div>
         </div>
 
-        <div class="main-chat">
-            <div id="noChat" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#8696a0;">
-                <i class="fa-solid fa-pepper-hot" style="font-size:60px; margin-bottom:10px; opacity:0.2;"></i>
-                <p>বার্তা পাঠাতে বন্ধু সিলেক্ট করুন</p>
+        <div class="main-chat" id="mainChatView">
+            <div id="noChat" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-sec); background: var(--sidebar-bg);">
+                <div class="brand-logo" style="font-size: 50px; opacity: 0.3; margin-bottom: 10px;">R</div>
+                <p style="font-size: 18px;">মেসেজ পাঠাতে কোনো বন্ধুকে সিলেক্ট করুন</p>
             </div>
+            
             <div id="chatWindow" style="display:none; flex-direction:column; height:100%;">
                 <div class="chat-header">
+                    <i class="fa-solid fa-arrow-left back-btn" onclick="closeChat()"></i>
                     <div class="avatar" id="chatAvatar">?</div>
-                    <div style="margin-left:15px;">
-                        <div style="font-weight:600;" id="chatName">বন্ধুর নাম</div>
+                    <div style="margin-left:15px; flex:1;">
+                        <div style="font-weight:600; font-size: 17px;" id="chatName">বন্ধুর নাম</div>
                         <div style="font-size:12px; color:var(--text-sec);" id="status">অফলাইন</div>
                     </div>
+                    <div class="header-actions">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </div>
                 </div>
-                <div class="messages-container" id="msgBox"></div>
+                
+                <div class="messages-container" id="msgBox">
+                    </div>
+                
                 <div class="input-bar">
                     <i class="fa-regular fa-face-smile"></i>
                     <i class="fa-solid fa-paperclip"></i>
-                    <input type="text" id="msgInput" placeholder="কিছু লিখুন..." onkeypress="if(event.key==='Enter') send()">
-                    <i class="fa-solid fa-paper-plane" style="color:var(--primary);" onclick="send()"></i>
+                    <input type="text" id="msgInput" placeholder="আপনার মেসেজ লিখুন..." autocomplete="off" onkeypress="if(event.key==='Enter') send()">
+                    <div class="send-btn" onclick="send()">
+                        <i class="fa-solid fa-paper-plane" style="color: white; font-size: 18px; margin-left: -2px;"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -198,12 +252,16 @@
         const DB = "https://redchaat-ffad2-default-rtdb.firebaseio.com/";
         let user = localStorage.getItem("user");
         let activeChat = null;
+        let chatInterval = null;
 
         // Init App
         if(user) {
             document.getElementById('authArea').style.display = 'none';
             document.getElementById('appMain').style.display = 'flex';
             document.getElementById('topIdDisplay').innerText = "ID: " + user;
+            
+            if(localStorage.getItem("theme") === "dark") document.body.classList.add("dark-theme");
+            
             loadChats();
             setInterval(loadChats, 5000);
             setOnline(true);
@@ -216,9 +274,11 @@
 
         async function signup() {
             let id = sID.value.trim();
-            if(!id) return alert("আইডি লিখুন");
+            if(!id) return alert("দয়া করে আইডি লিখুন");
+            let check = await fetch(DB+"users/"+id+".json");
+            if(await check.json()) return alert("এই আইডিটি ইতিমধ্যে নেওয়া হয়েছে। অন্য আইডি দিন।");
             await fetch(DB+"users/"+id+".json", {method:"PUT", body:JSON.stringify({password:sPass.value, online:true})});
-            alert("সফল! লগইন করুন।");
+            alert("অ্যাকাউন্ট তৈরি সফল! এবার লগইন করুন।");
             toggleAuth(true);
         }
 
@@ -226,7 +286,7 @@
             let id = uID.value.trim();
             let res = await fetch(DB+"users/"+id+".json");
             let data = await res.json();
-            if(!data || data.password !== uPass.value) return alert("ভুল আইডি বা পাসওয়ার্ড");
+            if(!data || data.password !== uPass.value) return alert("ভুল আইডি বা পাসওয়ার্ড দিয়েছেন!");
             localStorage.setItem("user", id);
             location.reload();
         }
@@ -244,6 +304,8 @@
         async function addFriend() {
             let f = prompt("বন্ধুর আইডি লিখুন:");
             if(!f || f === user) return;
+            let check = await fetch(DB+"users/"+f+".json");
+            if(!await check.json()) return alert("এই নামে কোনো ইউজার পাওয়া যায়নি!");
             await fetch(DB+"users/"+user+"/friends/"+f+".json", {method:"PUT", body:"true"});
             await fetch(DB+"users/"+f+"/friends/"+user+".json", {method:"PUT", body:"true"});
             loadChats();
@@ -258,11 +320,11 @@
                 let uRes = await fetch(DB+"users/"+f+".json");
                 let uData = await uRes.json();
                 let div = document.createElement("div");
-                div.className = "chatItem " + (activeChat === f ? 'active' : '');
+                div.className = "chat-item " + (activeChat === f ? 'active' : '');
                 div.innerHTML = `<div class="avatar" style="background:${getRandomColor(f)}">${f[0].toUpperCase()}</div>
                                  <div style="margin-left:15px; flex:1;">
-                                    <div style="font-weight:600;">${f} ${uData.online ? '<span style="color:#25d366">●</span>':''}</div>
-                                    <div style="font-size:13px; color:#667781;">ক্লিক করুন চ্যাট করতে</div>
+                                    <div style="font-weight:600; font-size:16px;">${f} ${uData.online ? '<span style="color:#4caf50; font-size:10px;">●</span>':''}</div>
+                                    <div style="font-size:13px; color:var(--text-sec); margin-top:3px;">চ্যাট করতে ক্লিক করুন...</div>
                                  </div>`;
                 div.onclick = () => openChat(f);
                 chatList.appendChild(div);
@@ -276,8 +338,26 @@
             chatName.innerText = f;
             chatAvatar.innerText = f[0].toUpperCase();
             chatAvatar.style.background = getRandomColor(f);
+            
+            if(window.innerWidth <= 768) {
+                document.getElementById('bodyTag').classList.add('active-chat-mobile');
+            }
+
+            if(chatInterval) clearInterval(chatInterval);
             loadMsgs();
-            if(window.innerWidth < 768) document.getElementById('bodyTag').classList.add('active-chat-mobile');
+            chatInterval = setInterval(loadMsgs, 2000);
+            updateStatus(f);
+        }
+
+        function closeChat() {
+            document.getElementById('bodyTag').classList.remove('active-chat-mobile');
+            activeChat = null;
+        }
+
+        async function updateStatus(f) {
+            let res = await fetch(DB+"users/"+f+"/online.json");
+            let isOnline = await res.json();
+            document.getElementById('status').innerText = isOnline ? "অনলাইন" : "অফলাইন";
         }
 
         async function send() {
@@ -297,25 +377,34 @@
             let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
             let res = await fetch(DB+"chats/"+cid+".json");
             let msgs = await res.json();
+            
+            let isScrolledToBottom = msgBox.scrollHeight - msgBox.clientHeight <= msgBox.scrollTop + 1;
             msgBox.innerHTML = "";
+            
             if(msgs) {
                 Object.values(msgs).forEach(m => {
                     let div = document.createElement("div");
                     div.className = "msg " + (m.from === user ? "sent" : "received");
                     let time = new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                    div.innerHTML = `<div>${m.text}</div><div class="msg-time">${time}</div>`;
+                    div.innerHTML = `<div>${m.text}</div>
+                                     <div class="msg-time">${time} ${m.from === user ? (m.seen ? '<i class="fa-solid fa-check-double" style="color:#00bcd4"></i>' : '<i class="fa-solid fa-check"></i>') : ''}</div>`;
                     msgBox.appendChild(div);
+                    
+                    if(m.from !== user && !m.seen) {
+                        fetch(DB+"chats/"+cid+"/"+m.time+"/seen.json", {method:"PUT", body:"true"});
+                    }
                 });
             }
-            msgBox.scrollTop = msgBox.scrollHeight;
+            if(isScrolledToBottom) msgBox.scrollTop = msgBox.scrollHeight;
         }
 
         function toggleTheme() {
             document.body.classList.toggle("dark-theme");
+            localStorage.setItem("theme", document.body.classList.contains("dark-theme") ? "dark" : "light");
         }
 
         function getRandomColor(s) {
-            let colors = ['#00bcd4', '#ff5252', '#ffc107', '#4caf50', '#9c27b0'];
+            let colors = ['#ff3b30', '#00bcd4', '#ff9800', '#4caf50', '#9c27b0', '#e91e63'];
             return colors[s.length % colors.length];
         }
 
