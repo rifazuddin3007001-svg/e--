@@ -410,5 +410,253 @@
 
         window.onbeforeunload = () => setOnline(false);
     </script>
+    <style>
+    /* Red Story UI Styles */
+    .story-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: var(--bg); z-index: 1500; flex-direction: column; color: var(--text-main); }
+    .story-header { padding: 15px 20px; background: var(--sidebar-bg); display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-color); font-size: 18px; font-weight: bold; }
+    .story-list-container { flex: 1; overflow-y: auto; padding: 20px; }
+    .story-card { background: var(--sidebar-bg); padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s; }
+    .story-card:hover { transform: scale(1.02); }
+    .story-ring { width: 55px; height: 55px; border-radius: 50%; padding: 3px; background: linear-gradient(45deg, #ff3b30, #ffd54f); flex-shrink: 0; }
+    .story-ring.gray { background: #ccc; }
+    .story-ring div, .story-ring img { width: 100%; height: 100%; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; color: var(--primary); object-fit: cover; }
+    
+    /* Create Story Floating Button */
+    .add-story-btn { position: absolute; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--secondary); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(255,59,48,0.5); z-index: 1510; transition: transform 0.2s; }
+    .add-story-btn:hover { transform: scale(1.1); }
+    
+    /* Full Screen Status Viewer */
+    .full-story-viewer { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #000; z-index: 2000; flex-direction: column; justify-content: center; align-items: center; }
+    .full-story-top { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(rgba(0,0,0,0.7), transparent); color: white; z-index: 2010; }
+    .story-content-img { max-width: 100vw; max-height: 100dvh; object-fit: contain; }
+    .story-content-text { font-size: 32px; color: white; text-align: center; padding: 40px; font-family: 'Hind Siliguri', sans-serif; background: linear-gradient(135deg, var(--secondary), var(--primary)); width: 100vw; height: 100dvh; display: flex; align-items: center; justify-content: center; word-wrap: break-word; }
+    
+    /* Reactions */
+    .reaction-bar { position: absolute; bottom: 40px; display: flex; gap: 20px; background: rgba(255,255,255,0.15); padding: 12px 25px; border-radius: 30px; backdrop-filter: blur(10px); z-index: 2010; }
+    .react-emoji { font-size: 30px; cursor: pointer; transition: transform 0.2s; user-select: none; }
+    .react-emoji:hover { transform: scale(1.3) translateY(-5px); }
+    
+    @keyframes floatEmoji { 0% { opacity: 1; transform: translate(-50%, 0) scale(1); } 100% { opacity: 0; transform: translate(-50%, -250px) scale(1.5); } }
+    
+    /* Progress Bar (Time duration) */
+    .progress-bar { position: absolute; top: 5px; left: 5px; right: 5px; height: 3px; background: rgba(255,255,255,0.3); border-radius: 3px; z-index: 2010; display: flex; overflow: hidden; }
+    .progress-fill { height: 100%; background: white; width: 0%; border-radius: 3px; animation: progressAnim 5s linear forwards; }
+    @keyframes progressAnim { to { width: 100%; } }
+</style>
+
+<div id="redStoryModals">
+    <div class="story-modal" id="storyModal">
+        <div class="story-header">
+            <i class="fa-solid fa-arrow-left" style="cursor:pointer;" onclick="closeStoryModal()"></i>
+            <span>Red Story <i class="fa-solid fa-camera-retro" style="color:var(--secondary)"></i></span>
+        </div>
+        <div class="story-list-container" id="storyList"></div>
+        <div class="add-story-btn" onclick="addStoryOption()" title="স্টোরি দিন"><i class="fa-solid fa-plus"></i></div>
+    </div>
+
+    <div class="full-story-viewer" id="fullStoryViewer">
+        <div class="progress-bar"><div class="progress-fill" id="storyProgress"></div></div>
+        <div class="full-story-top">
+            <div style="display:flex; align-items:center; gap:10px; font-weight:bold;">
+                <div class="story-ring" style="width:40px; height:40px; border:none; padding:0; background:none;">
+                    <div style="background:var(--secondary); color:white; font-size:16px;" id="viewerAvatar">?</div>
+                </div>
+                <span id="storyAuthor">Name</span>
+            </div>
+            <i class="fa-solid fa-xmark" style="font-size:24px; cursor:pointer;" onclick="closeStoryViewer()"></i>
+        </div>
+        <div id="storyContent" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"></div>
+        
+        <div class="reaction-bar" id="reactionBar">
+            <span class="react-emoji" onclick="reactStory('❤️')">❤️</span>
+            <span class="react-emoji" onclick="reactStory('😂')">😂</span>
+            <span class="react-emoji" onclick="reactStory('😮')">😮</span>
+            <span class="react-emoji" onclick="reactStory('😢')">😢</span>
+            <span class="react-emoji" onclick="reactStory('🔥')">🔥</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Inject Red Story Button into the existing Header dynamically
+    setTimeout(() => {
+        let actionDiv = document.querySelector('.header-actions');
+        if(actionDiv) {
+            let storyBtn = document.createElement('i');
+            storyBtn.className = "fa-solid fa-camera-retro";
+            storyBtn.style.color = "var(--secondary)";
+            storyBtn.style.marginLeft = "18px";
+            storyBtn.style.cursor = "pointer";
+            storyBtn.title = "Red Story";
+            storyBtn.onclick = openStoryModal;
+            actionDiv.insertBefore(storyBtn, actionDiv.firstChild); // Adds icon to the left side
+        }
+    }, 1000); 
+
+    // Logic Variables
+    let storyAllData = [];
+    let curStoryData = null;
+    let storyTimerJS = null;
+
+    function openStoryModal() {
+        document.getElementById('storyModal').style.display = 'flex';
+        loadRedStories();
+    }
+    
+    function closeStoryModal() {
+        document.getElementById('storyModal').style.display = 'none';
+    }
+
+    async function loadRedStories() {
+        let listDiv = document.getElementById('storyList');
+        listDiv.innerHTML = '<div style="text-align:center; color:var(--text-sec); margin-top:30px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:30px;"></i><br><br>স্টোরি লোড হচ্ছে...</div>';
+        
+        // Fetch statuses and friends from Firebase
+        let res = await fetch(DB+"status.json");
+        let statuses = await res.json() || {};
+        
+        let fRes = await fetch(DB+"users/"+user+"/friends.json");
+        let friends = await fRes.json() || {};
+        
+        storyAllData = [];
+        let html = '';
+        let now = Date.now();
+        let dayMs = 86400000; // 24 hours in milliseconds (Auto-delete logic)
+        
+        // --- 1. My Story ---
+        let myStories = statuses[user] || {};
+        let myActive = Object.entries(myStories).filter(([k,v]) => now - v.time < dayMs);
+        
+        if(myActive.length > 0) {
+            storyAllData.push({uid: user, stories: myActive});
+            html += createStoryCardUI(user, 'আমার স্টোরি (My Story)', true);
+        } else {
+            html += `<div class="story-card" onclick="addStoryOption()">
+                        <div class="story-ring gray"><div><i class="fa-solid fa-plus"></i></div></div>
+                        <div>
+                            <div style="font-weight:bold; font-size:16px;">আমার স্টোরি</div>
+                            <div style="font-size:13px; color:var(--text-sec);">নতুন আপডেট দিন</div>
+                        </div>
+                     </div>`;
+        }
+        
+        html += '<h4 style="margin:20px 0 10px 0; color:var(--text-sec);">বন্ধুদের স্টোরি</h4>';
+        
+        // --- 2. Friends' Stories ---
+        let friendStoryCount = 0;
+        for(let f in friends) {
+            if(statuses[f]) {
+                let fActive = Object.entries(statuses[f]).filter(([k,v]) => now - v.time < dayMs);
+                if(fActive.length > 0) {
+                    storyAllData.push({uid: f, stories: fActive});
+                    html += createStoryCardUI(f, f, false);
+                    friendStoryCount++;
+                }
+            }
+        }
+        
+        if(friendStoryCount === 0) {
+            html += '<p style="text-align:center; color:var(--text-sec); margin-top:20px;">বন্ধুদের কোনো নতুন স্টোরি নেই 24 ঘন্টার মধ্যে</p>';
+        }
+        
+        listDiv.innerHTML = html;
+    }
+
+    function createStoryCardUI(uid, title, isMe) {
+        return `<div class="story-card" onclick="playRedStory('${uid}')">
+                    <div class="story-ring"><div>${uid[0].toUpperCase()}</div></div>
+                    <div>
+                        <div style="font-weight:bold; font-size:16px;">${title}</div>
+                        <div style="font-size:13px; color:var(--text-sec);">${isMe ? 'ক্লিক করে দেখুন' : 'নতুন স্টোরি'}</div>
+                    </div>
+                </div>`;
+    }
+
+    function addStoryOption() {
+        let opt = prompt("কী স্টোরি দেবেন?\n১. ছবি (Image)\n২. টেক্সট (Text)\n\n(1 বা 2 লিখুন)");
+        if(opt == '1' || opt == '১') {
+            let i = document.createElement('input'); i.type = 'file'; i.accept="image/*";
+            i.onchange = e => {
+                let r = new FileReader();
+                r.onload = async ev => {
+                    document.getElementById('storyList').innerHTML = '<div style="text-align:center; margin-top:20px;">আপলোড হচ্ছে... দয়া করে অপেক্ষা করুন।</div>';
+                    await fetch(DB+"status/"+user+"/"+Date.now()+".json", {method:"PUT", body:JSON.stringify({img:ev.target.result, time:Date.now()})});
+                    loadRedStories();
+                };
+                r.readAsDataURL(e.target.files[0]);
+            };
+            i.click();
+        } else if(opt == '2' || opt == '২') {
+            let t = prompt("স্টোরিতে কী লিখতে চান?");
+            if(t) {
+                fetch(DB+"status/"+user+"/"+Date.now()+".json", {method:"PUT", body:JSON.stringify({text:t, time:Date.now()})}).then(()=>{
+                    loadRedStories();
+                });
+            }
+        }
+    }
+
+    function playRedStory(uid) {
+        let userObj = storyAllData.find(s => s.uid === uid);
+        if(!userObj) return;
+        
+        // Show the latest story of the selected user
+        let latestStory = userObj.stories[userObj.stories.length - 1]; 
+        curStoryData = { uid: uid, sid: latestStory[0], data: latestStory[1] };
+        
+        document.getElementById('fullStoryViewer').style.display = 'flex';
+        let contentDiv = document.getElementById('storyContent');
+        
+        if(curStoryData.data.img) {
+            contentDiv.innerHTML = `<img src="${curStoryData.data.img}" class="story-content-img">`;
+        } else {
+            contentDiv.innerHTML = `<div class="story-content-text">${curStoryData.data.text}</div>`;
+        }
+        
+        document.getElementById('storyAuthor').innerText = uid === user ? 'আমার স্টোরি' : uid;
+        document.getElementById('viewerAvatar').innerText = uid[0].toUpperCase();
+        
+        // Restart Progress Bar Animation
+        let progFill = document.getElementById('storyProgress');
+        progFill.style.animation = 'none';
+        progFill.offsetHeight; 
+        progFill.style.animation = null; 
+        
+        // Hide reaction bar if it is my own story
+        document.getElementById('reactionBar').style.display = uid === user ? 'none' : 'flex';
+        
+        // Auto Close after 5 Seconds
+        clearTimeout(storyTimerJS);
+        storyTimerJS = setTimeout(closeStoryViewer, 5000); 
+    }
+
+    function closeStoryViewer() {
+        document.getElementById('fullStoryViewer').style.display = 'none';
+        clearTimeout(storyTimerJS);
+    }
+
+    function reactStory(emoji) {
+        if(!curStoryData || curStoryData.uid === user) return;
+        
+        // Floating emoji animation
+        let floater = document.createElement('div');
+        floater.innerText = emoji;
+        floater.style.position = 'absolute';
+        floater.style.bottom = '100px';
+        floater.style.left = '50%';
+        floater.style.transform = 'translateX(-50%)';
+        floater.style.fontSize = '50px';
+        floater.style.animation = 'floatEmoji 1.5s ease-out forwards';
+        floater.style.pointerEvents = 'none';
+        floater.style.zIndex = '2050';
+        document.getElementById('fullStoryViewer').appendChild(floater);
+        
+        setTimeout(() => floater.remove(), 1500); // Remove element after animation
+        
+        // Save Reaction to Firebase Database quietly
+        fetch(DB+"status/"+curStoryData.uid+"/"+curStoryData.sid+"/reactions/"+user+".json", {method:"PUT", body:JSON.stringify(emoji)});
+    }
+</script>
+    
 </body>
 </html>
