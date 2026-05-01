@@ -3331,6 +3331,103 @@ function loadCoachTab() {
         currentAudio.currentTime = pc * currentAudio.duration;
     };
 </script>
+  <script>
+    // ১. মেনুতে সরকারি দপ্তর বাটন যোগ
+    setTimeout(() => {
+        let menuGrid = document.querySelector('.menu-grid');
+        if(menuGrid && !document.getElementById('gov-btn')) {
+            menuGrid.insertAdjacentHTML('beforeend', `
+            <div id="gov-btn" class="menu-item" onclick="openGovHub()" style="border-color:#1d4ed8; background: linear-gradient(135deg, rgba(29, 78, 216, 0.1), transparent);">
+                <span class="icon" style="font-size:35px; filter: drop-shadow(0 2px 4px rgba(29,78,216,0.3));">🏛️</span>
+                <h3 style="color:#1d4ed8;">সরকারি দপ্তর</h3>
+            </div>`);
+        }
+    }, 2000);
+
+    // ২. মেইন হাব ওপেন করা
+    window.openGovHub = function() {
+        let html = `
+        <div style="background: linear-gradient(135deg, #1e3a8a, #1d4ed8); color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; box-shadow: 0 5px 15px rgba(29,78,216,0.3);">
+            <h2 style="margin: 0; font-size: 22px;">🏛️ রেডিকা সরকারি দপ্তর</h2>
+            <p style="margin: 5px 0 0 0; font-size: 12px; color: #bfdbfe;">নাগরিক সেবা, সাহায্য এবং আর্থিক সুবিধা</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+            <button onclick="showGovForm('Loan')" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🏦 লোন আবেদন</button>
+            <button onclick="showGovForm('Scholarship')" style="background:#faf5ff; color:#7e22ce; border:1px solid #e9d5ff; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🎓 স্কলারশিপ</button>
+            <button onclick="showGovForm('CreditCard')" style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">💳 ক্রেডিট কার্ড</button>
+            <button onclick="showGovForm('Help')" style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🆘 সাহায্য/জিজ্ঞাসা</button>
+        </div>
+
+        <div id="govFormContainer" style="background:var(--bg-card); border:1px solid var(--border-col); padding:15px; border-radius:12px; display:none;"></div>
+        `;
+        renderModal("🏛️ নাগরিক সেবা", html);
+    };
+
+    // ৩. ফর্ম দেখানো
+    window.showGovForm = function(type) {
+        let container = document.getElementById('govFormContainer');
+        container.style.display = 'block';
+        
+        let title = ""; let placeholders = ""; let isAmountNeed = true;
+
+        if(type === 'Loan') {
+            title = "লোনের জন্য আবেদন";
+            placeholders = "কী কারণে লোন প্রয়োজন এবং কীভাবে শোধ করবেন বিস্তারিত লিখুন (প্রুফ/ডকুমেন্ট লিংক দিতে পারেন)...";
+        } else if(type === 'Scholarship') {
+            title = "উচ্চশিক্ষার স্কলারশিপ";
+            placeholders = "শিক্ষাগত যোগ্যতা, বর্তমান ক্লাস এবং রেজাল্টের বিবরণ লিখুন...";
+        } else if(type === 'CreditCard') {
+            title = "সরকারি ক্রেডিট কার্ড";
+            isAmountNeed = false;
+            placeholders = "আপনার বর্তমান পেশা এবং মাসিক আয় বিস্তারিত লিখুন...";
+        } else {
+            title = "সাহায্য বা জিজ্ঞাসা";
+            isAmountNeed = false;
+            placeholders = "সরকারের কাছে আপনার প্রশ্ন বা সাহায্যের কথা বিস্তারিত লিখুন...";
+        }
+
+        container.innerHTML = `
+            <h3 style="margin-top:0; color:var(--primary);">${title}</h3>
+            ${isAmountNeed ? `<input type="number" id="govReqAmount" placeholder="টাকার পরিমাণ (Q)" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box;">` : ''}
+            <textarea id="govReqDetails" rows="4" placeholder="${placeholders}" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box; font-family:inherit;"></textarea>
+            <button onclick="submitGovRequest('${type}')" style="width:100%; background:#1d4ed8; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">আবেদন জমা দিন</button>
+        `;
+    };
+
+    // ৪. ডেটাবেসে আবেদন পাঠানো
+    window.submitGovRequest = async function(type) {
+        let details = document.getElementById('govReqDetails').value.trim();
+        let amountEl = document.getElementById('govReqAmount');
+        let amount = amountEl ? parseInt(amountEl.value) : 0;
+
+        if(!details) return showToast ? showToast("দয়া করে বিস্তারিত তথ্য দিন!", "error") : alert("বিস্তারিত তথ্য দিন!");
+        if(amountEl && (!amount || amount <= 0)) return showToast ? showToast("সঠিক টাকার পরিমাণ দিন!", "error") : alert("টাকার পরিমাণ দিন!");
+
+        let reqData = {
+            userId: user.id,
+            userName: user.name,
+            type: type,
+            amount: amount,
+            details: details,
+            status: 'Pending',
+            timestamp: Date.now()
+        };
+
+        try {
+            await fetch('https://radica-super-app-18cb3-default-rtdb.firebaseio.com/radica_gov_requests.json', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reqData)
+            });
+            
+            document.getElementById('govFormContainer').innerHTML = `<div style="text-align:center; color:#10b981; font-weight:bold; padding:20px;">✅ আপনার আবেদন সফলভাবে সরকারের কাছে জমা হয়েছে! অ্যাডমিন এটি চেক করবেন।</div>`;
+            if(typeof showToast === "function") showToast("আবেদন সফলভাবে জমা হয়েছে!", "success");
+        } catch(e) {
+            if(typeof showToast === "function") showToast("সার্ভার এরর, আবার চেষ্টা করুন!", "error");
+        }
+    };
+  </script>
     
 </body>
 </html>
