@@ -1083,13 +1083,15 @@ loadAdminGallery();
     setTimeout(loadAdminStories, 1000);
 </script>
 <div style="background: white; padding: 20px; border-radius: 12px; margin-top: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
-    <h2 style="color: #1d4ed8; margin-top: 0; font-size: 18px;">🏛️ রেডিকা সরকারি দপ্তর (নাগরিক আবেদন)</h2>
-    <p style="font-size: 12px; color: gray; margin-top: -5px;">লোন, স্কলারশিপ, ক্রেডিট কার্ড এবং সাহায্যের আবেদন পরিচালনা করুন</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 style="color: #1d4ed8; margin: 0; font-size: 18px;">🏛️ রেডিকা সরকারি দপ্তর ও ব্যাংক</h2>
+        <button onclick="showDebtList()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">🏦 ঋণের খতিয়ান দেখুন</button>
+    </div>
     
     <div style="display:flex; gap:10px; margin-bottom:15px;">
-        <button onclick="loadGovRequests('Pending')" style="flex:1; background:#f59e0b; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;">নতুন আবেদন ⏳</button>
-        <button onclick="loadGovRequests('Approved')" style="flex:1; background:#10b981; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;">অনুমোদিত ✅</button>
-        <button onclick="loadGovRequests('Rejected')" style="flex:1; background:#ef4444; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;">বাতিল ❌</button>
+        <button onclick="loadGovRequests('Pending')" style="flex:1; background:#f59e0b; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">নতুন আবেদন ⏳</button>
+        <button onclick="loadGovRequests('Approved')" style="flex:1; background:#10b981; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">অনুমোদিত ✅</button>
+        <button onclick="loadGovRequests('Rejected')" style="flex:1; background:#64748b; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">বাতিল ❌</button>
     </div>
 
     <div id="adminGovList" style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1;">
@@ -1101,6 +1103,7 @@ loadAdminGallery();
     const GOV_DB_URL = 'https://radica-super-app-18cb3-default-rtdb.firebaseio.com/radica_gov_requests';
     const USERS_DB_URL = 'https://radica-super-app-18cb3-default-rtdb.firebaseio.com/users';
 
+    // ১. আবেদন লিস্ট লোড করা
     async function loadGovRequests(filterStatus = 'Pending') {
         let listContainer = document.getElementById('adminGovList');
         listContainer.innerHTML = `<div style="text-align: center; color: gray;">ডেটা আনা হচ্ছে... ⏳</div>`;
@@ -1115,39 +1118,40 @@ loadAdminGallery();
             }
 
             let html = '';
-            // Sort by latest
             let requests = Object.keys(data).map(key => ({ id: key, ...data[key] })).sort((a,b) => b.timestamp - a.timestamp);
             
             requests.forEach(req => {
                 if(req.status !== filterStatus) return;
 
-                let typeColor = req.type === 'Loan' ? '#3b82f6' : (req.type === 'Scholarship' ? '#8b5cf6' : (req.type === 'CreditCard' ? '#f59e0b' : '#10b981'));
-                
+                let typeColor = req.type === 'Loan' ? '#3b82f6' : (req.type === 'Scholarship' ? '#8b5cf6' : (req.type.includes('Card') ? '#f59e0b' : '#10b981'));
+                let typeName = req.type === 'CardCancel' ? 'কার্ড বাতিল' : req.type;
+
                 html += `
                 <div style="background:white; padding:15px; border-radius:10px; border:1px solid #cbd5e1; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                     <div style="display:flex; justify-content:space-between; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:8px;">
                         <div style="font-weight:bold; color:#1e293b;">👤 ${req.userName}</div>
-                        <div style="background:${typeColor}; color:white; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:bold;">${req.type}</div>
+                        <div style="background:${typeColor}; color:white; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">${typeName}</div>
                     </div>
-                    <div style="font-size:13px; color:#475569; margin-bottom:10px;">
-                        ${req.amount ? `<b>টাকার পরিমাণ:</b> ${req.amount} Q<br>` : ''}
-                        <b>বিস্তারিত/প্রমাণ:</b> ${req.details}
+                    <div style="font-size:13px; color:#475569; margin-bottom:10px; line-height:1.5;">
+                        ${req.amount > 0 ? `<b>টাকার পরিমাণ/লিমিট:</b> ${req.amount} Q<br>` : ''}
+                        <b>বিস্তারিত:</b> ${req.details}
                     </div>
                     
                     ${req.status === 'Pending' ? `
                     <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button onclick="approveRequest('${req.id}', '${req.userId}', '${req.type}', ${req.amount || 0})" style="flex:1; background:#10b981; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;">✅ অ্যাপ্রুভ</button>
-                        <button onclick="updateRequestStatus('${req.id}', 'Rejected')" style="flex:1; background:#ef4444; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;">❌ রিজেক্ট</button>
+                        <button onclick="approveRequest('${req.id}', '${req.userId}', '${req.type}', ${req.amount || 0})" style="flex:1; background:#10b981; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">✅ অ্যাপ্রুভ</button>
+                        <button onclick="updateRequestStatus('${req.id}', 'Rejected')" style="flex:1; background:#ef4444; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">❌ রিজেক্ট</button>
                     </div>` : `<div style="text-align:right; font-size:12px; font-weight:bold; color:${req.status==='Approved'?'#10b981':'#ef4444'}">${req.status === 'Approved' ? '✅ অনুমোদিত' : '❌ বাতিল'}</div>`}
                 </div>`;
             });
 
             listContainer.innerHTML = html || `<div style="text-align:center; color:gray; padding:10px;">এই ক্যাটাগরিতে কোনো আবেদন নেই।</div>`;
         } catch (error) {
-            listContainer.innerHTML = `<div style="text-align:center; color:red; padding:10px;">লোড এরর!</div>`;
+            listContainer.innerHTML = `<div style="text-align:center; color:red; padding:10px;">লোড এরর! ইন্টারনেট চেক করুন।</div>`;
         }
     }
 
+    // ২. আবেদন অনুমোদন এবং প্রোফাইল আপডেট
     async function approveRequest(reqId, userId, type, requestedAmount) {
         let approvedAmount = requestedAmount;
         let interestRate = 0;
@@ -1157,7 +1161,7 @@ loadAdminGallery();
             if(amtStr === null) return;
             approvedAmount = parseInt(amtStr) || 0;
             
-            let intStr = prompt("লোনের ইন্টারেস্ট রেট কত % হবে?", "5");
+            let intStr = prompt("লোনের মাসিক ইন্টারেস্ট রেট কত % হবে?", "5");
             if(intStr === null) return;
             interestRate = parseInt(intStr) || 0;
         } else if (type === 'Scholarship' || type === 'Help') {
@@ -1167,12 +1171,15 @@ loadAdminGallery();
         } else if (type === 'CreditCard') {
             let limitStr = prompt("ক্রেডিট কার্ডের লিমিট কত Q দেবেন?", "5000");
             if(limitStr === null) return;
-            approvedAmount = parseInt(limitStr) || 0; // Storing limit as amount
+            approvedAmount = parseInt(limitStr) || 0;
+            
+            let intStr = prompt("ক্রেডিট কার্ডের মাসিক সুদের হার কত % হবে?", "2");
+            if(intStr === null) return;
+            interestRate = parseInt(intStr) || 0;
         }
 
         if(confirm("আপনি কি নিশ্চিতভাবে এটি অনুমোদন করতে চান?")) {
             try {
-                // ১. ইউজারকে টাকা বা কার্ড দেওয়া
                 let res = await fetch(`${USERS_DB_URL}/${userId}.json`);
                 let userData = await res.json();
                 
@@ -1183,41 +1190,84 @@ loadAdminGallery();
                     } else if (type === 'Scholarship' || type === 'Help') {
                         userData.bal = (userData.bal || 0) + approvedAmount;
                     } else if (type === 'CreditCard') {
-                        userData.credit_card = { limit: approvedAmount, used: 0, active: true };
+                        userData.credit_card = { limit: approvedAmount, used: 0, interest: interestRate, active: true };
+                    } else if (type === 'CardCancel') {
+                        if(userData.credit_card) userData.credit_card.active = false;
                     }
                     
-                    await fetch(`${USERS_DB_URL}/${userId}.json`, {
-                        method: 'PATCH',
-                        body: JSON.stringify(userData)
-                    });
+                    await fetch(`${USERS_DB_URL}/${userId}.json`, { method: 'PATCH', body: JSON.stringify(userData) });
                 }
 
-                // ২. রিকোয়েস্ট স্ট্যাটাস আপডেট
-                await fetch(`${GOV_DB_URL}/${reqId}.json`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ status: 'Approved', finalAmount: approvedAmount, interestRate: interestRate })
-                });
+                await fetch(`${GOV_DB_URL}/${reqId}.json`, { method: 'PATCH', body: JSON.stringify({ status: 'Approved', finalAmount: approvedAmount, interestRate: interestRate }) });
 
-                alert("✅ সফলভাবে অনুমোদিত হয়েছে এবং ইউজারের প্রোফাইলে আপডেট হয়েছে!");
+                alert("✅ সফলভাবে অনুমোদিত হয়েছে!");
                 loadGovRequests('Pending');
-            } catch(e) {
-                alert("❌ সার্ভার এরর!");
-            }
+            } catch(e) { alert("❌ সার্ভার এরর!"); }
         }
     }
 
+    // ৩. আবেদন রিজেক্ট করা
     async function updateRequestStatus(reqId, status) {
         if(confirm("আপনি কি নিশ্চিতভাবে এটি বাতিল করতে চান?")) {
-            await fetch(`${GOV_DB_URL}/${reqId}.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ status: status })
-            });
+            await fetch(`${GOV_DB_URL}/${reqId}.json`, { method: 'PATCH', body: JSON.stringify({ status: status }) });
             loadGovRequests('Pending');
         }
     }
 
-    setTimeout(() => loadGovRequests('Pending'), 1500);
-                    </script>
+    // ৪. ঋণের খতিয়ান দেখা ও ক্লিয়ার করা
+    async function showDebtList() {
+        let listContainer = document.getElementById('adminGovList');
+        listContainer.innerHTML = `<div style="text-align: center; color: gray;">নাগরিকদের ঋণের তালিকা লোড হচ্ছে... ⏳</div>`;
+        
+        try {
+            let res = await fetch(USERS_DB_URL + '.json');
+            let allUsers = await res.json();
+            
+            let html = '<h3 style="color:#ef4444; margin-top:0;">🏦 নাগরিকদের ঋণের খতিয়ান</h3>';
+            let foundDebt = false;
+
+            Object.keys(allUsers).forEach(id => {
+                let u = allUsers[id];
+                if((u.credit_card && u.credit_card.used > 0) || u.gov_loan) {
+                    foundDebt = true;
+                    html += `
+                    <div style="background:white; padding:15px; border-radius:8px; margin-bottom:10px; border:1px solid #cbd5e1; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                        <div style="font-weight:bold; font-size:15px; color:#1e293b; margin-bottom:8px;">${u.name}</div>
+                        <div style="font-size:13px; color:#475569; line-height:1.6;">
+                            ${u.credit_card && u.credit_card.used > 0 ? `💳 <b>কার্ডের ঋণ:</b> ${u.credit_card.used} Q (সুদ: ${u.credit_card.interest || 0}%)<br>` : ''}
+                            ${u.gov_loan ? `🏦 <b>লোন বাকি:</b> ${u.gov_loan.totalDebt} Q (আসল: ${u.gov_loan.amount} Q)` : ''}
+                        </div>
+                        <button onclick="clearDebt('${id}')" style="width:100%; background:#10b981; color:white; border:none; padding:8px; border-radius:6px; margin-top:10px; cursor:pointer; font-weight:bold;">✅ সম্পূর্ণ ঋণ শোধ হয়েছে</button>
+                    </div>`;
+                }
+            });
+
+            if(!foundDebt) html += `<div style="text-align:center; color:gray; padding:10px;">বর্তমানে কোনো ইউজারের ঋণ বাকি নেই।</div>`;
+            listContainer.innerHTML = html;
+        } catch(e) {
+            listContainer.innerHTML = `<div style="text-align:center; color:red; padding:10px;">ডেটা লোড করতে এরর!</div>`;
+        }
+    }
+
+    // ৫. ইউজারের ঋণ ক্লিয়ার করা
+    async function clearDebt(userId) {
+        if(confirm("আপনি কি নিশ্চিত যে এই ইউজারের সমস্ত ঋণ শোধ হয়ে গেছে? (অ্যাডমিন হিসেবে আপনি টাকা পেয়েছেন?)")) {
+            try {
+                let res = await fetch(`${USERS_DB_URL}/${userId}.json`);
+                let u = await res.json();
+                
+                if(u.credit_card) u.credit_card.used = 0;
+                if(u.gov_loan) u.gov_loan = null;
+                
+                await fetch(`${USERS_DB_URL}/${userId}.json`, { method: 'PATCH', body: JSON.stringify(u) });
+                alert("✅ ঋণ ক্লিয়ার করা হয়েছে!");
+                showDebtList();
+            } catch(e) { alert("❌ এরর হয়েছে!"); }
+        }
+    }
+
+    setTimeout(() => loadGovRequests('Pending'), 1000);
+        </script>
     
 </body>
 </html>
