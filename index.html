@@ -3331,14 +3331,14 @@ function loadCoachTab() {
         currentAudio.currentTime = pc * currentAudio.duration;
     };
 </script>
-  <script>
+<script>
     // ১. মেনুতে সরকারি দপ্তর বাটন যোগ
     setTimeout(() => {
         let menuGrid = document.querySelector('.menu-grid');
         if(menuGrid && !document.getElementById('gov-btn')) {
             menuGrid.insertAdjacentHTML('beforeend', `
             <div id="gov-btn" class="menu-item" onclick="openGovHub()" style="border-color:#1d4ed8; background: linear-gradient(135deg, rgba(29, 78, 216, 0.1), transparent);">
-                <span class="icon" style="font-size:35px; filter: drop-shadow(0 2px 4px rgba(29,78,216,0.3));">🏛️</span>
+                <span class="icon" style="font-size:38px; filter: drop-shadow(0 2px 4px rgba(29,78,216,0.3));">🏛️</span>
                 <h3 style="color:#1d4ed8;">সরকারি দপ্তর</h3>
             </div>`);
         }
@@ -3346,25 +3346,66 @@ function loadCoachTab() {
 
     // ২. মেইন হাব ওপেন করা
     window.openGovHub = function() {
+        // ক্রেডিট কার্ড থাকলে তার ইন্টারফেস তৈরি করা
+        let ccInfo = "";
+        if(user.credit_card && user.credit_card.active) {
+            let available = user.credit_card.limit - user.credit_card.used;
+            ccInfo = `
+            <div style="background: linear-gradient(135deg, #0f172a, #334155); color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: left; position: relative; border: 1px solid #475569; box-shadow: 0 10px 20px rgba(0,0,0,0.3);">
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #94a3b8;">Radica Govt. Credit Card</div>
+                <div style="font-size: 22px; margin: 15px 0; font-family: monospace; letter-spacing: 2px;">**** **** **** ${user.id.slice(-4)}</div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <div style="font-size: 11px; color: #ef4444; margin-bottom: 3px;">ব্যবহৃত: ${user.credit_card.used} Q (সুদ: ${user.credit_card.interest}%)</div>
+                        <div style="font-size: 16px; font-weight: bold; color: #10b981;">বাকি লিমিট: ${available} Q</div>
+                    </div>
+                    <button onclick="requestCardCancel()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; font-weight:bold;">কার্ড বাতিল</button>
+                </div>
+            </div>`;
+        }
+
         let html = `
         <div style="background: linear-gradient(135deg, #1e3a8a, #1d4ed8); color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; box-shadow: 0 5px 15px rgba(29,78,216,0.3);">
             <h2 style="margin: 0; font-size: 22px;">🏛️ রেডিকা সরকারি দপ্তর</h2>
-            <p style="margin: 5px 0 0 0; font-size: 12px; color: #bfdbfe;">নাগরিক সেবা, সাহায্য এবং আর্থিক সুবিধা</p>
+            <p style="margin: 5px 0 0 0; font-size: 12px; color: #bfdbfe;">নাগরিক সেবা ও আর্থিক নিরাপত্তা কেন্দ্র</p>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-            <button onclick="showGovForm('Loan')" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🏦 লোন আবেদন</button>
-            <button onclick="showGovForm('Scholarship')" style="background:#faf5ff; color:#7e22ce; border:1px solid #e9d5ff; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🎓 স্কলারশিপ</button>
-            <button onclick="showGovForm('CreditCard')" style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">💳 ক্রেডিট কার্ড</button>
-            <button onclick="showGovForm('Help')" style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05);">🆘 সাহায্য/জিজ্ঞাসা</button>
+        ${ccInfo}
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+            <button onclick="showGovForm('Loan')" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05); transition:0.2s;">🏦 লোন আবেদন</button>
+            <button onclick="showGovForm('Scholarship')" style="background:#faf5ff; color:#7e22ce; border:1px solid #e9d5ff; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05); transition:0.2s;">🎓 স্কলারশিপ</button>
+            <button onclick="showGovForm('CreditCard')" style="background:#fffbeb; color:#d97706; border:1px solid #fde68a; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05); transition:0.2s;">💳 কার্ড আবেদন</button>
+            <button onclick="showGovRules()" style="background:#f8fafc; color:#475569; border:1px solid #cbd5e1; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.05); transition:0.2s;">📜 সরকারি নিয়ম</button>
         </div>
 
-        <div id="govFormContainer" style="background:var(--bg-card); border:1px solid var(--border-col); padding:15px; border-radius:12px; display:none;"></div>
+        <div id="govFormContainer" style="background:var(--bg-card); border:1px solid var(--border-col); padding:20px; border-radius:12px; display:none; animation: fadeIn 0.3s;"></div>
         `;
         renderModal("🏛️ নাগরিক সেবা", html);
     };
 
-    // ৩. ফর্ম দেখানো
+    // ৩. সরকারি নিয়মাবলী দেখানো
+    window.showGovRules = function() {
+        let rulesHtml = `
+        <div style="text-align: left; font-size: 13px; line-height: 1.6; color: var(--text-main);">
+            <h3 style="color:#1d4ed8; margin-top:0; border-bottom:1px solid #cbd5e1; padding-bottom:5px;">💳 ক্রেডিট কার্ড ব্যবহারের নিয়ম:</h3>
+            <ul style="padding-left:20px; margin-bottom:20px;">
+                <li>আপনার মেইন ব্যালেন্স শেষ হয়ে গেলে কেনাকাটার জন্য কার্ডের লিমিট ব্যবহার করা যাবে।</li>
+                <li>প্রতি মাসে ব্যবহৃত টাকার ওপর নির্ধারিত সুদ (Interest) ধার্য হবে।</li>
+                <li>বকেয়া শোধ করতে বা কার্ড বাতিল করতে সরাসরি দপ্তরে আবেদন করুন।</li>
+            </ul>
+            <h3 style="color:#1d4ed8; border-bottom:1px solid #cbd5e1; padding-bottom:5px;">🏦 লোন ও স্কলারশিপ:</h3>
+            <ul style="padding-left:20px;">
+                <li>উচ্চশিক্ষার জন্য আবেদন করলে সরকার বিশেষ স্কলারশিপ প্রদান করবে।</li>
+                <li>লোনের জন্য সঠিক কারণ এবং প্রমাণ জমা দেওয়া বাধ্যতামূলক।</li>
+                <li>লোন শোধ না করলে আইনি ব্যবস্থা বা অ্যাকাউন্ট ব্লক হতে পারে।</li>
+            </ul>
+        </div>`;
+        document.getElementById('govFormContainer').style.display = 'block';
+        document.getElementById('govFormContainer').innerHTML = rulesHtml;
+    };
+
+    // ৪. আবেদন ফর্ম জেনারেট করা
     window.showGovForm = function(type) {
         let container = document.getElementById('govFormContainer');
         container.style.display = 'block';
@@ -3372,62 +3413,68 @@ function loadCoachTab() {
         let title = ""; let placeholders = ""; let isAmountNeed = true;
 
         if(type === 'Loan') {
-            title = "লোনের জন্য আবেদন";
-            placeholders = "কী কারণে লোন প্রয়োজন এবং কীভাবে শোধ করবেন বিস্তারিত লিখুন (প্রুফ/ডকুমেন্ট লিংক দিতে পারেন)...";
+            title = "🏦 লোনের জন্য আবেদন";
+            placeholders = "কেন লোন প্রয়োজন, কবে এবং কীভাবে শোধ করবেন বিস্তারিত লিখুন (প্রমাণ বা ডকুমেন্ট থাকলে জানান)...";
         } else if(type === 'Scholarship') {
-            title = "উচ্চশিক্ষার স্কলারশিপ";
-            placeholders = "শিক্ষাগত যোগ্যতা, বর্তমান ক্লাস এবং রেজাল্টের বিবরণ লিখুন...";
+            title = "🎓 উচ্চশিক্ষার স্কলারশিপ";
+            placeholders = "আপনার শিক্ষাগত যোগ্যতা, বর্তমান কোর্স এবং রেজাল্টের বিবরণ লিখুন...";
         } else if(type === 'CreditCard') {
-            title = "সরকারি ক্রেডিট কার্ড";
+            title = "💳 সরকারি ক্রেডিট কার্ড";
             isAmountNeed = false;
-            placeholders = "আপনার বর্তমান পেশা এবং মাসিক আয় বিস্তারিত লিখুন...";
-        } else {
-            title = "সাহায্য বা জিজ্ঞাসা";
-            isAmountNeed = false;
-            placeholders = "সরকারের কাছে আপনার প্রশ্ন বা সাহায্যের কথা বিস্তারিত লিখুন...";
+            placeholders = "আপনার বর্তমান পেশা, মাসিক আয় এবং কার্ড নেওয়ার কারণ বিস্তারিত লিখুন...";
         }
 
         container.innerHTML = `
-            <h3 style="margin-top:0; color:var(--primary);">${title}</h3>
-            ${isAmountNeed ? `<input type="number" id="govReqAmount" placeholder="টাকার পরিমাণ (Q)" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box;">` : ''}
-            <textarea id="govReqDetails" rows="4" placeholder="${placeholders}" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box; font-family:inherit;"></textarea>
-            <button onclick="submitGovRequest('${type}')" style="width:100%; background:#1d4ed8; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">আবেদন জমা দিন</button>
+            <h3 style="margin-top:0; color:var(--primary); font-size:16px;">${title}</h3>
+            ${isAmountNeed ? `<input type="number" id="govReqAmount" placeholder="টাকার পরিমাণ (Q)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box; font-size:14px;">` : ''}
+            <textarea id="govReqDetails" rows="4" placeholder="${placeholders}" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box; font-family:inherit; font-size:13px; line-height:1.5;"></textarea>
+            <button onclick="submitGovRequestAction('${type}')" style="width:100%; background:linear-gradient(135deg, #1d4ed8, #2563eb); color:white; border:none; padding:15px; border-radius:8px; font-weight:bold; font-size:15px; cursor:pointer; box-shadow:0 4px 10px rgba(29,78,216,0.3);">আবেদন জমা দিন 🚀</button>
         `;
     };
 
-    // ৪. ডেটাবেসে আবেদন পাঠানো
-    window.submitGovRequest = async function(type) {
+    // ৫. কার্ড বাতিলের ডাইরেক্ট ফাংশন
+    window.requestCardCancel = function() {
+        if(user.credit_card.used > 0) {
+            alert("❌ কার্ড বাতিল করার আগে আপনার সমস্ত পাওনা (ব্যবহৃত টাকা) শোধ করতে হবে!");
+            return;
+        }
+        if(confirm("আপনি কি নিশ্চিতভাবে আপনার ক্রেডিট কার্ডটি বাতিল করতে চান?")) {
+            processGovSubmission('CardCancel', 0, "আমি আমার ক্রেডিট কার্ডটি বাতিল করতে চাই। আমার কোনো বকেয়া নেই।");
+        }
+    };
+
+    // ৬. ফর্ম থেকে ডেটা কালেক্ট করে পাঠানো
+    window.submitGovRequestAction = function(type) {
         let details = document.getElementById('govReqDetails').value.trim();
         let amountEl = document.getElementById('govReqAmount');
         let amount = amountEl ? parseInt(amountEl.value) : 0;
 
-        if(!details) return showToast ? showToast("দয়া করে বিস্তারিত তথ্য দিন!", "error") : alert("বিস্তারিত তথ্য দিন!");
-        if(amountEl && (!amount || amount <= 0)) return showToast ? showToast("সঠিক টাকার পরিমাণ দিন!", "error") : alert("টাকার পরিমাণ দিন!");
+        if(!details) return alert("দয়া করে বিস্তারিত তথ্য দিন!");
+        if(amountEl && (!amount || amount <= 0)) return alert("সঠিক টাকার পরিমাণ দিন!");
 
+        processGovSubmission(type, amount, details);
+    };
+
+    // ৭. ফায়ারবেসে ডেটা পুশ করার মেইন লজিক
+    window.processGovSubmission = async function(type, amount, details) {
         let reqData = {
-            userId: user.id,
-            userName: user.name,
-            type: type,
-            amount: amount,
-            details: details,
-            status: 'Pending',
-            timestamp: Date.now()
+            userId: user.id, userName: user.name, type: type, amount: amount, details: details, status: 'Pending', timestamp: Date.now()
         };
+
+        let container = document.getElementById('govFormContainer');
+        container.innerHTML = `<div style="text-align:center; color:#1d4ed8; font-weight:bold; padding:20px;">আবেদন পাঠানো হচ্ছে... ⏳</div>`;
 
         try {
             await fetch('https://radica-super-app-18cb3-default-rtdb.firebaseio.com/radica_gov_requests.json', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(reqData)
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reqData)
             });
             
-            document.getElementById('govFormContainer').innerHTML = `<div style="text-align:center; color:#10b981; font-weight:bold; padding:20px;">✅ আপনার আবেদন সফলভাবে সরকারের কাছে জমা হয়েছে! অ্যাডমিন এটি চেক করবেন।</div>`;
-            if(typeof showToast === "function") showToast("আবেদন সফলভাবে জমা হয়েছে!", "success");
+            container.innerHTML = `<div style="text-align:center; color:#10b981; font-weight:bold; padding:20px; font-size:15px;">✅ আপনার আবেদন সফলভাবে সরকারের কাছে জমা হয়েছে! অ্যাডমিন এটি চেক করবেন।</div>`;
         } catch(e) {
-            if(typeof showToast === "function") showToast("সার্ভার এরর, আবার চেষ্টা করুন!", "error");
+            container.innerHTML = `<div style="text-align:center; color:#ef4444; font-weight:bold; padding:20px;">❌ সার্ভার এরর, আবার চেষ্টা করুন!</div>`;
         }
     };
-  </script>
+                </script>
     
 </body>
 </html>
