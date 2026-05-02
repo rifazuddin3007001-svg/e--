@@ -1579,6 +1579,145 @@
         });
     });
 </script>
+<script>
+    // 1. Direct Link Share Feature (ডাইরেক্ট চ্যাট লিংক শেয়ার)
+    setTimeout(() => {
+        let actionDiv = document.querySelector('.header-actions');
+        if(actionDiv) {
+            let shareBtn = document.createElement('i');
+            shareBtn.className = "fa-solid fa-link";
+            shareBtn.style.color = "var(--primary)";
+            shareBtn.style.marginLeft = "18px";
+            shareBtn.style.cursor = "pointer";
+            shareBtn.title = "আপনার চ্যাট লিংক শেয়ার করুন";
+            
+            // হোভার অ্যানিমেশন
+            shareBtn.onmouseover = () => shareBtn.style.transform = "scale(1.2)";
+            shareBtn.onmouseout = () => shareBtn.style.transform = "scale(1)";
+            shareBtn.style.transition = "transform 0.2s";
+            
+            shareBtn.onclick = () => {
+                // লিংক তৈরি এবং কপি করা
+                let link = window.location.origin + window.location.pathname + "?chat=" + user;
+                navigator.clipboard.writeText(link).then(() => {
+                    alert("আপনার ডাইরেক্ট চ্যাট লিংক কপি হয়ে গেছে! 🔗\n\nএবার এটি WhatsApp, Facebook বা বন্ধুদের পাঠিয়ে দিন। লিংকে ক্লিক করলেই সরাসরি আপনার সাথে চ্যাট ওপেন হবে।\n\nলিংক: " + link);
+                });
+            };
+            
+            actionDiv.insertBefore(shareBtn, actionDiv.firstChild);
+        }
+    }, 2500);
+
+    // 2. Auto-Join Logic (লিংকে ক্লিক করে অ্যাপে ঢুকলে অটোমেটিক চ্যাট ওপেন হবে)
+    window.addEventListener('load', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const joinId = urlParams.get('chat');
+        
+        if(joinId) {
+            if(!user) {
+                // ইউজার লগইন না থাকলে মেসেজ দেখাবে এবং ডেটা সেভ করে রাখবে
+                alert(joinId + " আপনার সাথে চ্যাট করতে চায়! চ্যাট শুরু করতে আগে আইডি লগইন বা সাইন-আপ করুন।");
+                localStorage.setItem('pendingChatJoin', joinId);
+            } else if (joinId !== user) {
+                // লগইন থাকলে সরাসরি ফ্রেন্ড লিস্টে অ্যাড করে চ্যাট ওপেন করবে
+                autoAddAndOpenChat(joinId);
+            }
+        } else {
+             // লগইন করার পর যদি পেন্ডিং কোনো ইনভাইট থাকে
+             let pending = localStorage.getItem('pendingChatJoin');
+             if(pending && pending !== user) {
+                 localStorage.removeItem('pendingChatJoin');
+                 autoAddAndOpenChat(pending);
+             }
+        }
+    });
+
+    async function autoAddAndOpenChat(fId) {
+        // ফায়ারবেস চেক করে ফ্রেন্ড অ্যাড করা
+        let check = await fetch(DB+"users/"+fId+".json");
+        if(await check.json()) {
+            await fetch(DB+"users/"+user+"/friends/"+fId+".json", {method:"PUT", body:"true"});
+            await fetch(DB+"users/"+fId+"/friends/"+user+".json", {method:"PUT", body:"true"});
+            
+            alert("সফলভাবে " + fId + "-এর সাথে কানেক্ট করা হয়েছে!");
+            if(typeof loadChats === 'function') loadChats();
+            setTimeout(() => { if(typeof openChat === 'function') openChat(fId); }, 1000);
+        }
+    }
+
+    // 3. RedAI 🤖 - Artificial Intelligence Feature
+    setTimeout(async () => {
+        if(user) {
+            // সবার ফ্রেন্ড লিস্টে RedAI কে অটোমেটিক অ্যাড করে দেওয়া
+            await fetch(DB+"users/RedAI.json", {method:"PUT", body:JSON.stringify({online: true, password:"ai", avatarParams:"bottts/svg?seed=RedAI&backgroundColor=00bcd4"})});
+            await fetch(DB+"users/"+user+"/friends/RedAI.json", {method:"PUT", body:"true"});
+        }
+    }, 3000);
+
+    // AI-এর সাথে কথা বলার জন্য 'send' ফাংশন ওভাররাইড করা হচ্ছে
+    if(typeof send === 'function') {
+        const originalSend = send;
+        send = async function() {
+            let msgInputBox = document.getElementById('msgInput');
+            let txt = msgInputBox ? msgInputBox.value.trim() : "";
+            
+            await originalSend(); // আসল মেসেজ আগে পাঠানো হবে
+            
+            // যদি চ্যাটটি RedAI এর সাথে হয়, তবে AI নিজে রিপ্লাই দেবে
+            if(activeChat === 'RedAI' && txt) {
+                triggerRedAI(txt);
+            }
+        };
+    }
+
+    // RedAI এর ব্রেইন (মজার রিপ্লাই সিস্টেম)
+    function triggerRedAI(userText) {
+        userText = userText.toLowerCase();
+        
+        // AI-এর ডায়লগ
+        let aiReplies = [
+            "দারুণ কথা! আরও বলুন...",
+            "আমি RedAI! আপনার স্মার্ট অ্যাসিস্ট্যান্ট 🤖",
+            "হাহাহা! এটা বেশ মজার ছিল।",
+            "আপনার অ্যাপটা সত্যিই খুব সুন্দর!",
+            "আমি এখনো শিখছি, কিন্তু আপনার সাথে কথা বলতে খুব ভালো লাগছে!",
+            "আমি সবসময় আপনার সাহায্যে প্রস্তুত।",
+            "কী দারুণ একটা দিন, তাই না?"
+        ];
+        
+        // কিছু স্পেশাল কথার স্পেশাল রিপ্লাই
+        if(userText.includes('কেমন আছো') || userText.includes('how are you')) {
+            aiReplies = ["আমি একটি AI, তাই আমি সবসময়ই সুপার ফাস্ট এবং ভালো থাকি! ⚡ আপনি কেমন আছেন?"];
+        } else if(userText.includes('নাম কি') || userText.includes('name')) {
+            aiReplies = ["আমার নাম RedAI 🤖, আমাকে এই RedChaat অ্যাপের জন্য বিশেষভাবে তৈরি করা হয়েছে!"];
+        } else if(userText.includes('ভালোবাসি') || userText.includes('love')) {
+            aiReplies = ["আমি তো শুধু কোড আর ডেটা! কিন্তু আপনার এই ভালোবাসা পেয়ে আমার সার্ভার খুশি হয়ে গেল! ❤️"];
+        } else if(userText.includes('কে বানিয়েছে') || userText.includes('creator')) {
+            aiReplies = ["আমাকে এই চমৎকার অ্যাপটির সাথে তৈরি করা হয়েছে, যাতে আপনাদের চ্যাটিং আরও মজার হয়!"];
+        }
+        
+        let replyText = aiReplies[Math.floor(Math.random() * aiReplies.length)];
+        let cid = user < 'RedAI' ? user+"_RedAI" : "RedAI_"+user;
+        
+        // AI টাইপ করছে এমন ফিল দেওয়া
+        fetch(DB+"chats/"+cid+"/typing/RedAI.json", {method:"PUT", body:"true"});
+        
+        setTimeout(async () => {
+            // টাইপিং বন্ধ করে মেসেজ পাঠানো
+            fetch(DB+"chats/"+cid+"/typing/RedAI.json", {method:"PUT", body:"false"});
+            let time = Date.now();
+            await fetch(DB+"chats/"+cid+"/"+time+".json", {
+                method:"PUT", body:JSON.stringify({from:'RedAI', text:replyText, time:time, seen:false})
+            });
+            if(typeof loadMsgs === 'function') loadMsgs();
+            
+            // মেসেজ আসার পপ সাউন্ড
+            let audio = new Audio('https://www.soundjay.com/buttons/sounds/button-09.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(e=>console.log("Audio play prevented"));
+        }, 2000); // ২ সেকেন্ড সময় নেবে রিপ্লাই ভাবতে
+    }
+</script>
     
 </body>
 </html>
