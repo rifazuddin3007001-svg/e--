@@ -657,6 +657,50 @@
         fetch(DB+"status/"+curStoryData.uid+"/"+curStoryData.sid+"/reactions/"+user+".json", {method:"PUT", body:JSON.stringify(emoji)});
     }
 </script>
+<script>
+    let typingTimeout;
+    
+    // Listen to keystrokes in the input box
+    document.getElementById('msgInput').addEventListener('input', () => {
+        if(!activeChat) return;
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        
+        // Update database that user is typing
+        fetch(DB+"chats/"+cid+"/typing/"+user+".json", {method:"PUT", body:"true"});
+        
+        // Auto-stop typing status after 1.5 seconds of stopping typing
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            fetch(DB+"chats/"+cid+"/typing/"+user+".json", {method:"PUT", body:"false"});
+        }, 1500);
+    });
+
+    // Check every second if the active friend is typing
+    setInterval(async () => {
+        if(!activeChat || document.getElementById('chatWindow').style.display === 'none') return;
+        
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        try {
+            let res = await fetch(DB+"chats/"+cid+"/typing/"+activeChat+".json");
+            let isTyping = await res.json();
+            
+            let statusEl = document.getElementById('status');
+            
+            if(isTyping) {
+                statusEl.innerText = "টাইপ করছে... (typing...)";
+                statusEl.style.color = "var(--primary)";
+                statusEl.style.fontWeight = "bold";
+            } else {
+                // If not typing, it will revert to showing normal Online/Offline status
+                updateStatus(activeChat); 
+                statusEl.style.color = "var(--text-sec)";
+                statusEl.style.fontWeight = "normal";
+            }
+        } catch (e) {
+            console.log("Typing fetch error ignored");
+        }
+    }, 1000);
+</script>
     
 </body>
 </html>
