@@ -2114,6 +2114,240 @@
 
     }, 1500);
 </script>
+<style>
+    /* Dice Animation */
+    .dice-container { margin: 20px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .dice {
+        width: 60px; height: 60px; background: white; border: 3px solid var(--secondary);
+        border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        font-size: 30px; font-weight: bold; color: var(--secondary); box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .dice.rolling { animation: diceShake 0.1s infinite; }
+    @keyframes diceShake { 0% { transform: rotate(0deg); } 25% { transform: rotate(5deg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } }
+
+    /* Linear Board Style (For Mobile Smoothness) */
+    .board-track {
+        display: flex; flex-wrap: wrap; gap: 5px; margin: 15px 0; background: var(--bg);
+        padding: 10px; border-radius: 10px; justify-content: center;
+    }
+    .step {
+        width: 35px; height: 35px; background: white; border-radius: 5px;
+        display: flex; align-items: center; justify-content: center; font-size: 12px;
+        font-weight: bold; color: #ccc; position: relative;
+    }
+    .step.active-step { border: 2px solid var(--primary); color: var(--primary); }
+    .step.snake { background: #ffebee; color: #f44336; }
+    .step.ladder { background: #e8f5e9; color: #4caf50; }
+    
+    /* Pawns */
+    .pawn {
+        width: 20px; height: 20px; border-radius: 50%; position: absolute;
+        border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 5;
+    }
+    .pawn.me { background: var(--secondary); }
+    .pawn.friend { background: var(--accent); }
+
+    /* Dash Game */
+    .dash-btn {
+        width: 120px; height: 120px; background: var(--secondary); color: white;
+        border-radius: 50%; border: 8px solid rgba(255,255,255,0.3); font-size: 20px;
+        font-weight: bold; cursor: pointer; transition: 0.1s; margin: 20px auto;
+    }
+    .dash-btn:active { transform: scale(0.9); }
+</style>
+
+<div id="extraGameModals">
+    <div class="game-modal" id="boardGameModal">
+        <div class="game-box">
+            <h3 id="boardGameTitle">রেড লুডো</h3>
+            <p id="gameTurnText" style="font-size:14px; color:var(--primary);">আপনার চাল...</p>
+            
+            <div class="board-track" id="gameTrack"></div>
+            
+            <div class="dice-container">
+                <div class="dice" id="mainDice">?</div>
+                <button id="rollBtn" onclick="rollDiceLogic()" style="background:var(--secondary); width:150px; padding:10px; border-radius:20px; color:white; border:none; font-weight:bold;">ছক্কা চালুন</button>
+            </div>
+            <button onclick="closeGameModal()" style="background:none; color:var(--text-sec); border:none; margin-top:10px;">পিছনে যান</button>
+        </div>
+    </div>
+
+    <div class="game-modal" id="dashModal">
+        <div class="game-box">
+            <h2 style="color:var(--secondary);">রেড ড্যাশ ⚡</h2>
+            <p>১০ সেকেন্ডে কে বেশি ক্লিক করতে পারে!</p>
+            <div style="display:flex; justify-content:around; margin:20px 0;">
+                <div>আপনি: <b id="myDashScore">0</b></div>
+                <div>বন্ধু: <b id="friendDashScore">0</b></div>
+            </div>
+            <button class="dash-btn" id="dashClickBtn" onclick="registerDashClick()">CLICK!</button>
+            <div id="dashTimer" style="font-size:24px; font-weight:bold; color:var(--primary);">১০</div>
+            <button onclick="closeGameModal()" style="background:none; border:none; color:var(--text-sec); margin-top:20px;">বন্ধ করুন</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentGameType = "";
+    let gameInterval;
+    let dashTimerInt;
+
+    // --- 1. Override the old menu clicks ---
+    setTimeout(() => {
+        const gameCards = document.querySelectorAll('.game-card');
+        if(gameCards.length >= 4) {
+            gameCards[1].onclick = () => startBoardGame('ludo');
+            gameCards[2].onclick = () => startBoardGame('snakes');
+            gameCards[3].onclick = () => startDashGame();
+        }
+    }, 3000);
+
+    // --- 2. Board Game Logic (Ludo & Snakes) ---
+    async function startBoardGame(type) {
+        currentGameType = type;
+        document.getElementById('gameChoiceModal').style.display = 'none';
+        document.getElementById('boardGameModal').style.display = 'flex';
+        document.getElementById('boardGameTitle').innerText = type === 'ludo' ? "রেড লুডো (Race 20)" : "সাপ-সিঁড়ি (Classic)";
+        
+        initBoardUI(type === 'ludo' ? 20 : 30);
+        
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        await fetch(DB+"games/"+cid+"/"+type+".json", {
+            method:"PUT", 
+            body:JSON.stringify({pos: {[user]: 0, [activeChat]: 0}, turn: user, lastRoll: 0})
+        });
+        
+        gameInterval = setInterval(() => syncBoardGame(type), 2000);
+    }
+
+    function initBoardUI(size) {
+        let track = document.getElementById('gameTrack');
+        track.innerHTML = "";
+        for(let i=1; i<=size; i++) {
+            let s = document.createElement('div');
+            s.className = 'step';
+            s.id = 'step-' + i;
+            s.innerText = i;
+            // Add some Snakes & Ladders logic if type is snakes
+            if(currentGameType === 'snakes') {
+                if(i === 12) { s.classList.add('snake'); s.innerHTML = '🐍'; }
+                if(i === 25) { s.classList.add('snake'); s.innerHTML = '🐍'; }
+                if(i === 8) { s.classList.add('ladder'); s.innerHTML = '🪜'; }
+            }
+            track.appendChild(s);
+        }
+    }
+
+    async function rollDiceLogic() {
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        let res = await fetch(DB+"games/"+cid+"/"+currentGameType+".json");
+        let game = await res.json();
+
+        if(game.turn !== user) return;
+
+        let roll = Math.floor(Math.random() * 6) + 1;
+        document.getElementById('mainDice').classList.add('rolling');
+        document.getElementById('rollBtn').disabled = true;
+
+        setTimeout(async () => {
+            document.getElementById('mainDice').classList.remove('rolling');
+            document.getElementById('mainDice').innerText = roll;
+            
+            let newPos = (game.pos[user] || 0) + roll;
+            let boardSize = currentGameType === 'ludo' ? 20 : 30;
+
+            // Snake/Ladder Logic
+            if(currentGameType === 'snakes') {
+                if(newPos === 12) newPos = 3;
+                if(newPos === 25) newPos = 10;
+                if(newPos === 8) newPos = 18;
+            }
+
+            if(newPos >= boardSize) {
+                alert("অভিনন্দন! আপনি জিতেছেন! 🎉");
+                newPos = boardSize;
+            }
+
+            game.pos[user] = newPos;
+            game.turn = activeChat;
+            game.lastRoll = roll;
+
+            await fetch(DB+"games/"+cid+"/"+currentGameType+".json", {method:"PUT", body:JSON.stringify(game)});
+            document.getElementById('rollBtn').disabled = false;
+        }, 1000);
+    }
+
+    async function syncBoardGame(type) {
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        let res = await fetch(DB+"games/"+cid+"/"+type+".json");
+        let game = await res.json();
+        if(!game) return;
+
+        document.getElementById('gameTurnText').innerText = game.turn === user ? "আপনার চাল..." : "বন্ধুর চাল...";
+        document.getElementById('rollBtn').style.opacity = game.turn === user ? "1" : "0.5";
+        document.getElementById('mainDice').innerText = game.lastRoll || "?";
+
+        // Clear pawns
+        document.querySelectorAll('.pawn').forEach(p => p.remove());
+
+        // Update Pawns
+        Object.entries(game.pos).forEach(([uid, pos]) => {
+            if(pos > 0) {
+                let step = document.getElementById('step-' + pos);
+                if(step) {
+                    let p = document.createElement('div');
+                    p.className = 'pawn ' + (uid === user ? 'me' : 'friend');
+                    if(uid !== user) p.style.left = "5px"; else p.style.right = "5px";
+                    step.appendChild(p);
+                }
+            }
+        });
+    }
+
+    // --- 3. Red Dash Game Logic ---
+    async function startDashGame() {
+        document.getElementById('gameChoiceModal').style.display = 'none';
+        document.getElementById('dashModal').style.display = 'flex';
+        
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        await fetch(DB+"games/"+cid+"/dash.json", {method:"PUT", body:JSON.stringify({[user]:0, [activeChat]:0, start: Date.now()})});
+        
+        let timeLeft = 10;
+        document.getElementById('dashTimer').innerText = timeLeft;
+        document.getElementById('dashClickBtn').disabled = false;
+        
+        clearInterval(dashTimerInt);
+        dashTimerInt = setInterval(async () => {
+            timeLeft--;
+            document.getElementById('dashTimer').innerText = timeLeft;
+            if(timeLeft <= 0) {
+                clearInterval(dashTimerInt);
+                document.getElementById('dashClickBtn').disabled = true;
+                alert("গেম শেষ! আপনার স্কোর চেক করুন।");
+            }
+            syncDash();
+        }, 1000);
+    }
+
+    async function registerDashClick() {
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        let res = await fetch(DB+"games/"+cid+"/dash.json");
+        let data = await res.json();
+        data[user] = (data[user] || 0) + 1;
+        await fetch(DB+"games/"+cid+"/dash.json", {method:"PUT", body:JSON.stringify(data)});
+        document.getElementById('myDashScore').innerText = data[user];
+    }
+
+    async function syncDash() {
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        let res = await fetch(DB+"games/"+cid+"/dash.json");
+        let data = await res.json();
+        if(data) {
+            document.getElementById('myDashScore').innerText = data[user] || 0;
+            document.getElementById('friendDashScore').innerText = data[activeChat] || 0;
+        }
+    }
+</script>
     
 </body>
 </html>
