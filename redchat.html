@@ -861,6 +861,252 @@
         if(isScrolledToBottom) msgBox.scrollTop = msgBox.scrollHeight;
     }
 </script>
+<style>
+    /* Emoji Picker Styling */
+    .emoji-picker {
+        display: none; position: absolute; bottom: 70px; left: 10px; background: var(--sidebar-bg);
+        border: 1px solid var(--border-color); border-radius: 12px; padding: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15); width: 280px; max-height: 250px;
+        overflow-y: auto; z-index: 100; grid-template-columns: repeat(6, 1fr); gap: 10px;
+    }
+    .emoji-item { font-size: 26px; cursor: pointer; text-align: center; transition: transform 0.2s; user-select: none; }
+    .emoji-item:hover { transform: scale(1.3); }
+
+    /* Reply Preview (Above input box) */
+    .reply-preview {
+        display: none; background: rgba(0, 188, 212, 0.1); padding: 10px 15px; border-left: 5px solid var(--primary);
+        position: relative; border-radius: 8px 8px 0 0; margin-bottom: -1px; width: 100%;
+        border-top: 1px solid var(--border-color); z-index: 1;
+    }
+    .reply-close { position: absolute; right: 15px; top: 15px; cursor: pointer; color: var(--text-sec); font-size: 18px; }
+
+    /* Quoted Message (Inside chat bubble) */
+    .quoted-msg-box {
+        background: rgba(0,0,0,0.06); padding: 6px 12px; border-left: 4px solid var(--primary);
+        border-radius: 6px; margin-bottom: 6px; font-size: 13px; color: var(--text-sec); cursor: pointer;
+    }
+    .dark-theme .quoted-msg-box { background: rgba(255,255,255,0.05); }
+</style>
+
+<script>
+    let replyData = null; // Stores info about the message being replied to
+
+    // 1. Inject Emoji Picker & Reply UI dynamically
+    setTimeout(() => {
+        let inputBar = document.querySelector('.input-bar');
+        
+        // Add Reply Preview UI
+        let replyDiv = document.createElement('div');
+        replyDiv.id = 'replyPreviewUI';
+        replyDiv.className = 'reply-preview';
+        replyDiv.innerHTML = `
+            <div style="font-weight:bold; font-size:14px; color:var(--primary); margin-bottom:2px;" id="replyPreviewName">Name</div>
+            <div style="font-size:14px; color:var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="replyPreviewText">Message...</div>
+            <i class="fa-solid fa-xmark reply-close" onclick="cancelReply()"></i>`;
+        inputBar.parentNode.insertBefore(replyDiv, inputBar);
+
+        // Add Emoji Picker UI
+        let emojiIcon = document.querySelector('.fa-face-smile');
+        let emojiDiv = document.createElement('div');
+        emojiDiv.id = 'emojiPicker';
+        emojiDiv.className = 'emoji-picker';
+        
+        const emojis = ['😀','😂','🤣','😊','🥰','😘','😜','😎','🥺','😢','😡','😱','👍','👎','🙏','🤝','🔥','❤️','💔','🎉','✨','🌟','✅','💯'];
+        emojiDiv.innerHTML = emojis.map(e => `<div class="emoji-item" onclick="insertEmoji('${e}')">${e}</div>`).join('');
+        inputBar.parentNode.insertBefore(emojiDiv, inputBar);
+        
+        // Toggle Emoji Picker
+        if(emojiIcon) {
+            emojiIcon.style.cursor = "pointer";
+            emojiIcon.onclick = () => {
+                emojiDiv.style.display = emojiDiv.style.display === 'grid' ? 'none' : 'grid';
+            };
+        }
+
+        // Upgrade Paperclip (Send Image with Reply support)
+        let paperclip = document.querySelector('.fa-paperclip');
+        if(paperclip) {
+            paperclip.onclick = () => {
+                if(!activeChat) return alert("আগে কোনো একটি চ্যাট ওপেন করুন!");
+                let input = document.createElement('input');
+                input.type = 'file'; input.accept = 'image/*';
+                input.onchange = (e) => {
+                    let file = e.target.files[0];
+                    if(!file) return;
+                    let reader = new FileReader();
+                    reader.onload = async (ev) => {
+                        let imgData = ev.target.result;
+                        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+                        let time = Date.now();
+                        msgInput.placeholder = "ছবি পাঠানো হচ্ছে...";
+                        
+                        let payload = {from:user, img: imgData, time:time, seen:false};
+                        if(replyData) payload.replyTo = replyData; // Attach reply data if exists
+                        
+                        await fetch(DB+"chats/"+cid+"/"+time+".json", { method:"PUT", body:JSON.stringify(payload) });
+                        msgInput.placeholder = "আপনার মেসেজ লিখুন...";
+                        cancelReply();
+                        loadMsgs();
+                    };
+                    reader.readAsDataURL(file);
+                };
+                input.click();
+            };
+        }
+    }, 1500);
+
+    function insertEmoji(e) {
+        let input = document.getElementById('msgInput');
+        input.value += e;
+        input.focus();
+    }
+
+    // --- 2. Reply Logic ---
+    function initiateReply(sender, text, img) {
+        replyData = { sender: sender, text: text || "ছবি 📷" };
+        document.getElementById('replyPreviewUI').style.display = 'block';
+        document.getElementById('replyPreviewText').innerText = replyData.text;
+        document.getElementById('replyPreviewName').innerText = sender === user ? 'আপনি' : sender;
+        document.getElementById('msgInput').focus();
+    }
+
+    function cancelReply() {
+        replyData = null;
+        let ui = document.getElementById('replyPreviewUI');
+        if(ui) ui.style.display = 'none';
+    }
+
+    // --- 3. Last Seen Timestamp Logic ---
+    async function setOnline(st) {
+        if(user) {
+            await fetch(DB+"users/"+user+"/online.json", {method:"PUT", body:JSON.stringify(st)});
+            if(!st) {
+                // Save Last Seen time when going offline
+                await fetch(DB+"users/"+user+"/lastSeen.json", {method:"PUT", body:JSON.stringify(Date.now())});
+            }
+        }
+    }
+
+    async function updateStatus(f) {
+        let res = await fetch(DB+"users/"+f+".json");
+        let uData = await res.json();
+        let statusEl = document.getElementById('status');
+        
+        if(uData.online) {
+            statusEl.innerText = "অনলাইন";
+        } else {
+            if(uData.lastSeen) {
+                let date = new Date(uData.lastSeen);
+                let today = new Date();
+                let prefix = "";
+                
+                if(date.toDateString() === today.toDateString()) {
+                    prefix = "আজ ";
+                } else {
+                    let yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    if(date.toDateString() === yesterday.toDateString()) {
+                        prefix = "গতকাল ";
+                    } else {
+                        prefix = date.toLocaleDateString() + " ";
+                    }
+                }
+                statusEl.innerText = "Last seen " + prefix + "at " + date.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+            } else {
+                statusEl.innerText = "অফলাইন";
+            }
+        }
+    }
+
+    // --- 4. Upgraded Send & Load Messages ---
+    async function send() {
+        let txt = msgInput.value.trim();
+        if(!txt) return;
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        let time = Date.now();
+        
+        let payload = {from:user, text:txt, time:time, seen:false};
+        if(replyData) payload.replyTo = replyData; // Attach reply data
+        
+        await fetch(DB+"chats/"+cid+"/"+time+".json", { method:"PUT", body:JSON.stringify(payload) });
+        
+        msgInput.value = "";
+        cancelReply();
+        document.getElementById('emojiPicker').style.display = 'none';
+        loadMsgs();
+    }
+
+    async function loadMsgs() {
+        if(!activeChat) return;
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        let res = await fetch(DB+"chats/"+cid+".json");
+        let msgs = await res.json();
+        
+        let isScrolledToBottom = msgBox.scrollHeight - msgBox.clientHeight <= msgBox.scrollTop + 1;
+        msgBox.innerHTML = "";
+        
+        if(msgs) {
+            Object.values(msgs).forEach(m => {
+                let div = document.createElement("div");
+                div.className = "msg " + (m.from === user ? "sent" : "received");
+                div.title = "রিপ্লাই দিতে ক্লিক করুন, ডিলিট করতে ডাবল-ক্লিক করুন";
+                
+                let time = new Date(m.time).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+                
+                // Reply Box rendering
+                let quotedHTML = "";
+                if(m.replyTo) {
+                    let senderName = m.replyTo.sender === user ? 'আপনি' : m.replyTo.sender;
+                    quotedHTML = `<div class="quoted-msg-box">
+                                    <div style="font-weight:bold; color:var(--primary);">${senderName}</div>
+                                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${m.replyTo.text}</div>
+                                  </div>`;
+                }
+
+                // Main Content rendering
+                let contentHTML = "";
+                if(m.img) {
+                    contentHTML = `<img src="${m.img}" style="max-width:100%; border-radius:8px; margin-bottom:5px; cursor:pointer;" onclick="window.open('${m.img}', '_blank')">`;
+                } else if(m.text) {
+                    contentHTML = `<div>${m.text}</div>`;
+                } else {
+                    contentHTML = `<div style="font-style:italic; color:var(--text-sec);">মেসেজটি ডিলিট করা হয়েছে 🚫</div>`;
+                }
+                
+                div.innerHTML = `${quotedHTML}${contentHTML}
+                                 <div class="msg-time">${time} ${m.from === user ? (m.seen ? '<i class="fa-solid fa-check-double" style="color:#00bcd4"></i>' : '<i class="fa-solid fa-check"></i>') : ''}</div>`;
+                
+                // Single click to Reply
+                div.onclick = (e) => {
+                    if(e.target.tagName === 'IMG') return; // Don't trigger if clicked on an image directly
+                    if(m.text !== null || m.img !== null) {
+                        initiateReply(m.from, m.text, m.img);
+                    }
+                };
+
+                // Double click to Delete
+                div.ondblclick = async (e) => {
+                    e.stopPropagation(); // Prevents the reply logic from triggering
+                    if(m.text === null && m.img === null) return;
+                    if(confirm("এই মেসেজটি কি সবার জন্য ডিলিট করতে চান?")) {
+                        await fetch(DB+"chats/"+cid+"/"+m.time+".json", {
+                            method:"PUT", 
+                            body:JSON.stringify({from:m.from, text:null, img:null, time:m.time, seen:m.seen, replyTo: m.replyTo})
+                        });
+                        loadMsgs();
+                    }
+                };
+                
+                msgBox.appendChild(div);
+                
+                if(m.from !== user && !m.seen && (m.text !== null || m.img !== null)) {
+                    fetch(DB+"chats/"+cid+"/"+m.time+"/seen.json", {method:"PUT", body:"true"});
+                }
+            });
+        }
+        if(isScrolledToBottom) msgBox.scrollTop = msgBox.scrollHeight;
+    }
+</script>
     
 </body>
 </html>
