@@ -1820,59 +1820,63 @@
 <style>
     /* Chat Window Menu Styles */
     .chat-menu {
-        position: absolute; top: 60px; right: 15px; background: var(--sidebar-bg);
+        position: absolute; top: 40px; right: 0; background: var(--sidebar-bg);
         border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        display: none; flex-direction: column; z-index: 1000; min-width: 180px;
+        display: none; flex-direction: column; z-index: 1000; min-width: 180px; overflow: hidden;
     }
     .chat-menu-item {
         padding: 12px 15px; cursor: pointer; display: flex; align-items: center; gap: 10px;
-        color: var(--text-main); font-size: 14px; border-bottom: 1px solid var(--border-color);
+        color: var(--text-main); font-size: 15px; border-bottom: 1px solid var(--border-color);
+        transition: background 0.2s; font-family: 'Hind Siliguri', sans-serif;
     }
-    .chat-menu-item:hover { background: var(--bg); color: var(--primary); }
+    .chat-menu-item:hover { background: var(--bg); color: var(--primary); padding-left: 20px; }
 
-    /* Gaming Modal */
+    /* Gaming Modal Styles */
     .game-modal {
-        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
         background: rgba(0,0,0,0.8); z-index: 5000; justify-content: center; align-items: center;
     }
     .game-box {
-        background: var(--sidebar-bg); width: 95%; max-width: 400px; border-radius: 20px;
-        padding: 20px; position: relative; text-align: center;
+        background: var(--sidebar-bg); width: 90%; max-width: 380px; border-radius: 20px;
+        padding: 25px; position: relative; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
     .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
     .game-card {
-        background: var(--bg); padding: 20px; border-radius: 15px; cursor: pointer;
-        transition: 0.3s; border: 2px solid transparent;
+        background: var(--bg); padding: 20px 10px; border-radius: 15px; cursor: pointer;
+        transition: 0.3s; border: 2px solid transparent; display: flex; flex-direction: column; align-items: center;
     }
-    .game-card:hover { border-color: var(--secondary); transform: translateY(-5px); }
-    .game-card i { font-size: 30px; color: var(--secondary); margin-bottom: 10px; }
+    .game-card:hover { border-color: var(--secondary); transform: translateY(-5px); background: rgba(255,59,48,0.05); }
+    .game-card i { font-size: 35px; color: var(--secondary); margin-bottom: 10px; }
 
-    /* Tic-Tac-Toe UI */
-    .ttt-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 20px auto; width: 240px; }
+    /* Tic-Tac-Toe Board */
+    .ttt-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 25px auto; width: 240px; }
     .ttt-cell {
-        width: 80px; height: 80px; background: var(--bg); border-radius: 10px;
-        display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; cursor: pointer;
+        width: 75px; height: 75px; background: var(--bg); border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; 
+        cursor: pointer; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s;
     }
+    .ttt-cell:hover { background: rgba(0,188,212,0.1); }
 </style>
 
 <div id="gameZoneModals">
     <div class="game-modal" id="gameChoiceModal">
         <div class="game-box">
-            <i class="fa-solid fa-xmark" style="position:absolute; right:20px; top:20px; cursor:pointer;" onclick="closeGameModal()"></i>
-            <h2 class="brand-logo" style="color:var(--secondary);">Red Gaming Zone</h2>
+            <i class="fa-solid fa-xmark" style="position:absolute; right:20px; top:20px; font-size: 22px; cursor:pointer; color:var(--text-sec);" onclick="closeGameModal()"></i>
+            <h2 class="brand-logo" style="color:var(--secondary); font-size: 28px; margin-bottom: 5px;">Red Gaming Zone</h2>
             <p style="font-size:14px; color:var(--text-sec);">বন্ধুর সাথে অনলাইন চ্যালেঞ্জ শুরু করুন!</p>
+            
             <div class="game-grid">
                 <div class="game-card" onclick="startTTT()">
-                    <i class="fa-solid fa-hashtag"></i><br><b>কাটাকুটি</b>
+                    <i class="fa-solid fa-hashtag"></i><span style="font-weight:600;">কাটাকুটি</span>
                 </div>
-                <div class="game-card" onclick="alert('Ludo Coming Soon!')">
-                    <i class="fa-solid fa-dice"></i><br><b>রেড লুডো</b>
+                <div class="game-card" onclick="alert('রেড লুডো সার্ভার তৈরি হচ্ছে! 🎲')">
+                    <i class="fa-solid fa-dice"></i><span style="font-weight:600;">রেড লুডো</span>
                 </div>
-                <div class="game-card" onclick="alert('Snakes & Ladders Coming Soon!')">
-                    <i class="fa-solid fa-arrow-trend-up"></i><br><b>সাপ সিঁড়ি</b>
+                <div class="game-card" onclick="alert('সাপ সিঁড়ি গেম জলদি আসছে! 🐍')">
+                    <i class="fa-solid fa-arrow-trend-up"></i><span style="font-weight:600;">সাপ সিঁড়ি</span>
                 </div>
-                <div class="game-card" onclick="alert('Red Dash Coming Soon!')">
-                    <i class="fa-solid fa-bolt"></i><br><b>রেড ড্যাশ</b>
+                <div class="game-card" onclick="alert('রেড ড্যাশ গেম লক করা আছে! ⚡')">
+                    <i class="fa-solid fa-bolt"></i><span style="font-weight:600;">রেড ড্যাশ</span>
                 </div>
             </div>
         </div>
@@ -1880,50 +1884,67 @@
 
     <div class="game-modal" id="tttModal">
         <div class="game-box">
-            <h3 id="tttStatus">আপনার চাল...</h3>
+            <h3 id="tttStatus" style="color:var(--primary); font-family:'Hind Siliguri', sans-serif;">আপনার চাল...</h3>
             <div class="ttt-board" id="tttBoard"></div>
-            <button onclick="closeGameModal()" style="background:var(--text-sec);">পিছনে যান</button>
+            <button onclick="closeGameModal()" style="width: 100%; padding: 12px; border-radius: 10px; border:none; background:var(--text-sec); color:white; font-size: 16px; cursor:pointer;">গেম থেকে বেরোন</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 1. Inject 3-Dot Menu into ACTIVE CHAT window header
-    setInterval(() => {
-        let chatHeader = document.querySelector('#activeChat .header-actions');
-        if(chatHeader && !document.getElementById('chatDropdownMenu')) {
-            // Create menu button
-            let menuBtn = document.createElement('i');
-            menuBtn.className = "fa-solid fa-ellipsis-vertical";
-            menuBtn.style.cursor = "pointer";
-            menuBtn.style.marginLeft = "15px";
+    // 1. Existing 3-Dot Button Fix (আগে থেকে থাকা বাটনে মেনু যুক্ত করা)
+    setTimeout(() => {
+        // চ্যাট হেডারের অ্যাকশন এরিয়া খোঁজা হচ্ছে
+        let chatHeaderActions = document.querySelector('.chat-header .header-actions');
+        
+        if(chatHeaderActions) {
+            // আগে থেকে থাকা থ্রি-ডট আইকনটি খোঁজা হচ্ছে
+            let existingThreeDot = chatHeaderActions.querySelector('.fa-ellipsis-vertical');
             
-            // Create the menu
-            let menu = document.createElement('div');
-            menu.className = "chat-menu";
-            menu.id = "chatDropdownMenu";
-            menu.innerHTML = `
-                <div class="chat-menu-item" onclick="openGameZone()">
-                    <i class="fa-solid fa-gamepad" style="color:var(--secondary)"></i> Gaming Zone
-                </div>
-                <div class="chat-menu-item" onclick="alert('ফাইল শেয়ারিং ফিচার শীঘ্রই আসছে!')">
-                    <i class="fa-solid fa-file-import"></i> ফাইল পাঠান
-                </div>
-            `;
-            
-            chatHeader.appendChild(menu);
-            chatHeader.appendChild(menuBtn);
-            
-            menuBtn.onclick = (e) => {
-                e.stopPropagation();
-                menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
-            };
+            if(existingThreeDot) {
+                existingThreeDot.style.cursor = "pointer";
+                existingThreeDot.style.padding = "10px"; // টাচ করার সুবিধা
+                
+                // মেনু পজিশনের জন্য প্যারেন্ট রিলেটিভ করা হলো
+                chatHeaderActions.style.position = "relative";
+                
+                // মেনু তৈরি করা হচ্ছে
+                if(!document.getElementById('realChatDropdownMenu')) {
+                    let menu = document.createElement('div');
+                    menu.className = "chat-menu";
+                    menu.id = "realChatDropdownMenu";
+                    menu.innerHTML = `
+                        <div class="chat-menu-item" onclick="openGameZone()">
+                            <i class="fa-solid fa-gamepad" style="color:var(--secondary); font-size: 18px; width: 25px;"></i> Gaming Zone
+                        </div>
+                        <div class="chat-menu-item" onclick="alert('ফাইল শেয়ারিং ফিচার শীঘ্রই আসছে!')">
+                            <i class="fa-solid fa-file-import" style="color:var(--primary); font-size: 18px; width: 25px;"></i> ডকুমেন্ট পাঠান
+                        </div>
+                    `;
+                    
+                    chatHeaderActions.appendChild(menu);
+                    
+                    // থ্রি-ডটে ক্লিক করলে মেনু খুলবে/বন্ধ হবে
+                    existingThreeDot.onclick = (e) => {
+                        e.stopPropagation(); // অন্য ক্লিক ইভেন্টগুলো ব্লক করবে
+                        menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+                    };
+                    
+                    // বাইরে ক্লিক করলে মেনু নিজে থেকে বন্ধ হয়ে যাবে
+                    document.addEventListener('click', (e) => {
+                        if(e.target !== existingThreeDot && !menu.contains(e.target)) {
+                            menu.style.display = 'none';
+                        }
+                    });
+                }
+            }
         }
-    }, 1000);
+    }, 2000);
 
+    // 2. Game Logic
     function openGameZone() {
         document.getElementById('gameChoiceModal').style.display = 'flex';
-        document.getElementById('chatDropdownMenu').style.display = 'none';
+        document.getElementById('realChatDropdownMenu').style.display = 'none';
     }
 
     function closeGameModal() {
@@ -1931,15 +1952,15 @@
         if(typeof tttInterval !== 'undefined') clearInterval(tttInterval);
     }
 
-    // --- Tic-Tac-Toe Logic (Multiplayer Sync via Firebase) ---
+    // --- Tic-Tac-Toe Sync Logic ---
     let tttInterval;
     async function startTTT() {
+        if(!activeChat) return alert('আগে একটি চ্যাট ওপেন করুন!');
         document.getElementById('gameChoiceModal').style.display = 'none';
         document.getElementById('tttModal').style.display = 'flex';
         initTTTBoard();
         
         let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
-        // Reset game on Firebase
         await fetch(DB+"games/"+cid+"/ttt.json", {method:"PUT", body:JSON.stringify({board: Array(9).fill(""), turn: user})});
         
         tttInterval = setInterval(syncTTT, 2000);
@@ -1961,16 +1982,18 @@
         let res = await fetch(DB+"games/"+cid+"/ttt.json");
         let game = await res.json();
         
-        if(game.turn !== user || game.board[i] !== "") return;
+        if(!game || game.turn !== user || game.board[i] !== "") return;
         
-        game.board[i] = "X"; // User is always X for their screen
-        game.turn = activeChat;
+        game.board[i] = "X"; // আপনার চাল সবসময় X দেখাবে
+        game.turn = activeChat; // এবার বন্ধুর চাল
         
         await fetch(DB+"games/"+cid+"/ttt.json", {method:"PUT", body:JSON.stringify(game)});
         syncTTT();
     }
 
     async function syncTTT() {
+        if(document.getElementById('tttModal').style.display === 'none') return;
+        
         let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
         let res = await fetch(DB+"games/"+cid+"/ttt.json");
         let game = await res.json();
@@ -1979,10 +2002,11 @@
         let cells = document.querySelectorAll('.ttt-cell');
         game.board.forEach((val, idx) => {
             cells[idx].innerText = val;
-            cells[idx].style.color = val === "X" ? "var(--secondary)" : "var(--accent)";
+            if(val === "X") cells[idx].style.color = "var(--secondary)";
+            else if(val !== "") cells[idx].style.color = "var(--accent)";
         });
 
-        document.getElementById('tttStatus').innerText = game.turn === user ? "আপনার চাল..." : "বন্ধু খেলছে...";
+        document.getElementById('tttStatus').innerText = game.turn === user ? "আপনার চাল..." : "বন্ধু ভাবছে...";
     }
 </script>
     
