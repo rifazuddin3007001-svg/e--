@@ -1107,6 +1107,202 @@
         if(isScrolledToBottom) msgBox.scrollTop = msgBox.scrollHeight;
     }
 </script>
+<style>
+    /* Secret Message CSS */
+    .secret-wrap { position: relative; display: inline-block; cursor: pointer; min-width: 120px; text-align: center; }
+    .secret-content { filter: blur(10px); transition: filter 0.5s ease; user-select: none; }
+    .secret-cover {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: repeating-linear-gradient(45deg, var(--secondary), var(--secondary) 10px, var(--accent) 10px, var(--accent) 20px);
+        border-radius: 8px; display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: bold; font-size: 20px; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); z-index: 2;
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .secret-wrap.revealed .secret-cover { opacity: 0; transform: scale(1.2); pointer-events: none; }
+    .secret-wrap.revealed .secret-content { filter: blur(0px); }
+
+    /* Magic Effects CSS Animations */
+    .magic-item { position: fixed; pointer-events: none; z-index: 9999; font-size: 30px; }
+    @keyframes floatUp { 0% { transform: translateY(100dvh) scale(0.5); opacity: 1; } 100% { transform: translateY(-20dvh) scale(1.5); opacity: 0; } }
+    @keyframes fallDown { 0% { transform: translateY(-10dvh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100dvh) rotate(360deg); opacity: 0; } }
+</style>
+
+<script>
+    let isSecretMsg = false;
+    let playedEffects = new Set(); // To remember which messages already showed animations
+
+    // 1. Add "Gift" Button for Secret Messages in Input Bar
+    setTimeout(() => {
+        let inputBar = document.querySelector('.input-bar');
+        let msgInputbox = document.getElementById('msgInput');
+        
+        let giftBtn = document.createElement('i');
+        giftBtn.className = "fa-solid fa-gift";
+        giftBtn.id = "secretToggleBtn";
+        giftBtn.style.color = "var(--text-sec)";
+        giftBtn.style.cursor = "pointer";
+        giftBtn.title = "সিক্রেট মেসেজ অন/অফ";
+        
+        giftBtn.onclick = () => {
+            isSecretMsg = !isSecretMsg;
+            giftBtn.style.color = isSecretMsg ? "var(--secondary)" : "var(--text-sec)";
+            msgInputbox.placeholder = isSecretMsg ? "🎁 গোপন মেসেজ লিখুন..." : "আপনার মেসেজ লিখুন...";
+            if(isSecretMsg) {
+                giftBtn.style.transform = "scale(1.2)";
+                setTimeout(()=> giftBtn.style.transform = "scale(1)", 200);
+            }
+        };
+        
+        inputBar.insertBefore(giftBtn, msgInputbox);
+    }, 2000);
+
+    // 2. Magic Effects Engine
+    function triggerMagic(text, msgId) {
+        if(playedEffects.has(msgId)) return; // Don't repeat animation for old messages
+        
+        text = text.toLowerCase();
+        let matched = false;
+
+        if(text.includes('happy birthday') || text.includes('শুভ জন্মদিন')) {
+            createMagicElements(['🎈','🎂','🎉','🎁'], 'floatUp', 30);
+            matched = true;
+        } 
+        else if(text.includes('redchaat') || text.includes('red chaat')) {
+            createMagicElements(['🔴','✨','🟥','🔥'], 'fallDown', 40);
+            matched = true;
+        }
+        else if(text.includes('ভালোবাসি') || text.includes('love you')) {
+            createMagicElements(['❤️','💖','💕','💘'], 'floatUp', 30);
+            matched = true;
+        }
+
+        if(matched) {
+            playedEffects.add(msgId);
+            // Play a small pop sound for the effect
+            let audio = new Audio('https://www.soundjay.com/buttons/sounds/button-09.mp3'); 
+            audio.volume = 0.5;
+            audio.play().catch(e=>console.log(e));
+        }
+    }
+
+    function createMagicElements(emojis, animationName, count) {
+        for(let i=0; i<count; i++) {
+            let el = document.createElement('div');
+            el.className = 'magic-item';
+            el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animation = `${animationName} ${Math.random() * 2 + 2}s linear forwards`;
+            el.style.fontSize = (Math.random() * 20 + 20) + 'px';
+            document.body.appendChild(el);
+            
+            // Remove element after animation ends
+            setTimeout(() => el.remove(), 4000);
+        }
+    }
+
+    // 3. Upgrade Send Function to handle Secret Flag
+    async function send() {
+        let txt = msgInput.value.trim();
+        if(!txt) return;
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        let time = Date.now();
+        
+        let payload = {from:user, text:txt, time:time, seen:false, secret: isSecretMsg};
+        if(typeof replyData !== 'undefined' && replyData) payload.replyTo = replyData;
+        
+        await fetch(DB+"chats/"+cid+"/"+time+".json", { method:"PUT", body:JSON.stringify(payload) });
+        
+        msgInput.value = "";
+        
+        // Reset secret toggle after sending
+        if(isSecretMsg) document.getElementById('secretToggleBtn').click();
+        
+        if(typeof cancelReply === 'function') cancelReply();
+        let emojiPicker = document.getElementById('emojiPicker');
+        if(emojiPicker) emojiPicker.style.display = 'none';
+        
+        loadMsgs();
+    }
+
+    // 4. Upgrade LoadMsgs to render Magic & Secret features
+    async function loadMsgs() {
+        if(!activeChat) return;
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        let res = await fetch(DB+"chats/"+cid+".json");
+        let msgs = await res.json();
+        
+        let isScrolledToBottom = msgBox.scrollHeight - msgBox.clientHeight <= msgBox.scrollTop + 1;
+        msgBox.innerHTML = "";
+        
+        if(msgs) {
+            Object.values(msgs).forEach(m => {
+                let div = document.createElement("div");
+                div.className = "msg " + (m.from === user ? "sent" : "received");
+                div.title = "রিপ্লাই দিতে ক্লিক করুন, ডিলিট করতে ডাবল-ক্লিক করুন";
+                
+                let time = new Date(m.time).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+                
+                let quotedHTML = "";
+                if(m.replyTo) {
+                    let senderName = m.replyTo.sender === user ? 'আপনি' : m.replyTo.sender;
+                    quotedHTML = `<div class="quoted-msg-box">
+                                    <div style="font-weight:bold; color:var(--primary);">${senderName}</div>
+                                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${m.replyTo.text}</div>
+                                  </div>`;
+                }
+
+                let contentHTML = "";
+                if(m.img) {
+                    contentHTML = `<img src="${m.img}" style="max-width:100%; border-radius:8px; margin-bottom:5px; cursor:pointer;" onclick="window.open('${m.img}', '_blank')">`;
+                } else if(m.text) {
+                    // Check if it's a secret message
+                    if(m.secret) {
+                        contentHTML = `
+                        <div class="secret-wrap" onclick="this.classList.add('revealed')">
+                            <div class="secret-cover">🎁</div>
+                            <div class="secret-content">${m.text}</div>
+                        </div>`;
+                    } else {
+                        contentHTML = `<div>${m.text}</div>`;
+                        // Trigger magic effect if text contains keywords
+                        triggerMagic(m.text, m.time);
+                    }
+                } else {
+                    contentHTML = `<div style="font-style:italic; color:var(--text-sec);">মেসেজটি ডিলিট করা হয়েছে 🚫</div>`;
+                }
+                
+                div.innerHTML = `${quotedHTML}${contentHTML}
+                                 <div class="msg-time">${time} ${m.from === user ? (m.seen ? '<i class="fa-solid fa-check-double" style="color:#00bcd4"></i>' : '<i class="fa-solid fa-check"></i>') : ''}</div>`;
+                
+                div.onclick = (e) => {
+                    if(e.target.tagName === 'IMG' || e.target.closest('.secret-wrap')) return; 
+                    if((m.text !== null || m.img !== null) && typeof initiateReply === 'function') {
+                        initiateReply(m.from, m.text, m.img);
+                    }
+                };
+
+                div.ondblclick = async (e) => {
+                    e.stopPropagation(); 
+                    if(m.text === null && m.img === null) return;
+                    if(confirm("এই মেসেজটি কি সবার জন্য ডিলিট করতে চান?")) {
+                        await fetch(DB+"chats/"+cid+"/"+m.time+".json", {
+                            method:"PUT", 
+                            body:JSON.stringify({from:m.from, text:null, img:null, time:m.time, seen:m.seen, replyTo: m.replyTo})
+                        });
+                        loadMsgs();
+                    }
+                };
+                
+                msgBox.appendChild(div);
+                
+                if(m.from !== user && !m.seen && (m.text !== null || m.img !== null)) {
+                    fetch(DB+"chats/"+cid+"/"+m.time+"/seen.json", {method:"PUT", body:"true"});
+                }
+            });
+        }
+        if(isScrolledToBottom) msgBox.scrollTop = msgBox.scrollHeight;
+    }
+</script>
     
 </body>
 </html>
