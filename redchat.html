@@ -1480,6 +1480,105 @@
         if(typeof updateStatus === 'function') updateStatus(f);
     }
             </script>
+<style>
+    /* 1. Hardware Acceleration & Smooth Scrolling */
+    .messages-container, .chat-list, .story-list-container {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch; /* iPhone-এর জন্য একদম স্মুথ স্ক্রল */
+        will-change: scroll-position, transform;
+    }
+
+    /* 2. Message Pop-in Animation (মেসেজ আসার স্টাইলিশ অ্যানিমেশন) */
+    @keyframes msgPopIn {
+        0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .msg {
+        animation: msgPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        will-change: transform, opacity; /* গ্রাফিক্স কার্ড ব্যবহার করে ল্যাগ কমাবে */
+    }
+
+    /* 3. Smooth Hover & Touch States (টাচ করলে সফট ফিল হবে) */
+    .chat-item, .header-actions i, .avatar, .story-card {
+        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    }
+    .chat-item:active, .story-card:active { 
+        transform: scale(0.98); 
+    }
+    
+    /* 4. Material Ripple Effect (অ্যান্ড্রয়েডের মতো ক্লিক ইফেক্ট) */
+    .ripple {
+        position: absolute; border-radius: 50%; transform: scale(0);
+        animation: ripple-anim 0.5s linear; pointer-events: none;
+    }
+    @keyframes ripple-anim {
+        to { transform: scale(4); opacity: 0; }
+    }
+</style>
+
+<script>
+    // 5. Advanced DOM Optimizer (ল্যাগ এবং হ্যাং হওয়া আটকাবে)
+    document.addEventListener("DOMContentLoaded", () => {
+        
+        // Clicks Ripple Effect Logic (ক্লিক করলে জলের ঢেউয়ের মতো ইফেক্ট)
+        document.body.addEventListener('click', function(e) {
+            const target = e.target.closest('.chat-item, .send-btn, button, .story-card');
+            if (!target) return;
+            
+            if(getComputedStyle(target).position === 'static') target.style.position = 'relative';
+            target.style.overflow = 'hidden';
+
+            const circle = document.createElement('span');
+            const diameter = Math.max(target.clientWidth, target.clientHeight);
+            const radius = diameter / 2;
+
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${e.clientX - target.getBoundingClientRect().left - radius}px`;
+            circle.style.top = `${e.clientY - target.getBoundingClientRect().top - radius}px`;
+            circle.classList.add('ripple');
+            
+            // Cyan tint for chat items, white for solid buttons
+            circle.style.backgroundColor = target.tagName === 'BUTTON' ? 'rgba(255,255,255,0.4)' : 'rgba(0, 188, 212, 0.15)';
+
+            const existingRipple = target.querySelector('.ripple');
+            if (existingRipple) existingRipple.remove();
+
+            target.appendChild(circle);
+            setTimeout(() => circle.remove(), 500);
+        });
+
+        const chatBox = document.getElementById('msgBox');
+        if(chatBox) {
+            // Lazy Load Images: চ্যাটে অনেক ছবি থাকলে ফোন যাতে হ্যাং না করে
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.addedNodes.length > 0) {
+                        mutation.addedNodes.forEach(node => {
+                            if(node.tagName === 'DIV' && node.classList.contains('msg')) {
+                                let imgs = node.querySelectorAll('img');
+                                imgs.forEach(img => {
+                                    img.setAttribute('loading', 'lazy'); // ছবি ধীরে লোড হবে, অ্যাপ ফাস্ট থাকবে
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+            observer.observe(chatBox, { childList: true });
+        }
+        
+        // 6. Battery & Data Saver (অ্যাপ মিনিমাইজ করলে ব্যাকগ্রাউন্ড প্রসেস থামিয়ে দেবে)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if(typeof chatInterval !== 'undefined') clearInterval(chatInterval);
+            } else {
+                if(typeof activeChat !== 'undefined' && activeChat && typeof loadMsgs === 'function') {
+                     chatInterval = setInterval(loadMsgs, 2000); // অ্যাপে ফিরলে আবার চালু হবে
+                }
+            }
+        });
+    });
+</script>
     
 </body>
 </html>
