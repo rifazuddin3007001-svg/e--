@@ -1303,6 +1303,183 @@
         if(isScrolledToBottom) msgBox.scrollTop = msgBox.scrollHeight;
     }
 </script>
+<style>
+    /* Avatar specific styles */
+    .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: var(--bg); transition: transform 0.3s; }
+    .avatar-img:hover { transform: scale(1.1); }
+    .avatar-preview-box {
+        width: 130px; height: 130px; margin: 0 auto 20px; border-radius: 50%;
+        border: 4px solid var(--primary); padding: 5px; background: var(--bg);
+        box-shadow: 0 10px 20px rgba(0,188,212,0.3); position: relative; overflow: hidden;
+    }
+    .avatar-select {
+        width: 100%; padding: 12px; border-radius: 10px; margin-bottom: 15px;
+        border: 1px solid var(--border-color); background: var(--bg); color: var(--text-main);
+        font-size: 15px; font-family: 'Hind Siliguri', sans-serif; outline: none;
+    }
+</style>
+
+<script>
+    // 1. Inject Avatar Editor Modal into the body
+    const avatarModalHTML = `
+    <div id="avatarEditorModal" class="auth-overlay" style="display:none; z-index: 3000;">
+        <div class="auth-card" style="position:relative; width: 340px; text-align:center;">
+            <i class="fa-solid fa-xmark" style="position:absolute; right:15px; top:15px; font-size:22px; cursor:pointer; color:var(--text-sec);" onclick="closeAvatarEditor()"></i>
+            <h2 style="color:var(--primary); margin-bottom:20px; font-family:'Hind Siliguri', sans-serif;">আপনার অ্যাভাটার 🧑‍🎤</h2>
+            
+            <div class="avatar-preview-box">
+                <img id="liveAvatarPreview" src="" class="avatar-img" style="background:#f0f2f5;">
+            </div>
+            
+            <select id="avatarStyleDropdown" class="avatar-select" onchange="changeAvatarStyle()">
+                <option value="micah">Cool (মডার্ন লুক)</option>
+                <option value="adventurer">Adventurer (অ্যাডভেঞ্চার)</option>
+                <option value="bottts">3D Bottts (রোবট)</option>
+                <option value="fun-emoji">Fun Emoji (মজার ইমোজি)</option>
+                <option value="lorelei">Cute (কিউট কার্টুন)</option>
+            </select>
+            
+            <button onclick="shuffleAvatar()" style="background:var(--accent); color:#000; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fa-solid fa-dice"></i> অন্য ডিজাইন দেখুন (Shuffle)
+            </button>
+            <button onclick="saveAvatar()" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fa-solid fa-check"></i> সেভ করুন
+            </button>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', avatarModalHTML);
+
+    // 2. Avatar Logic Variables
+    let currentAvatarSeed = "";
+    let currentAvatarStyle = "micah";
+
+    // 3. Add Profile Picture to Sidebar Header
+    setTimeout(async () => {
+        let sidebarHeaderInfo = document.querySelector('.user-info');
+        if(sidebarHeaderInfo && user) {
+            let myRes = await fetch(DB+"users/"+user+".json");
+            let myData = await myRes.json();
+            let myAvatarParams = myData.avatarParams || `micah/svg?seed=${user}&backgroundColor=b6e3f4`;
+            
+            let myAvatarDiv = document.createElement('div');
+            myAvatarDiv.className = "avatar";
+            myAvatarDiv.style.width = "45px"; myAvatarDiv.style.height = "45px";
+            myAvatarDiv.style.marginRight = "12px"; myAvatarDiv.style.cursor = "pointer";
+            myAvatarDiv.style.background = "transparent";
+            myAvatarDiv.title = "আপনার অ্যাভাটার পরিবর্তন করুন";
+            myAvatarDiv.id = "mySidebarAvatar";
+            myAvatarDiv.innerHTML = `<img src="https://api.dicebear.com/7.x/${myAvatarParams}" class="avatar-img">`;
+            myAvatarDiv.onclick = openAvatarEditor;
+            
+            // Flex row alignment for sidebar header
+            let wrapDiv = document.createElement('div');
+            wrapDiv.style.display = "flex"; wrapDiv.style.alignItems = "center";
+            sidebarHeaderInfo.parentNode.insertBefore(wrapDiv, sidebarHeaderInfo);
+            wrapDiv.appendChild(myAvatarDiv);
+            wrapDiv.appendChild(sidebarHeaderInfo);
+        }
+    }, 1500);
+
+    // 4. Editor Functions
+    function openAvatarEditor() {
+        currentAvatarSeed = currentAvatarSeed || user; // Default seed is username
+        document.getElementById('avatarEditorModal').style.display = 'flex';
+        updateAvatarPreview();
+    }
+    
+    function closeAvatarEditor() {
+        document.getElementById('avatarEditorModal').style.display = 'none';
+    }
+    
+    function shuffleAvatar() {
+        // Generate random 5 character string for a completely new avatar face
+        currentAvatarSeed = Math.random().toString(36).substring(2, 7);
+        updateAvatarPreview();
+    }
+    
+    function changeAvatarStyle() {
+        currentAvatarStyle = document.getElementById('avatarStyleDropdown').value;
+        updateAvatarPreview();
+    }
+    
+    function updateAvatarPreview() {
+        let url = `https://api.dicebear.com/7.x/${currentAvatarStyle}/svg?seed=${currentAvatarSeed}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+        document.getElementById('liveAvatarPreview').src = url;
+    }
+    
+    async function saveAvatar() {
+        let params = `${currentAvatarStyle}/svg?seed=${currentAvatarSeed}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+        await fetch(DB+"users/"+user+"/avatarParams.json", {method:"PUT", body:JSON.stringify(params)});
+        
+        document.getElementById('mySidebarAvatar').innerHTML = `<img src="https://api.dicebear.com/7.x/${params}" class="avatar-img">`;
+        closeAvatarEditor();
+        loadChats(); // Refresh friends list so new avatars load
+        alert("আপনার নতুন অ্যাভাটার দারুণ লাগছে! 😎");
+    }
+
+    // 5. UPGRADE: loadChats to show 3D Avatars instead of Letters
+    async function loadChats() {
+        let res = await fetch(DB+"users/"+user+"/friends.json");
+        let friends = await res.json();
+        let chatListDiv = document.getElementById('chatList');
+        chatListDiv.innerHTML = "";
+        
+        if(!friends) return;
+        
+        for(let f in friends) {
+            let uRes = await fetch(DB+"users/"+f+".json");
+            let uData = await uRes.json();
+            
+            // Check if friend has set an avatar, otherwise give a default cool one based on their name
+            let avatarParams = uData.avatarParams || `micah/svg?seed=${f}&backgroundColor=d1d4f9`;
+            let avatarUrl = `https://api.dicebear.com/7.x/${avatarParams}`;
+
+            let div = document.createElement("div");
+            div.className = "chat-item " + (activeChat === f ? 'active' : '');
+            
+            div.innerHTML = `
+                <div class="avatar" style="background:transparent; border:2px solid var(--primary); padding:2px;">
+                    <img src="${avatarUrl}" class="avatar-img">
+                </div>
+                <div style="margin-left:15px; flex:1;">
+                    <div style="font-weight:600; font-size:16px;">${f} ${uData.online ? '<span style="color:#4caf50; font-size:10px;">●</span>':''}</div>
+                    <div style="font-size:13px; color:var(--text-sec); margin-top:3px;">চ্যাট করতে ক্লিক করুন...</div>
+                </div>`;
+            
+            div.onclick = () => openChat(f);
+            chatListDiv.appendChild(div);
+        }
+    }
+
+    // 6. UPGRADE: openChat to show 3D Avatar in Chat Header
+    async function openChat(f) {
+        activeChat = f;
+        document.getElementById('noChat').style.display = 'none';
+        document.getElementById('chatWindow').style.display = 'flex';
+        document.getElementById('chatName').innerText = f;
+        
+        // Fetch friend's avatar for the top header
+        let uRes = await fetch(DB+"users/"+f+".json");
+        let uData = await uRes.json();
+        let avatarParams = uData.avatarParams || `micah/svg?seed=${f}&backgroundColor=d1d4f9`;
+        
+        let chatAvatar = document.getElementById('chatAvatar');
+        chatAvatar.innerHTML = `<img src="https://api.dicebear.com/7.x/${avatarParams}" class="avatar-img">`;
+        chatAvatar.style.background = "transparent";
+        chatAvatar.style.border = "2px solid var(--primary)";
+        chatAvatar.style.padding = "2px";
+        
+        if(window.innerWidth <= 768) {
+            document.getElementById('bodyTag').classList.add('active-chat-mobile');
+        }
+
+        if(typeof chatInterval !== 'undefined' && chatInterval) clearInterval(chatInterval);
+        if(typeof loadMsgs === 'function') loadMsgs();
+        chatInterval = setInterval(() => { if(typeof loadMsgs === 'function') loadMsgs(); }, 2000);
+        
+        if(typeof updateStatus === 'function') updateStatus(f);
+    }
+            </script>
     
 </body>
 </html>
