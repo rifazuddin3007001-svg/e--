@@ -2691,6 +2691,71 @@
         }
     }
 </script>
+<script>
+    setTimeout(() => {
+        // আগের ম্যাজিক ইঞ্জিনটাকে নতুন উইশ দিয়ে ওভাররাইড করা হচ্ছে
+        window.triggerMagic = function(text, msgId) {
+            if(playedEffects.has(msgId)) return; // একবার অ্যানিমেশন হয়ে গেলে আর হবে না
+            
+            text = text.toLowerCase();
+            let matched = false;
+
+            // ১. প্রতিদিনের উইশ (Daily Greetings)
+            if(text === 'hi' || text.includes('hi ') || text.includes('hello') || text.includes('হাই') || text.includes('হ্যালো')) {
+                createMagicElements(['👋','✨','🌟','💫'], 'floatUp', 20); 
+                matched = true;
+            }
+            else if(text.includes('good morning') || text.includes('শুভ সকাল')) {
+                createMagicElements(['🌅','☀️','🌻','☕'], 'floatUp', 25); 
+                matched = true;
+            }
+            else if(text.includes('good night') || text.includes('শুভ রাত্রি') || text.includes('goodnight')) {
+                createMagicElements(['🌙','😴','🌟','🌌'], 'fallDown', 25); 
+                matched = true;
+            }
+            
+            // ২. উৎসবের উইশ (Festivals)
+            else if(text.includes('eid') || text.includes('ঈদ') || text.includes('eid mubarak')) {
+                createMagicElements(['🌙','✨','🕌','🤝'], 'floatUp', 30); 
+                matched = true;
+            }
+            else if(text.includes('diwali') || text.includes('দীপাবলি') || text.includes('দিওয়ালি')) {
+                createMagicElements(['🪔','✨','🎆','🎇'], 'fallDown', 35); 
+                matched = true;
+            }
+            else if(text.includes('christmas') || text.includes('বড়দিন') || text.includes('ক্রিসমাস')) {
+                createMagicElements(['🎄','🎅','❄️','🎁'], 'fallDown', 35); 
+                matched = true;
+            }
+            else if(text.includes('new year') || text.includes('নববর্ষ') || text.includes('নতুন বছর')) {
+                createMagicElements(['🎉','🎆','🎊','🎇'], 'floatUp', 40); 
+                matched = true;
+            }
+            
+            // ৩. আগের স্পেশাল উইশ (Existing ones)
+            else if(text.includes('happy birthday') || text.includes('শুভ জন্মদিন')) {
+                createMagicElements(['🎈','🎂','🎉','🎁'], 'floatUp', 30); 
+                matched = true;
+            } 
+            else if(text.includes('redchaat') || text.includes('red chaat')) {
+                createMagicElements(['🔴','✨','🟥','🔥'], 'fallDown', 40); 
+                matched = true;
+            }
+            else if(text.includes('ভালোবাসি') || text.includes('love you') || text.includes('love u')) {
+                createMagicElements(['❤️','💖','💕','💘'], 'floatUp', 30); 
+                matched = true;
+            }
+
+            // সাউন্ড প্লে করা
+            if(matched) {
+                playedEffects.add(msgId);
+                let audio = new Audio('https://www.soundjay.com/buttons/sounds/button-09.mp3'); 
+                audio.volume = 0.5;
+                audio.play().catch(e=>console.log("Audio play prevented"));
+            }
+        }
+    }, 2000);
+                    </script>
     
 </body>
 </html>
