@@ -1817,6 +1817,174 @@
         document.getElementById('mainDropdownMenu').style.display = 'none'; // লিংক কপি হলে মেনু বন্ধ হয়ে যাবে
     }
 </script>
+<style>
+    /* Chat Window Menu Styles */
+    .chat-menu {
+        position: absolute; top: 60px; right: 15px; background: var(--sidebar-bg);
+        border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        display: none; flex-direction: column; z-index: 1000; min-width: 180px;
+    }
+    .chat-menu-item {
+        padding: 12px 15px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+        color: var(--text-main); font-size: 14px; border-bottom: 1px solid var(--border-color);
+    }
+    .chat-menu-item:hover { background: var(--bg); color: var(--primary); }
+
+    /* Gaming Modal */
+    .game-modal {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); z-index: 5000; justify-content: center; align-items: center;
+    }
+    .game-box {
+        background: var(--sidebar-bg); width: 95%; max-width: 400px; border-radius: 20px;
+        padding: 20px; position: relative; text-align: center;
+    }
+    .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+    .game-card {
+        background: var(--bg); padding: 20px; border-radius: 15px; cursor: pointer;
+        transition: 0.3s; border: 2px solid transparent;
+    }
+    .game-card:hover { border-color: var(--secondary); transform: translateY(-5px); }
+    .game-card i { font-size: 30px; color: var(--secondary); margin-bottom: 10px; }
+
+    /* Tic-Tac-Toe UI */
+    .ttt-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 20px auto; width: 240px; }
+    .ttt-cell {
+        width: 80px; height: 80px; background: var(--bg); border-radius: 10px;
+        display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; cursor: pointer;
+    }
+</style>
+
+<div id="gameZoneModals">
+    <div class="game-modal" id="gameChoiceModal">
+        <div class="game-box">
+            <i class="fa-solid fa-xmark" style="position:absolute; right:20px; top:20px; cursor:pointer;" onclick="closeGameModal()"></i>
+            <h2 class="brand-logo" style="color:var(--secondary);">Red Gaming Zone</h2>
+            <p style="font-size:14px; color:var(--text-sec);">বন্ধুর সাথে অনলাইন চ্যালেঞ্জ শুরু করুন!</p>
+            <div class="game-grid">
+                <div class="game-card" onclick="startTTT()">
+                    <i class="fa-solid fa-hashtag"></i><br><b>কাটাকুটি</b>
+                </div>
+                <div class="game-card" onclick="alert('Ludo Coming Soon!')">
+                    <i class="fa-solid fa-dice"></i><br><b>রেড লুডো</b>
+                </div>
+                <div class="game-card" onclick="alert('Snakes & Ladders Coming Soon!')">
+                    <i class="fa-solid fa-arrow-trend-up"></i><br><b>সাপ সিঁড়ি</b>
+                </div>
+                <div class="game-card" onclick="alert('Red Dash Coming Soon!')">
+                    <i class="fa-solid fa-bolt"></i><br><b>রেড ড্যাশ</b>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-modal" id="tttModal">
+        <div class="game-box">
+            <h3 id="tttStatus">আপনার চাল...</h3>
+            <div class="ttt-board" id="tttBoard"></div>
+            <button onclick="closeGameModal()" style="background:var(--text-sec);">পিছনে যান</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Inject 3-Dot Menu into ACTIVE CHAT window header
+    setInterval(() => {
+        let chatHeader = document.querySelector('#activeChat .header-actions');
+        if(chatHeader && !document.getElementById('chatDropdownMenu')) {
+            // Create menu button
+            let menuBtn = document.createElement('i');
+            menuBtn.className = "fa-solid fa-ellipsis-vertical";
+            menuBtn.style.cursor = "pointer";
+            menuBtn.style.marginLeft = "15px";
+            
+            // Create the menu
+            let menu = document.createElement('div');
+            menu.className = "chat-menu";
+            menu.id = "chatDropdownMenu";
+            menu.innerHTML = `
+                <div class="chat-menu-item" onclick="openGameZone()">
+                    <i class="fa-solid fa-gamepad" style="color:var(--secondary)"></i> Gaming Zone
+                </div>
+                <div class="chat-menu-item" onclick="alert('ফাইল শেয়ারিং ফিচার শীঘ্রই আসছে!')">
+                    <i class="fa-solid fa-file-import"></i> ফাইল পাঠান
+                </div>
+            `;
+            
+            chatHeader.appendChild(menu);
+            chatHeader.appendChild(menuBtn);
+            
+            menuBtn.onclick = (e) => {
+                e.stopPropagation();
+                menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+            };
+        }
+    }, 1000);
+
+    function openGameZone() {
+        document.getElementById('gameChoiceModal').style.display = 'flex';
+        document.getElementById('chatDropdownMenu').style.display = 'none';
+    }
+
+    function closeGameModal() {
+        document.querySelectorAll('.game-modal').forEach(m => m.style.display = 'none');
+        if(typeof tttInterval !== 'undefined') clearInterval(tttInterval);
+    }
+
+    // --- Tic-Tac-Toe Logic (Multiplayer Sync via Firebase) ---
+    let tttInterval;
+    async function startTTT() {
+        document.getElementById('gameChoiceModal').style.display = 'none';
+        document.getElementById('tttModal').style.display = 'flex';
+        initTTTBoard();
+        
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        // Reset game on Firebase
+        await fetch(DB+"games/"+cid+"/ttt.json", {method:"PUT", body:JSON.stringify({board: Array(9).fill(""), turn: user})});
+        
+        tttInterval = setInterval(syncTTT, 2000);
+    }
+
+    function initTTTBoard() {
+        let board = document.getElementById('tttBoard');
+        board.innerHTML = "";
+        for(let i=0; i<9; i++) {
+            let cell = document.createElement('div');
+            cell.className = 'ttt-cell';
+            cell.onclick = () => makeMove(i);
+            board.appendChild(cell);
+        }
+    }
+
+    async function makeMove(i) {
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        let res = await fetch(DB+"games/"+cid+"/ttt.json");
+        let game = await res.json();
+        
+        if(game.turn !== user || game.board[i] !== "") return;
+        
+        game.board[i] = "X"; // User is always X for their screen
+        game.turn = activeChat;
+        
+        await fetch(DB+"games/"+cid+"/ttt.json", {method:"PUT", body:JSON.stringify(game)});
+        syncTTT();
+    }
+
+    async function syncTTT() {
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        let res = await fetch(DB+"games/"+cid+"/ttt.json");
+        let game = await res.json();
+        if(!game) return;
+
+        let cells = document.querySelectorAll('.ttt-cell');
+        game.board.forEach((val, idx) => {
+            cells[idx].innerText = val;
+            cells[idx].style.color = val === "X" ? "var(--secondary)" : "var(--accent)";
+        });
+
+        document.getElementById('tttStatus').innerText = game.turn === user ? "আপনার চাল..." : "বন্ধু খেলছে...";
+    }
+</script>
     
 </body>
 </html>
