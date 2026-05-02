@@ -2009,6 +2009,111 @@
         document.getElementById('tttStatus').innerText = game.turn === user ? "আপনার চাল..." : "বন্ধু ভাবছে...";
     }
 </script>
+<script>
+    setTimeout(() => {
+        // ১. পুরনো clashing কোড বন্ধ করার জন্য ID চেঞ্জ করে দেওয়া হলো
+        let oldStatusEl = document.getElementById('status');
+        if(oldStatusEl) oldStatusEl.id = "realStatusText";
+
+        // ২. নতুন Heartbeat System (প্রতি ৫ সেকেন্ডে ডেটাবেসকে জানাবে যে সে অনলাইনে আছে)
+        window.setOnline = async function(st) {
+            if(user) {
+                await fetch(DB+"users/"+user+"/online.json", {method:"PUT", body:JSON.stringify(st)});
+                if(st) {
+                    // শেষ কখন অনলাইন ছিল সেই সময়টাও সেভ করবে
+                    await fetch(DB+"users/"+user+"/lastSeen.json", {method:"PUT", body:JSON.stringify(Date.now())});
+                }
+            }
+        };
+        // অ্যাপ চলাকালীন প্রতি ৫ সেকেন্ডে হার্টবিট পাঠাবে
+        setInterval(() => setOnline(true), 5000);
+
+        // ৩. সুপার-ফাস্ট Typing Indicator (বারবার ডেটাবেসে কল করে ল্যাগ করবে না)
+        let isMeTyping = false;
+        let typeTimeoutFix;
+        let inputField = document.getElementById('msgInput');
+        
+        if(inputField) {
+            inputField.addEventListener('input', () => {
+                if(!activeChat) return;
+                if(!isMeTyping) {
+                    isMeTyping = true;
+                    let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+                    fetch(DB+"chats/"+cid+"/typing/"+user+".json", {method:"PUT", body:"true"});
+                }
+                clearTimeout(typeTimeoutFix);
+                typeTimeoutFix = setTimeout(() => {
+                    isMeTyping = false;
+                    let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+                    fetch(DB+"chats/"+cid+"/typing/"+user+".json", {method:"PUT", body:"false"});
+                }, 1200); // টাইপ থামানোর ১.২ সেকেন্ড পর টাইপিং অফ হবে
+            });
+        }
+
+        // ৪. Unified Status Manager (Typing + Online + Last Seen সব একসাথে ম্যানেজ করবে)
+        window.updateStatus = async function(f) {
+            if(activeChat !== f) return; 
+            
+            try {
+                let uRes = await fetch(DB+"users/"+f+".json");
+                let uData = await uRes.json();
+                
+                let cid = user < f ? user+"_"+f : f+"_"+user;
+                let tRes = await fetch(DB+"chats/"+cid+"/typing/"+f+".json");
+                let isTyping = await tRes.json();
+                
+                let statusEl = document.getElementById('realStatusText');
+                if(!statusEl) return;
+
+                // যদি টাইপ করে, তাহলে অন্য সব কিছু বাদ দিয়ে শুধু টাইপিং দেখাবে
+                if(isTyping) {
+                    statusEl.innerText = "টাইপ করছে... (typing...)";
+                    statusEl.style.color = "var(--primary)";
+                    statusEl.style.fontWeight = "bold";
+                } else {
+                    statusEl.style.fontWeight = "normal";
+                    
+                    // Heartbeat Check: শেষ ১৫ সেকেন্ডের মধ্যে অ্যাপে থাকলে তাকে অনলাইন ধরবে
+                    let isActuallyOnline = uData.online;
+                    if(uData.lastSeen && (Date.now() - uData.lastSeen < 15000)) {
+                        isActuallyOnline = true; 
+                    }
+
+                    if(isActuallyOnline) {
+                        statusEl.innerText = "অনলাইন";
+                        statusEl.style.color = "#4caf50"; // সবুজ রঙ
+                    } else {
+                        statusEl.style.color = "var(--text-sec)";
+                        if(uData.lastSeen) {
+                            let date = new Date(uData.lastSeen);
+                            let today = new Date();
+                            let prefix = "";
+                            
+                            if(date.toDateString() === today.toDateString()) {
+                                prefix = "আজ ";
+                            } else {
+                                let yesterday = new Date(today);
+                                yesterday.setDate(yesterday.getDate() - 1);
+                                prefix = date.toDateString() === yesterday.toDateString() ? "গতকাল " : date.toLocaleDateString() + " ";
+                            }
+                            statusEl.innerText = "Last seen " + prefix + "at " + date.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+                        } else {
+                            statusEl.innerText = "অফলাইন";
+                        }
+                    }
+                }
+            } catch(e) {}
+        };
+
+        // প্রতি ১.৫ সেকেন্ডে শুধুমাত্র একবারই স্ট্যাটাস আপডেট হবে, কোনো গ্লিচ ছাড়া
+        setInterval(() => {
+            if(activeChat && document.getElementById('chatWindow').style.display !== 'none') {
+                updateStatus(activeChat);
+            }
+        }, 1500);
+
+    }, 1500);
+</script>
     
 </body>
 </html>
