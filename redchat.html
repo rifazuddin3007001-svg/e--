@@ -701,6 +701,69 @@
         }
     }, 1000);
 </script>
+<script>
+    function playRedChaatTheme() {
+        // Web Audio API for generating the digital jingle
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playNote(freq, startTime, duration) {
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            // 'sine' wave gives a smooth, modern app notification sound
+            osc.type = 'sine'; 
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + startTime);
+            
+            // Fade in and fade out the volume to avoid clicking noises
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime + startTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + startTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + startTime + duration);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(audioCtx.currentTime + startTime);
+            osc.stop(audioCtx.currentTime + startTime + duration);
+        }
+
+        // Play a quick, uplifting 3-note melody
+        playNote(523.25, 0, 0.4);   // Note 1 (C5)
+        playNote(659.25, 0.2, 0.4); // Note 2 (E5)
+        playNote(783.99, 0.4, 0.6); // Note 3 (G5)
+
+        // Web Speech API to say "RedChaat" right after the melody
+        setTimeout(() => {
+            const utterance = new SpeechSynthesisUtterance("Red Chaat");
+            utterance.lang = 'en-IN'; // Indian English accent for a natural feel
+            utterance.rate = 0.9;     // Slightly slower for style
+            utterance.pitch = 1.2;    // Slightly higher pitch for energy
+            window.speechSynthesis.speak(utterance);
+        }, 800); // 800 milliseconds delay so the melody finishes first
+    }
+
+    // Add a Music Button in the header actions area dynamically
+    setTimeout(() => {
+        let actionDiv = document.querySelector('.header-actions');
+        if(actionDiv) {
+            let musicBtn = document.createElement('i');
+            musicBtn.className = "fa-solid fa-music";
+            musicBtn.style.color = "var(--accent)"; // Gold color to stand out
+            musicBtn.style.marginLeft = "18px";
+            musicBtn.style.cursor = "pointer";
+            musicBtn.title = "Play Theme Music";
+            
+            // Add pulse animation on hover
+            musicBtn.onmouseover = () => musicBtn.style.transform = "scale(1.2)";
+            musicBtn.onmouseout = () => musicBtn.style.transform = "scale(1)";
+            musicBtn.style.transition = "transform 0.2s";
+            
+            musicBtn.onclick = playRedChaatTheme;
+            
+            // Insert it before the first icon
+            actionDiv.insertBefore(musicBtn, actionDiv.firstChild);
+        }
+    }, 2000); // Wait 2 seconds to ensure the header is fully loaded
+</script>
     
 </body>
 </html>
