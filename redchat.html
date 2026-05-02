@@ -764,6 +764,103 @@
         }
     }, 2000); // Wait 2 seconds to ensure the header is fully loaded
 </script>
+<script>
+    // 1. Activate the Paperclip Icon to Send Images
+    setTimeout(() => {
+        let paperclip = document.querySelector('.fa-paperclip');
+        if(paperclip) {
+            paperclip.style.cursor = "pointer";
+            paperclip.title = "ছবি পাঠান";
+            
+            paperclip.onclick = () => {
+                if(!activeChat) return alert("আগে কোনো একটি চ্যাট ওপেন করুন!");
+                
+                let input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = (e) => {
+                    let file = e.target.files[0];
+                    if(!file) return;
+                    
+                    let reader = new FileReader();
+                    reader.onload = async (ev) => {
+                        let imgData = ev.target.result;
+                        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+                        let time = Date.now();
+                        
+                        // Show sending state
+                        msgInput.placeholder = "ছবি পাঠানো হচ্ছে...";
+                        
+                        await fetch(DB+"chats/"+cid+"/"+time+".json", {
+                            method:"PUT", 
+                            body:JSON.stringify({from:user, img: imgData, time:time, seen:false})
+                        });
+                        
+                        msgInput.placeholder = "আপনার মেসেজ লিখুন...";
+                        loadMsgs();
+                    };
+                    reader.readAsDataURL(file);
+                };
+                input.click();
+            };
+        }
+    }, 1000);
+
+    // 2. Upgrade the loadMsgs function to support Images and Message Deletion
+    async function loadMsgs() {
+        if(!activeChat) return;
+        let cid = user < activeChat ? user+"_"+activeChat : activeChat+"_"+user;
+        let res = await fetch(DB+"chats/"+cid+".json");
+        let msgs = await res.json();
+        
+        let isScrolledToBottom = msgBox.scrollHeight - msgBox.clientHeight <= msgBox.scrollTop + 1;
+        msgBox.innerHTML = "";
+        
+        if(msgs) {
+            Object.values(msgs).forEach(m => {
+                let div = document.createElement("div");
+                div.className = "msg " + (m.from === user ? "sent" : "received");
+                div.title = "ডিলিট করতে মেসেজে ডাবল-ক্লিক করুন";
+                
+                let time = new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                
+                // Check if the message is an image or text
+                let contentHTML = "";
+                if(m.img) {
+                    contentHTML = `<img src="${m.img}" style="max-width:100%; border-radius:8px; margin-bottom:5px; cursor:pointer;" onclick="window.open('${m.img}', '_blank')">`;
+                } else if(m.text) {
+                    contentHTML = `<div>${m.text}</div>`;
+                } else {
+                    contentHTML = `<div style="font-style:italic; color:var(--text-sec);">মেসেজটি ডিলিট করা হয়েছে 🚫</div>`;
+                }
+                
+                div.innerHTML = `${contentHTML}
+                                 <div class="msg-time">${time} ${m.from === user ? (m.seen ? '<i class="fa-solid fa-check-double" style="color:#00bcd4"></i>' : '<i class="fa-solid fa-check"></i>') : ''}</div>`;
+                
+                // Double click to Delete For Everyone
+                div.ondblclick = async () => {
+                    if(m.text === null && m.img === null) return; // Already deleted
+                    if(confirm("এই মেসেজটি কি সবার জন্য ডিলিট করতে চান? (Delete for Everyone)")) {
+                        // Instead of full delete, update it to empty so it shows as deleted
+                        await fetch(DB+"chats/"+cid+"/"+m.time+".json", {
+                            method:"PUT", 
+                            body:JSON.stringify({from:m.from, text:null, img:null, time:m.time, seen:m.seen})
+                        });
+                        loadMsgs();
+                    }
+                };
+                
+                msgBox.appendChild(div);
+                
+                // Mark as seen logic
+                if(m.from !== user && !m.seen && m.text !== null) {
+                    fetch(DB+"chats/"+cid+"/"+m.time+"/seen.json", {method:"PUT", body:"true"});
+                }
+            });
+        }
+        if(isScrolledToBottom) msgBox.scrollTop = msgBox.scrollHeight;
+    }
+</script>
     
 </body>
 </html>
