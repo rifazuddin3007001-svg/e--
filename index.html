@@ -3475,6 +3475,239 @@ function loadCoachTab() {
         }
     };
                 </script>
+<!-- =========================================================
+   USER PANEL: RADICA MARKETPLACE & FAST DELIVERY
+========================================================= -->
+<script>
+    window.shopCart = []; // কার্টের ডেটা ধরে রাখার জন্য
+    const SHOP_URL = 'https://radica-super-app-18cb3-default-rtdb.firebaseio.com/radica_shop_items';
+    const ORDERS_URL = 'https://radica-super-app-18cb3-default-rtdb.firebaseio.com/radica_orders';
+
+    // ১. মেনুতে মার্কেটপ্লেস বাটন যোগ
+    setTimeout(() => {
+        let menuGrid = document.querySelector('.menu-grid');
+        if(menuGrid && !document.getElementById('shop-btn')) {
+            menuGrid.insertAdjacentHTML('beforeend', `
+            <div id="shop-btn" class="menu-item" onclick="openShopHub()" style="border-color:#ea580c; background: linear-gradient(135deg, rgba(234, 88, 12, 0.1), transparent);">
+                <span class="icon" style="font-size:38px; filter: drop-shadow(0 2px 4px rgba(234,88,12,0.3));">🛒</span>
+                <h3 style="color:#ea580c;">মার্কেটপ্লেস</h3>
+            </div>`);
+        }
+    }, 2000);
+
+    // ২. মেইন হাব ওপেন করা
+    window.openShopHub = function() {
+        let html = `
+        <div style="background: linear-gradient(135deg, #ea580c, #c2410c); color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; box-shadow: 0 5px 15px rgba(234,88,12,0.3);">
+            <h2 style="margin: 0; font-size: 22px;">🛒 রেডিকা মার্কেটপ্লেস</h2>
+            <p style="margin: 5px 0 0 0; font-size: 12px; color: #ffedd5;">যা খুঁজছেন, সবই পাবেন চোখের নিমিষে!</p>
+        </div>
+
+        <div style="display: flex; gap: 5px; margin-bottom: 15px; background:var(--bg-card); padding:5px; border-radius:10px; border:1px solid var(--border-col);">
+            <button onclick="renderShopView('items')" style="flex:1; background:transparent; color:var(--text-main); border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;" id="tab-items">🛍️ প্রোডাক্ট</button>
+            <button onclick="renderShopView('cart')" style="flex:1; background:transparent; color:var(--text-main); border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;" id="tab-cart">🛒 কার্ট (<span id="cart-count">${window.shopCart.length}</span>)</button>
+            <button onclick="renderShopView('orders')" style="flex:1; background:transparent; color:var(--text-main); border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;" id="tab-orders">📦 আমার অর্ডার</button>
+        </div>
+
+        <div id="shopMainContent" style="min-height: 300px;"></div>
+        `;
+        renderModal("🛒 মার্কেটপ্লেস", html);
+        renderShopView('items');
+    };
+
+    // ৩. ভিউ কন্ট্রোলার (দোকান, কার্ট, অর্ডার)
+    window.renderShopView = function(view) {
+        ['items', 'cart', 'orders'].forEach(v => document.getElementById(`tab-${v}`).style.background = 'transparent');
+        document.getElementById(`tab-${view}`).style.background = 'rgba(234,88,12,0.1)';
+        document.getElementById(`tab-${view}`).style.color = '#ea580c';
+        
+        let container = document.getElementById('shopMainContent');
+        
+        if(view === 'items') loadShopItemsUI(container);
+        else if(view === 'cart') loadCartUI(container);
+        else if(view === 'orders') loadOrdersUI(container);
+    };
+
+    // ৪. প্রোডাক্ট লিস্ট দেখানো
+    async function loadShopItemsUI(container) {
+        container.innerHTML = `<div style="text-align:center; padding:30px;">প্রোডাক্ট লোড হচ্ছে... ⏳</div>`;
+        try {
+            let res = await fetch(SHOP_URL + '.json');
+            let data = await res.json();
+            if(!data) return container.innerHTML = `<div style="text-align:center; color:gray;">দোকানে এখন কোনো প্রোডাক্ট নেই।</div>`;
+
+            let html = `<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">`;
+            Object.keys(data).forEach(key => {
+                let itm = data[key];
+                html += `
+                <div style="background:var(--bg-card); border:1px solid var(--border-col); padding:15px; border-radius:12px; text-align:center; position:relative;">
+                    <div style="font-size:40px; margin-bottom:10px;">${itm.emoji}</div>
+                    <div style="font-weight:bold; font-size:14px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${itm.name}</div>
+                    <div style="font-size:11px; color:#f59e0b; margin:5px 0;">⭐ ${itm.rating.toFixed(1)} (${itm.reviews})</div>
+                    <div style="font-size:16px; font-weight:bold; color:#ea580c; margin-bottom:10px;">${itm.price} Q</div>
+                    <button onclick="addToCart('${key}', '${itm.name}', '${itm.emoji}', ${itm.price})" style="width:100%; background:#ea580c; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:12px;">কার্টে যোগ করুন</button>
+                </div>`;
+            });
+            container.innerHTML = html + `</div>`;
+        } catch(e) { container.innerHTML = `<div style="text-align:center; color:red;">নেটওয়ার্ক এরর!</div>`; }
+    }
+
+    // ৫. কার্টে যোগ করা
+    window.addToCart = function(id, name, emoji, price) {
+        window.shopCart.push({ id, name, emoji, price });
+        document.getElementById('cart-count').innerText = window.shopCart.length;
+        if(typeof showToast === "function") showToast(`${name} কার্টে যোগ হয়েছে!`, "success");
+    };
+
+    // ৬. কার্ট ও চেকআউট UI
+    window.loadCartUI = function(container) {
+        if(window.shopCart.length === 0) {
+            return container.innerHTML = `<div style="text-align:center; padding:30px; color:gray;">আপনার কার্ট ফাঁকা! 🛒</div>`;
+        }
+
+        let baseTotal = window.shopCart.reduce((sum, itm) => sum + itm.price, 0);
+        let html = `<div style="display:flex; flex-direction:column; gap:10px; max-height:250px; overflow-y:auto; margin-bottom:15px;">`;
+        
+        window.shopCart.forEach((itm, idx) => {
+            html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:10px; border-radius:8px; border:1px solid var(--border-col);">
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:20px;">${itm.emoji}</span>
+                    <span style="font-size:14px; font-weight:bold; color:var(--text-main);">${itm.name}</span>
+                </div>
+                <div style="font-size:14px; font-weight:bold; color:#ea580c;">${itm.price} Q</div>
+            </div>`;
+        });
+        html += `</div>`;
+
+        // ডেলিভারি অপশন
+        html += `
+        <div style="background:rgba(234,88,12,0.05); padding:15px; border-radius:12px; border:1px solid #fed7aa;">
+            <h4 style="margin-top:0; color:#ea580c;">ডেলিভারি অপশন সিলেক্ট করুন:</h4>
+            
+            <label style="display:flex; align-items:center; gap:10px; margin-bottom:10px; cursor:pointer;">
+                <input type="radio" name="delSpeed" value="standard" checked onchange="updateTotal(${baseTotal})" style="accent-color:#ea580c;">
+                <div><b>সাধারণ ডেলিভারি (১-৩ দিন)</b><br><span style="font-size:11px; color:gray;">ডেলিভারি চার্জ ফ্রি, অরিজিনাল দাম</span></div>
+            </label>
+            
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <input type="radio" name="delSpeed" value="fast" onchange="updateTotal(${baseTotal})" style="accent-color:#ea580c;">
+                <div><b style="color:#ef4444;">⚡ সুপারফাস্ট (১০ মিনিট)</b><br><span style="font-size:11px; color:#ef4444;">৩ গুণ দাম কাটা হবে (হাই ডিমান্ড)</span></div>
+            </label>
+            
+            <hr style="border:0; border-top:1px dashed #fdba74; margin:15px 0;">
+            <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:bold;">
+                <span>মোট বিল:</span>
+                <span id="checkout-total" style="color:#ea580c;">${baseTotal} Q</span>
+            </div>
+            
+            <button onclick="placeOrder(${baseTotal})" style="width:100%; background:linear-gradient(135deg, #ea580c, #c2410c); color:white; border:none; padding:15px; border-radius:8px; font-weight:bold; font-size:16px; margin-top:15px; cursor:pointer; box-shadow:0 4px 10px rgba(234,88,12,0.3);">অর্ডার কনফার্ম করুন 🚀</button>
+        </div>`;
+        
+        container.innerHTML = html;
+    };
+
+    window.updateTotal = function(base) {
+        let isFast = document.querySelector('input[name="delSpeed"]:checked').value === 'fast';
+        document.getElementById('checkout-total').innerText = (isFast ? base * 3 : base) + " Q";
+    };
+
+    // ৭. অর্ডার প্লেস করা
+    window.placeOrder = async function(baseTotal) {
+        let isFast = document.querySelector('input[name="delSpeed"]:checked').value === 'fast';
+        let finalTotal = isFast ? baseTotal * 3 : baseTotal;
+
+        // চেক ব্যালেন্স / ক্রেডিট কার্ড
+        let hasMoney = false;
+        if(user.bal >= finalTotal) { user.bal -= finalTotal; hasMoney = true; }
+        else if(user.credit_card && user.credit_card.active) {
+            let available = user.credit_card.limit - user.credit_card.used;
+            if(available >= finalTotal) { user.credit_card.used += finalTotal; user.bal = 0; hasMoney = true; }
+        }
+
+        if(!hasMoney) return alert("❌ আপনার একাউন্টে বা ক্রেডিট কার্ডে পর্যাপ্ত টাকা নেই!");
+
+        // ডেলিভারি সময় সেট (Standard = 24 hours, Fast = 10 mins in milliseconds)
+        let now = Date.now();
+        let deliveryTime = isFast ? now + (10 * 60 * 1000) : now + (24 * 60 * 60 * 1000);
+
+        let order = {
+            userId: user.id, items: window.shopCart, total: finalTotal, 
+            type: isFast ? '⚡ 10 Min Fast' : '🚚 Standard',
+            orderTime: now, deliveryTime: deliveryTime, status: 'On the way'
+        };
+
+        try {
+            await fetch(ORDERS_URL + '.json', { method: 'POST', body: JSON.stringify(order) });
+            window.shopCart = []; document.getElementById('cart-count').innerText = "0";
+            save(); updateDashboard();
+            if(typeof showToast === "function") showToast("অর্ডার সফল হয়েছে!", "success");
+            renderShopView('orders');
+        } catch(e) { alert("সার্ভার এরর!"); }
+    };
+
+    // ৮. মাই অর্ডার এবং ইউজ অপশন
+    window.loadOrdersUI = async function(container) {
+        container.innerHTML = `<div style="text-align:center; padding:30px;">অর্ডার লোড হচ্ছে... ⏳</div>`;
+        try {
+            let res = await fetch(`${ORDERS_URL}.json?orderBy="userId"&equalTo="${user.id}"`);
+            let data = await res.json();
+            if(!data) return container.innerHTML = `<div style="text-align:center; color:gray;">আপনি এখনও কোনো অর্ডার করেননি।</div>`;
+
+            let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+            let orders = Object.keys(data).map(k => ({id: k, ...data[k]})).sort((a,b) => b.orderTime - a.orderTime);
+            
+            orders.forEach(ord => {
+                let isDelivered = Date.now() >= ord.deliveryTime;
+                let statusColor = isDelivered ? "#10b981" : "#f59e0b";
+                let statusText = isDelivered ? "✅ ডেলিভারড" : "🚚 রাস্তায় আছে";
+                let itemNames = ord.items.map(i => i.emoji + " " + i.name).join(', ');
+
+                html += `
+                <div style="background:var(--bg-card); padding:15px; border-radius:10px; border:1px solid var(--border-col);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <span style="font-weight:bold; font-size:12px; color:var(--text-main);">${ord.type}</span>
+                        <span style="color:${statusColor}; font-weight:bold; font-size:12px;">${statusText}</span>
+                    </div>
+                    <div style="font-size:14px; margin-bottom:10px; color:var(--text-main); line-height:1.4;">${itemNames}</div>
+                    
+                    ${isDelivered ? `
+                    <div style="display:flex; gap:10px; margin-top:10px; border-top:1px solid var(--border-col); padding-top:10px;">
+                        <button onclick="useItems()" style="flex:1; background:#10b981; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:12px;">🎁 ব্যবহার করুন</button>
+                        <button onclick="rateOrder('${ord.items[0].id}')" style="flex:1; background:#f59e0b; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:12px;">⭐ রেটিং দিন</button>
+                    </div>` : `
+                    <div style="font-size:11px; color:gray; text-align:right; margin-top:10px;">ডেলিভারির জন্য অপেক্ষা করুন...</div>`}
+                </div>`;
+            });
+            container.innerHTML = html + `</div>`;
+        } catch(e) { container.innerHTML = `<div style="color:red; text-align:center;">লোড এরর!</div>`; }
+    };
+
+    window.useItems = function() {
+        alert("🎉 আপনি আইটেমগুলো সফলভাবে ব্যবহার করেছেন/খেয়েছেন! আপনার অভিজ্ঞতা দারুণ ছিল।");
+    };
+
+    window.rateOrder = async function(itemId) {
+        let stars = prompt("আপনি কত রেটিং দিতে চান? (১ থেকে ৫ এর মধ্যে লিখুন)", "5");
+        let rate = parseFloat(stars);
+        if(isNaN(rate) || rate < 1 || rate > 5) return alert("দয়া করে ১ থেকে ৫ এর মধ্যে সঠিক সংখ্যা দিন!");
+
+        try {
+            let res = await fetch(`${SHOP_URL}/${itemId}.json`);
+            let item = await res.json();
+            
+            // রেটিং ক্যালকুলেশন
+            let newReviews = (item.reviews || 1) + 1;
+            let newRating = (((item.rating || 5) * (item.reviews || 1)) + rate) / newReviews;
+
+            await fetch(`${SHOP_URL}/${itemId}.json`, {
+                method: 'PATCH', body: JSON.stringify({ rating: newRating, reviews: newReviews })
+            });
+            alert(`✅ ধন্যবাদ! আপনি ${rate} স্টার দিয়েছেন।`);
+            renderShopView('items'); // রিফ্রেশ
+        } catch(e) { alert("সার্ভার এরর!"); }
+    };
+                                                </script>
     
 </body>
 </html>
