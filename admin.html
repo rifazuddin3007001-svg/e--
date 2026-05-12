@@ -1268,6 +1268,86 @@ loadAdminGallery();
 
     setTimeout(() => loadGovRequests('Pending'), 1000);
         </script>
+<!-- =========================================================
+   ADMIN PANEL: RADICA MARKETPLACE MANAGER
+========================================================= -->
+<div style="background: white; padding: 20px; border-radius: 12px; margin-top: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+    <h2 style="color: #ea580c; margin-top: 0; font-size: 18px;">🛒 রেডিকা মার্কেটপ্লেস (আইটেম কন্ট্রোল)</h2>
+    
+    <div style="background: #fff7ed; padding: 15px; border-radius: 8px; border: 1px solid #fed7aa; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; font-size: 15px; color: #ea580c;">নতুন প্রোডাক্ট যোগ করুন</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="itemName" placeholder="প্রোডাক্টের নাম (যেমন: বাসমতী চাল / আইফোন)" style="padding: 10px; border: 1px solid #fdba74; border-radius: 6px; outline: none;">
+            <input type="text" id="itemEmoji" placeholder="ইমোজি বা ছবির লিংক (যেমন: 🍚 বা 📱)" style="padding: 10px; border: 1px solid #fdba74; border-radius: 6px; outline: none;">
+            <input type="number" id="itemPrice" placeholder="দাম (Q) - সাধারণ ডেলিভারির জন্য" style="padding: 10px; border: 1px solid #fdba74; border-radius: 6px; outline: none;">
+        </div>
+        <button onclick="addShopItem()" style="background: #ea580c; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">📦 প্রোডাক্ট স্টোরে যোগ করুন</button>
+    </div>
+
+    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1;">
+        <h3 style="margin-top: 0; font-size: 15px; color: #334155;">স্টোরের বর্তমান প্রোডাক্টসমূহ</h3>
+        <div id="adminShopList" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+            <div style="text-align: center; color: gray;">লোড হচ্ছে... ⏳</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SHOP_DB_URL = 'https://radica-super-app-18cb3-default-rtdb.firebaseio.com/radica_shop_items';
+
+    async function addShopItem() {
+        let name = document.getElementById('itemName').value.trim();
+        let emoji = document.getElementById('itemEmoji').value.trim();
+        let price = parseInt(document.getElementById('itemPrice').value);
+
+        if(!name || !emoji || !price) return alert("সব তথ্য সঠিকভাবে পূরণ করুন!");
+
+        let newItem = { name, emoji, price, rating: 5.0, reviews: 1, timestamp: Date.now() };
+
+        try {
+            await fetch(SHOP_DB_URL + '.json', { method: 'POST', body: JSON.stringify(newItem) });
+            alert("✅ প্রোডাক্ট সফলভাবে যোগ করা হয়েছে!");
+            document.getElementById('itemName').value = ""; document.getElementById('itemPrice').value = "";
+            loadAdminShopItems();
+        } catch(e) { alert("❌ সার্ভার এরর!"); }
+    }
+
+    async function loadAdminShopItems() {
+        let listContainer = document.getElementById('adminShopList');
+        try {
+            let res = await fetch(SHOP_DB_URL + '.json');
+            let data = await res.json();
+            
+            if(!data) { listContainer.innerHTML = `<div style="text-align:center; color:gray;">দোকানে কোনো আইটেম নেই।</div>`; return; }
+
+            let html = '';
+            Object.keys(data).forEach(key => {
+                let item = data[key];
+                html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div style="font-size:24px;">${item.emoji}</div>
+                        <div>
+                            <div style="font-weight:bold; font-size:14px;">${item.name}</div>
+                            <div style="font-size:12px; color:#ea580c; font-weight:bold;">${item.price} Q ⭐${item.rating.toFixed(1)}</div>
+                        </div>
+                    </div>
+                    <button onclick="deleteShopItem('${key}')" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:6px; cursor:pointer; font-size:12px;">ডিলিট</button>
+                </div>`;
+            });
+            listContainer.innerHTML = html;
+        } catch(e) { listContainer.innerHTML = `<div style="color:red; text-align:center;">লোড এরর!</div>`; }
+    }
+
+    async function deleteShopItem(id) {
+        if(confirm("প্রোডাক্টটি ডিলিট করতে চান?")) {
+            await fetch(`${SHOP_DB_URL}/${id}.json`, { method: 'DELETE' });
+            loadAdminShopItems();
+        }
+    }
+
+    setTimeout(loadAdminShopItems, 1000);
+</script>
     
 </body>
 </html>
