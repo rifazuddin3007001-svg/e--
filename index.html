@@ -3708,6 +3708,158 @@ function loadCoachTab() {
         } catch(e) { alert("সার্ভার এরর!"); }
     };
                                                 </script>
+<!-- =========================================================
+   USER PANEL: RADICA TUBE (ORIGINAL YOUTUBE SEARCH & HISTORY)
+========================================================= -->
+<script>
+    // হিস্ট্রি সেভ করার জন্য লোকাল স্টোরেজ ব্যবহার করা হচ্ছে (লাস্ট ১০টি)
+    window.ytHistory = JSON.parse(localStorage.getItem('radica_yt_history')) || [];
+
+    // ১. মেনুতে রেডিকা টিউব বাটন যোগ
+    setTimeout(() => {
+        let menuGrid = document.querySelector('.menu-grid');
+        if(menuGrid && !document.getElementById('yt-btn')) {
+            menuGrid.insertAdjacentHTML('beforeend', `
+            <div id="yt-btn" class="menu-item" onclick="openYTHub()" style="border-color:#ff0000; background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), transparent);">
+                <span class="icon" style="font-size:38px; filter: drop-shadow(0 2px 4px rgba(255,0,0,0.3));">▶️</span>
+                <h3 style="color:#ff0000;">রেডিকা টিউব</h3>
+            </div>`);
+        }
+    }, 2000);
+
+    // ২. মেইন হাব ওপেন করা
+    window.openYTHub = function() {
+        let html = `
+        <div style="background: linear-gradient(135deg, #ff0000, #990000); color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; box-shadow: 0 5px 15px rgba(255,0,0,0.3);">
+            <h2 style="margin: 0; font-size: 22px;">▶️ রেডিকা টিউব</h2>
+            <p style="margin: 5px 0 0 0; font-size: 12px; color: #fecaca;">ইউটিউবের যেকোনো গান বা ভিডিও সার্চ করুন</p>
+        </div>
+
+        <!-- সার্চ বক্স -->
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <input type="text" id="ytSearchInput" placeholder="গানের নাম বা ভিডিও সার্চ করুন..." style="flex:1; padding:12px; border-radius:8px; border:1px solid #cbd5e1; outline:none; font-size:14px;">
+            <button onclick="searchYT()" style="background:#ff0000; color:white; border:none; padding:12px 20px; border-radius:8px; font-weight:bold; cursor:pointer; box-shadow:0 4px 10px rgba(255,0,0,0.3);">🔍 সার্চ</button>
+        </div>
+
+        <!-- ভিডিও প্লেয়ার (শুরুতে হাইড করা থাকবে) -->
+        <div id="ytPlayerContainer" style="display:none; margin-bottom:20px; border-radius:12px; overflow:hidden; box-shadow:0 8px 20px rgba(0,0,0,0.3); border:1px solid #334155;">
+            <iframe id="ytIframe" width="100%" height="250" src="" frameborder="0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
+            <div id="ytPlayingTitle" style="background:#1e293b; color:white; padding:10px; font-size:13px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+            <button onclick="closeYTPlayer()" style="width:100%; background:#ef4444; color:white; border:none; padding:10px; font-weight:bold; cursor:pointer; font-size:13px;">⏹️ ভিডিও বন্ধ করুন</button>
+        </div>
+
+        <!-- ট্যাব কন্ট্রোল -->
+        <div style="display: flex; gap: 5px; margin-bottom: 15px; background:var(--bg-card); padding:5px; border-radius:10px; border:1px solid var(--border-col);">
+            <button onclick="switchYTTab('results')" id="ytTab-results" style="flex:1; background:rgba(255,0,0,0.1); color:#ff0000; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">সার্চ রেজাল্ট</button>
+            <button onclick="switchYTTab('history')" id="ytTab-history" style="flex:1; background:transparent; color:var(--text-main); border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">হিস্ট্রি (১০)</button>
+        </div>
+
+        <!-- কন্টেন্ট এরিয়া -->
+        <div id="ytResultsArea" style="max-height:350px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-bottom:10px;">
+            <div style="text-align:center; color:gray; padding:30px; font-size:13px;">উপরে কিছু লিখে সার্চ করুন! 👆</div>
+        </div>
+        <div id="ytHistoryArea" style="max-height:350px; overflow-y:auto; display:none; flex-direction:column; gap:10px; padding-bottom:10px;">
+        </div>
+        `;
+        renderModal("▶️ রেডিকা টিউব", html);
+        loadYTHistoryUI(); // মডাল খুললেই হিস্ট্রি লোড হবে
+    };
+
+    // ৩. ট্যাব পাল্টানোর লজিক
+    window.switchYTTab = function(tab) {
+        document.getElementById('ytTab-results').style.background = tab === 'results' ? 'rgba(255,0,0,0.1)' : 'transparent';
+        document.getElementById('ytTab-results').style.color = tab === 'results' ? '#ff0000' : 'var(--text-main)';
+        document.getElementById('ytTab-history').style.background = tab === 'history' ? 'rgba(255,0,0,0.1)' : 'transparent';
+        document.getElementById('ytTab-history').style.color = tab === 'history' ? '#ff0000' : 'var(--text-main)';
+
+        document.getElementById('ytResultsArea').style.display = tab === 'results' ? 'flex' : 'none';
+        document.getElementById('ytHistoryArea').style.display = tab === 'history' ? 'flex' : 'none';
+    };
+
+    // ৪. অরিজিনাল ইউটিউব সার্চ (ফ্রি এপিআই ব্যবহার করে)
+    window.searchYT = async function() {
+        let q = document.getElementById('ytSearchInput').value.trim();
+        if(!q) return;
+
+        let resArea = document.getElementById('ytResultsArea');
+        resArea.innerHTML = `<div style="text-align:center; color:#ff0000; font-weight:bold; padding:30px;">ইউটিউব থেকে খোঁজা হচ্ছে... ⏳</div>`;
+        switchYTTab('results');
+
+        try {
+            // Piped API (YouTube Proxy) দিয়ে একদম রিয়েল ডেটা আনা হচ্ছে
+            let res = await fetch(`https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(q)}&filter=videos`);
+            let data = await res.json();
+
+            if(!data.items || data.items.length === 0) {
+                resArea.innerHTML = `<div style="text-align:center; color:gray; padding:30px;">কিছু পাওয়া যায়নি! অন্য কিছু লিখে খুঁজুন।</div>`;
+                return;
+            }
+
+            let html = '';
+            data.items.slice(0, 15).forEach(item => {
+                let vidId = item.url.split('v=')[1]; // ভিডিও আইডি বের করা
+                if(!vidId) return;
+
+                html += `
+                <div onclick="playYTVideo('${vidId}', '${item.title.replace(/'/g, "\\'")}', '${item.thumbnail}')" style="display:flex; gap:12px; background:var(--bg-card); padding:10px; border-radius:10px; border:1px solid var(--border-col); cursor:pointer; transition:0.2s;">
+                    <img src="${item.thumbnail}" style="width:120px; height:70px; object-fit:cover; border-radius:8px; border:1px solid #e2e8f0;">
+                    <div style="flex:1; overflow:hidden;">
+                        <div style="font-weight:bold; font-size:13px; color:var(--text-main); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;">${item.title}</div>
+                        <div style="font-size:11px; color:#64748b; margin-top:6px; font-weight:bold;">${item.uploaderName}</div>
+                    </div>
+                </div>`;
+            });
+            resArea.innerHTML = html;
+        } catch(e) {
+            resArea.innerHTML = `<div style="text-align:center; color:#ef4444; padding:30px; font-weight:bold;">❌ সার্ভার কানেকশন এরর! আবার চেষ্টা করুন।</div>`;
+        }
+    };
+
+    // ৫. ভিডিও প্লে করা এবং হিস্ট্রিতে সেভ করা
+    window.playYTVideo = function(id, title, thumb) {
+        // প্লেয়ার দেখানো এবং প্লে করা
+        document.getElementById('ytPlayerContainer').style.display = 'block';
+        document.getElementById('ytIframe').src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+        document.getElementById('ytPlayingTitle').innerText = title;
+
+        // হিস্ট্রিতে সেভ করা (লাস্ট ১০টি)
+        window.ytHistory = window.ytHistory.filter(h => h.id !== id); // আগে থাকলে ডিলিট করবে
+        window.ytHistory.unshift({ id, title, thumb, time: Date.now() }); // নতুনটা একদম প্রথমে দেবে
+        if(window.ytHistory.length > 10) window.ytHistory.pop(); // ১০ টার বেশি হলে শেষেরটা মুছে ফেলবে
+
+        localStorage.setItem('radica_yt_history', JSON.stringify(window.ytHistory));
+        loadYTHistoryUI(); // হিস্ট্রি ট্যাব আপডেট
+    };
+
+    // ৬. ভিডিও বন্ধ করা
+    window.closeYTPlayer = function() {
+        document.getElementById('ytPlayerContainer').style.display = 'none';
+        document.getElementById('ytIframe').src = ''; // সোর্স মুছে দিলে অডিও বন্ধ হয়ে যাবে
+    };
+
+    // ৭. হিস্ট্রি লিস্ট দেখানো
+    window.loadYTHistoryUI = function() {
+        let histArea = document.getElementById('ytHistoryArea');
+        if(window.ytHistory.length === 0) {
+            histArea.innerHTML = `<div style="text-align:center; color:gray; padding:30px; font-size:13px;">আপনি এখনও কোনো ভিডিও দেখেননি!</div>`;
+            return;
+        }
+
+        let html = '';
+        window.ytHistory.forEach(item => {
+            html += `
+            <div onclick="playYTVideo('${item.id}', '${item.title.replace(/'/g, "\\'")}', '${item.thumb}')" style="display:flex; gap:12px; background:var(--bg-card); padding:10px; border-radius:10px; border:1px solid var(--border-col); cursor:pointer;">
+                <img src="${item.thumb}" style="width:100px; height:60px; object-fit:cover; border-radius:8px; opacity:0.9;">
+                <div style="flex:1; overflow:hidden;">
+                    <div style="font-weight:bold; font-size:12px; color:var(--text-main); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${item.title}</div>
+                    <div style="font-size:10px; color:#ef4444; margin-top:6px; font-weight:bold;">🕒 পূর্বে দেখেছেন</div>
+                </div>
+            </div>`;
+        });
+        histArea.innerHTML = html;
+        document.getElementById('ytTab-history').innerText = `হিস্ট্রি (${window.ytHistory.length})`;
+    };
+</script>
     
 </body>
 </html>
