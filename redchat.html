@@ -2757,5 +2757,72 @@
     }, 2000);
                     </script>
     
+<!-- ==========================================
+     RADICA AI BLOCK (Paste right before </body>)
+     ========================================== -->
+<script>
+(function() {
+    // ১. আপনার এপিআই কি (এখানে আপনার জেমিনাই কি বসাবেন)
+    const AI_API_KEY = "YOUR_GEMINI_API_KEY_HERE"; 
+    
+    // ২. Radica এআই-এর পরিচয় এবং কঠোর নিয়ম
+    const STRICT_RULES = `তোমার নাম 'Radica এআই' (Radica AI)। তুমি RedChaat মেসেজিং অ্যাপের একটি স্মার্ট এআই। নিচের নিয়মগুলো কঠোরভাবে মানবে:
+১. কোনো তেল মারা বা অতিরিক্ত কথা বলবে না। সোজা-সাপ্টা (straightforward) উত্তর দেবে।
+২. নিজের মনগড়া, কাল্পনিক বা ভুল তথ্য দেবে না।
+৩. কোনো প্রশ্নের উত্তর না জানলে সরাসরি বলবে "এই বিষয়টি আমার জানা নেই।"
+৪. একদম টু-দ্য-পয়েন্ট উত্তর দেবে, অহেতুক কথা বাড়াবে না।`;
+
+    // ৩. জেমিনাই থেকে উত্তর আনার ফাংশন
+    async function getAIResponse(question) {
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${AI_API_KEY}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: STRICT_RULES + "\n\nপ্রশ্ন: " + question }] }],
+                    generationConfig: { temperature: 0.1 } // একদম নিখুঁত উত্তরের জন্য
+                })
+            });
+            const data = await res.json();
+            if (data.candidates && data.candidates[0]) {
+                return data.candidates[0].content.parts[0].text.trim();
+            }
+            return "দুঃখিত, কোনো উত্তর পাওয়া যায়নি।";
+        } catch (err) {
+            console.error("Radica AI Error:", err);
+            return "সার্ভারে সমস্যা হচ্ছে।";
+        }
+    }
+
+    // ৪. গ্লোবাল ইভেন্ট লিসেনার (এন্টার চাপলে কাজ করবে)
+    document.body.addEventListener('keydown', async function(event) {
+        if (event.key === 'Enter' && event.target.tagName === 'INPUT') {
+            let typedText = event.target.value.trim();
+            
+            // চেক করবে মেসেজের শুরুতে @ai লেখা আছে কিনা
+            if (typedText.toLowerCase().startsWith("@ai ")) {
+                let question = typedText.substring(4).trim();
+                if (!question) return;
+
+                console.log("Radica এআই-কে পাঠানো হচ্ছে:", question);
+                
+                // ইনপুট বক্সটি ফাঁকা করে দেওয়া হচ্ছে
+                event.target.value = '';
+
+                // Radica এআই থেকে উত্তর নিয়ে আসা হচ্ছে
+                let answer = await getAIResponse(question);
+                console.log("Radica এআই এর উত্তর:", answer);
+
+                // ==============================================================
+                // ডেটাবেসে পুশ করার কোড এখানে বসাতে হবে।
+                // আপাতত কাজ করছে কিনা বোঝার জন্য একটি অ্যালার্ট (Alert) দেখাবে।
+                // ==============================================================
+                alert("Radica AI: " + answer);
+            }
+        }
+    });
+})();
+</script>
+    
 </body>
 </html>
