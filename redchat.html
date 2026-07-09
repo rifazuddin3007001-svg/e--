@@ -2756,14 +2756,18 @@
         }
     }, 2000);
                     </script>
-    <style>
+<!-- ==========================================
+     RADICA AI COMPLETE & FIXED WIDGET 
+     (Paste right before </body>)
+     ========================================== -->
+<style>
     /* চ্যাট উইজেটের ডিজাইন */
     #radica-ai-widget {
         position: fixed;
         bottom: 20px;
         right: 20px;
         width: 350px;
-        height: 450px;
+        height: 480px;
         background: #ffffff;
         border-radius: 12px;
         box-shadow: 0 5px 25px rgba(0,0,0,0.2);
@@ -2777,8 +2781,9 @@
     #radica-header {
         background: #ff4757;
         color: white;
-        padding: 12px;
+        padding: 15px;
         font-weight: bold;
+        font-size: 16px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -2793,11 +2798,12 @@
         gap: 10px;
     }
     .radica-msg {
-        max-width: 80%;
-        padding: 8px 12px;
+        max-width: 85%;
+        padding: 10px 14px;
         border-radius: 8px;
         font-size: 14px;
-        line-height: 1.4;
+        line-height: 1.5;
+        word-wrap: break-word;
     }
     .radica-user {
         background: #ff4757;
@@ -2820,7 +2826,7 @@
     }
     #radica-input {
         flex: 1;
-        padding: 8px 12px;
+        padding: 10px 15px;
         border: 1px solid #ccc;
         border-radius: 20px;
         outline: none;
@@ -2830,24 +2836,33 @@
         background: #ff4757;
         color: white;
         border: none;
-        padding: 8px 15px;
+        padding: 8px 18px;
         margin-left: 8px;
         border-radius: 20px;
         cursor: pointer;
         font-weight: bold;
+        transition: 0.2s;
     }
     #radica-send-btn:hover {
         background: #e84118;
     }
 </style>
 
+<!-- চ্যাট বক্সের HTML স্ট্রাকচার -->
 <div id="radica-ai-widget">
     <div id="radica-header">
         <span>🤖 Radica AI Assistant</span>
-        <span style="font-size: 12px; opacity: 0.8;">RedChaat</span>
+        <span style="font-size: 12px; opacity: 0.9;">RedChaat</span>
     </div>
-    <div id="radica-chat-body">
-        <div class="radica-msg radica-bot">হ্যালো! আমি Radica এআই। আপনাকে কীভাবে সাহায্য করতে পারি? (সোজা-সাপ্টা প্রশ্ন করুন)</div>
+    <div id="radica-chat-body" id="chat-box">
+        <div class="radica-msg radica-bot">
+            আমি Radica এআই। RedChaat-এ আপনাকে স্বাগতম! আপনি আমার সাথে সব রকমের প্রশ্নের উত্তর পাওয়ার জন্য কথা বলতে পারেন। 😊<br><br>
+            আমাদের কিছু কড়া নিয়ম আছে:<br>
+            ১. কোনো তেল মারা বা অতিরিক্ত কথা বলা চলবে না।<br>
+            ২. কোনো মনগড়া কথা বা ভুল তথ্য দেওয়া যাবে না।<br>
+            ৩. কোনো প্রশ্নের উত্তর না জানলে সরাসরি বলব 'এই বিষয়টি আমার জানা নেই।'<br>
+            ৪. একদম টু-দ্য-পয়েন্ট উত্তর দেব।
+        </div>
     </div>
     <div id="radica-input-area">
         <input type="text" id="radica-input" placeholder="এখানে আপনার প্রশ্ন লিখুন..." autocomplete="off">
@@ -2857,15 +2872,18 @@
 
 <script>
 (function() {
-    // ১. আপনার জেমিনাই এপিআই কি এখানে বসাবেন
+    // ==========================================
+    // ১. এখানে আপনার আসল জেমিনাই API Key বসান
+    // ==========================================
     const AI_API_KEY = "YOUR_GEMINI_API_KEY_HERE"; 
     
-    // ২. Radica এআই-এর পরিচয় এবং কঠোর নিয়মাবলী
-    const STRICT_RULES = `তোমার নাম 'Radica এআই' (Radica AI)। তুমি RedChaat মেসেজিং অ্যাপের একটি স্মার্ট এআই। তোমাকে নিচের নিয়মগুলো কঠোরভাবে মেনে চলতে হবে:
-১. কোনো রকম তেল মারা কথা, প্রশংসা বা অতিরিক্ত ভূমিকা বলা সম্পূর্ণ নিষিদ্ধ। একদম সোজা-সাপ্টা (straightforward) এবং কাজের উত্তর দেবে।
-২. নিজের মনগড়া, কাল্পনিক বা ভুল তথ্য দেবে না। যা সত্য কেবল সেটাই বলবে।
-৩. কোনো প্রশ্নের উত্তর না জানলে বানিয়ে বলবে না, সরাসরি বলবে "এই বিষয়টি আমার জানা নেই।"
-৪. একদম টু-দ্য-পয়েন্ট উত্তর দেবে, অহেতুক কথা বাড়াবে না।`;
+    // ২. Radica এআই-এর সিস্টেম রুলস
+    const STRICT_RULES = `তুমি RedChaat এর স্মার্ট এআই, তোমার নাম 'Radica এআই'। তুমি সব ধরনের প্রশ্নের উত্তর দিতে পারো। তোমার নিয়মাবলী:
+১. কোনো তেল মারা কথা বা প্রশংসা করবে না। সোজা-সাপ্টা উত্তর দেবে।
+২. মনগড়া বা ভুল তথ্য দেবে না। 
+৩. উত্তর না জানলে বলবে "এই বিষয়টি আমার জানা নেই।"
+৪. একদম টু-দ্য-পয়েন্ট উত্তর দেবে।
+`;
 
     const chatBody = document.getElementById('radica-chat-body');
     const userInput = document.getElementById('radica-input');
@@ -2875,62 +2893,72 @@
     function appendMessage(text, className) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `radica-msg ${className}`;
-        msgDiv.innerText = text;
+        msgDiv.innerHTML = text.replace(/\n/g, '<br>'); // লাইনের ব্রেক ঠিক রাখার জন্য
         chatBody.appendChild(msgDiv);
-        chatBody.scrollTop = chatBody.scrollHeight; // অটো স্ক্রোল ডাউন
+        chatBody.scrollTop = chatBody.scrollHeight;
+        return msgDiv;
     }
 
-    // জেমিনাই থেকে উত্তর আনার মেইন ফাংশন
+    // জেমিনাই API থেকে উত্তর আনার ফাংশন
     async function getAIResponse(question) {
         try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${AI_API_KEY}`, {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${AI_API_KEY}`;
+            const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: STRICT_RULES + "\n\nপ্রশ্ন: " + question }] }],
-                    generationConfig: { temperature: 0.1 } // সঠিক তথ্যের জন্য কম ক্রিয়েটিভিটি
+                    contents: [{ parts: [{ text: STRICT_RULES + "\nইউজারের প্রশ্ন: " + question }] }],
+                    generationConfig: { temperature: 0.2 }
                 })
             });
-            const data = await res.json();
-            if (data.candidates && data.candidates[0] && data.candidates[0].content.parts[0]) {
+
+            const data = await response.json();
+            
+            // API থেকে ঠিকমতো ডেটা এলে সেটি রিটার্ন করবে
+            if (data && data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts.length > 0) {
                 return data.candidates[0].content.parts[0].text.trim();
+            } else {
+                console.error("API Response Error:", data);
+                return "দুঃখিত, আমি এই মুহূর্তে উত্তরটি খুঁজে পাচ্ছি না।";
             }
-            return "দুঃখিত, কোনো উত্তর পাওয়া যায়নি।";
         } catch (err) {
-            console.error("Radica AI Error:", err);
-            return "সার্ভারে সমস্যা হচ্ছে। অনুগ্রহ করে এপিআই কি চেক করুন।";
+            console.error("Fetch Error:", err);
+            return "নেটওয়ার্ক বা সার্ভারে সমস্যা হচ্ছে। দয়া করে একটু পর আবার চেষ্টা করুন।";
         }
     }
 
-    // মেসেজ পাঠানোর লজিক
+    // মেসেজ সেন্ড করার প্রধান লজিক
     async function handleSend() {
         let question = userInput.value.trim();
         if (!question) return;
 
-        // ইউজারের মেসেজ স্ক্রিনে দেখানো
+        // ১. ইউজারের মেসেজ স্ক্রিনে দেখানো
         appendMessage(question, 'radica-user');
         userInput.value = '';
 
-        // লোডিং মেসেজ দেখানো
-        appendMessage("Radica AI উত্তর খুঁজছে...", 'radica-bot');
-        const loadingMsgNode = chatBody.lastChild;
+        // ২. লোডিং মেসেজ দেখানো
+        const loadingMsgNode = appendMessage("Radica AI উত্তর খুঁজছে... 🤖", 'radica-bot');
 
-        // এআই থেকে সোজা-সাপ্টা উত্তর আনা
+        // ৩. API কল করে উত্তর আনা
         let answer = await getAIResponse(question);
 
-        // লোডিং মেসেজটি সরিয়ে আসল উত্তর বসানো
-        loadingMsgNode.innerText = answer;
+        // ৪. লোডিং মেসেজ সরিয়ে আসল উত্তরটি বসানো
+        loadingMsgNode.innerHTML = `<strong>Radica AI:</strong> ${answer.replace(/\n/g, '<br>')}`;
         chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    // বাটনে ক্লিক করলে বা এন্টার চাপলে মেসেজ যাবে
+    // বাটনে ক্লিক করলে কাজ করবে
     sendBtn.addEventListener('click', handleSend);
+    
+    // এন্টার চাপলে কাজ করবে
     userInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') handleSend();
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSend();
+        }
     });
 })();
 </script>
-    
     
 </body>
 </html>
